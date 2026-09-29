@@ -22,6 +22,7 @@ public sealed class GameFlow : MonoBehaviour {
     }
     public void ExitToMenu() {
         Time.timeScale = 1;
+        PlayerSession.ReturnToLobby = true;
         SceneManager.LoadScene(mainMenuScene);
     }
     private void OnDestroy() { Time.timeScale = 1; }

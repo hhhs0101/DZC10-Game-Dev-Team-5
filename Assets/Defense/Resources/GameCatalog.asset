@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 735a41dbf2b7497a9137beaa5d5d61d5, type: 3}
+  m_Name: GameCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::Defense.GameCatalog
+  stages:
+  - {fileID: 11400000, guid: 8c326c6647134616bf0ae753d9ab9298, type: 2}
+  - {fileID: 11400000, guid: 641526385d7a4d588f406a9805f47e5b, type: 2}
+  - {fileID: 11400000, guid: 43786d6748bd4cc6b1ed6b0e56ebde6b, type: 2}
+  - {fileID: 11400000, guid: a16488d07d564e7a9a115baeb0182957, type: 2}
+  - {fileID: 11400000, guid: 40b9dc58a14b4c72ac13b0f3a239e7c3, type: 2}
+  - {fileID: 11400000, guid: 32ff033dba274a69baaa967a15b99d9a, type: 2}
+  - {fileID: 11400000, guid: b11a5dbc6afb4a878707d849bb8e79a0, type: 2}
+  - {fileID: 11400000, guid: 0b30a91b34944a97a51f114a662eff77, type: 2}
+  - {fileID: 11400000, guid: 4d350fd01a4c49a19bcd0fe02e5db334, type: 2}
+  - {fileID: 11400000, guid: 7e8b7810c28847e7a09eb5eb4bcc5799, type: 2}
+  availableTowers:
+  - {fileID: 11400000, guid: 04ae679be013433580c018e4b27e4bd9, type: 2}
+  - {fileID: 11400000, guid: 1e6ab288cd744598bff374d5eeffb51a, type: 2}
+  - {fileID: 11400000, guid: da7da4367609414b848cbffc6eeb6989, type: 2}
+  - {fileID: 11400000, guid: 77f87bbb556540338f374b28909c58ce, type: 2}
+  - {fileID: 11400000, guid: e4b1a8111c4443c7a7b257069f53c20c, type: 2}
+  - {fileID: 11400000, guid: ef06fe9018324dca93da0498e2b6e1cb, type: 2}
+  - {fileID: 11400000, guid: a11d850e7ca94361a7f53d9a42127286, type: 2}
+  - {fileID: 11400000, guid: 9ad1b49f244c422d86ec7ddf656f4a82, type: 2}
+  - {fileID: 11400000, guid: 50dc4948a2c54e29b9cf4bc2aef3c5c7, type: 2}
+  - {fileID: 11400000, guid: 305c46df435f4aa1b1c1132934f1144b, type: 2}
+  - {fileID: 11400000, guid: e02725fae4ce49f08d0a8c5379af30e5, type: 2}
+  - {fileID: 11400000, guid: 73937451273d492f88b9f192e6ad2445, type: 2}
+  - {fileID: 11400000, guid: e894706fe3fc47e9b8c663ef2fd9ba23, type: 2}
+  - {fileID: 11400000, guid: 6d825669446e4e0db5f7634c36570dbc, type: 2}
+  - {fileID: 11400000, guid: a01db84bfef0453497ce5e0efeb5ecc2, type: 2}
+  initialDeck:
+  - {fileID: 11400000, guid: 04ae679be013433580c018e4b27e4bd9, type: 2}
+  - {fileID: 11400000, guid: 1e6ab288cd744598bff374d5eeffb51a, type: 2}
+  - {fileID: 11400000, guid: da7da4367609414b848cbffc6eeb6989, type: 2}
+  - {fileID: 11400000, guid: 04ae679be013433580c018e4b27e4bd9, type: 2}
+  - {fileID: 11400000, guid: 1e6ab288cd744598bff374d5eeffb51a, type: 2}
+  - {fileID: 11400000, guid: da7da4367609414b848cbffc6eeb6989, type: 2}

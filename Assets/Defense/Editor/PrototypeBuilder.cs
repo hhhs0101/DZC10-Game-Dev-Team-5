@@ -39,6 +39,7 @@ public static class PrototypeBuilder {
             TestTurret(3,turretPrefab,closest,5,2.5f,1f/3f,100)
         });
         AssetDatabase.SaveAssets();
+        LobbyAssetSetup.CreateCatalog();
         BuildStage(stage,sprite); BuildMenu(stage);
         EditorBuildSettings.scenes = new[] {
             new EditorBuildSettingsScene(Root+"Scenes/MainMenu.unity",true),
@@ -53,7 +54,7 @@ public static class PrototypeBuilder {
         Camera camera = Camera(); camera.backgroundColor = new Color(.07f,.1f,.15f);
         Canvas canvas = Canvas();
         var ui = new GameObject("MainMenuUI").AddComponent<MainMenuUI>();
-        Set(ui,"canvas",canvas); SetArray(ui,"stages",new Object[]{stage});
+        Set(ui,"canvas",canvas);
         EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene(),Root+"Scenes/MainMenu.unity");
     }
     private static void BuildStage(StageDefinition stage, Sprite sprite) {
@@ -99,7 +100,7 @@ public static class PrototypeBuilder {
         Canvas canvas = Canvas();
         var ui = new GameObject("GameplayUI").AddComponent<GameplayUI>();
         Set(ui,"canvas",canvas); Set(ui,"flow",flow); Set(ui,"baseHealth",baseHealth); Set(ui,"wallet",wallet); Set(ui,"placement",placement);
-        var build = ui.GetComponent<BuildMenuUI>(); Set(build,"stage",stage); Set(build,"placement",placement);
+        var build = ui.GetComponent<BuildMenuUI>(); Set(build,"placement",placement);
         EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene(),Root+"Scenes/TestStage.unity");
     }
     private static TurretDefinition TestTurret(int number, Turret prefab, TargetingStrategy strategy, float damage, float range, float cooldown, int cost) {

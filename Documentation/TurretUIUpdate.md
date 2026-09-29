@@ -1,3 +1,5 @@
+> 이전 변경 기록입니다. 현재 Turrets 토글 메뉴는 3장 Hand로 대체되었습니다. 최신 구조는 LobbyDeckHandUpdate.md를 참고하세요.
+
 # Test Turrets / Build UI 변경 보고
 
 ## 새 파일

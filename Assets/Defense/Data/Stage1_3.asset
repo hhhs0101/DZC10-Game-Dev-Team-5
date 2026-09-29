@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d16f3810864884c378b0a0ec8de87ccb, type: 3}
+  m_Name: Stage1_3
+  m_EditorClassIdentifier: Assembly-CSharp::Defense.StageDefinition
+  displayName: 1-3
+  sceneName: TestStage
+  baseHealth: 10
+  startingResources: 200
+  enemy: {fileID: 11400000, guid: 7a6f0a7f726844ff096a5805a8eb4c74, type: 2}
+  spawnInterval: 1.8
+  availableTurrets:
+  - {fileID: 11400000, guid: 04ae679be013433580c018e4b27e4bd9, type: 2}
+  - {fileID: 11400000, guid: 1e6ab288cd744598bff374d5eeffb51a, type: 2}
+  - {fileID: 11400000, guid: da7da4367609414b848cbffc6eeb6989, type: 2}

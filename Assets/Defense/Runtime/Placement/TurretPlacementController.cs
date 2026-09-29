@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 namespace Defense {
+[RequireComponent(typeof(GameplayHand))]
 public sealed class TurretPlacementController : MonoBehaviour {
     [SerializeField] private Camera worldCamera;
     [SerializeField] private GameFlow flow;
@@ -12,6 +13,7 @@ public sealed class TurretPlacementController : MonoBehaviour {
     private TowerPlacementSlot hoveredSlot;
     public TurretDefinition Selected => selected;
     public event Action<string> Message;
+    public event Action<TurretDefinition> Placed;
     public event Action<TurretDefinition> SelectionChanged;
     public void Select(TurretDefinition definition) {
         if (!flow.IsPlaying) return;
@@ -34,7 +36,7 @@ public sealed class TurretPlacementController : MonoBehaviour {
     }
     private void OnDisable() { SetHoveredSlot(null); }
     public bool TryPlace(TowerPlacementSlot slot) {
-        if (!flow.IsPlaying || selected == null) return false;
+        if (!flow.IsPlaying || selected == null || !GetComponent<GameplayHand>().CanPlace(selected)) return false;
         if (slot == null) return Fail("You cannot place a turret here.");
         if (slot.IsOccupied) return Fail("A turret is already placed here.");
         if (!wallet.CanAfford(selected.Cost)) return Fail("Not enough resources.");
@@ -45,6 +47,8 @@ public sealed class TurretPlacementController : MonoBehaviour {
         turret.Initialize(selected, registry);
         if (!slot.TryOccupy(turret)) { Destroy(turret.gameObject); return Fail("A turret is already placed here."); }
         wallet.TrySpend(selected.Cost);
+        var used = selected;
+        Placed?.Invoke(used);
         Message?.Invoke("Turret placed."); return true;
     }
     private bool Fail(string message) { Message?.Invoke(message); return false; }

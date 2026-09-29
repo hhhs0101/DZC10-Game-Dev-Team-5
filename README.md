@@ -1,54 +1,46 @@
-# Unity 2D Defense — Minimum Playable Prototype
+# Unity 2D Defense — Lobby / Deck / Hand Prototype
 
-Unity **6000.6.0f1** 프로젝트입니다. `Documentation/Main.md`, `Tower.md`, `enemy.md`와 사용자의 현재 구현 범위를 기준으로 작성했습니다. 작업 시작 시 프로젝트 폴더는 비어 있었습니다.
+Unity **6000.6.0f1** 프로젝트입니다. 기존 전투에 세션 Lobby·6칸 덱 편집·3장 Hand를 연결했습니다. final graphics나 디스크 저장은 없습니다.
 
-## 실행
+## 실행과 조작
 
-1. Unity Hub에서 이 `GameDesign` 폴더를 프로젝트로 추가하고 Unity 6000.6.0f1로 엽니다.
-2. `Assets/Defense/Scenes/MainMenu.unity`를 열고 **Play**를 누릅니다.
-3. **Start Game → Test Stage**를 선택합니다.
-4. 오른쪽 아래 **Turrets**를 눌러 선택 패널을 열고 **Test Turret 1/2/3** 중 하나를 선택한 뒤 초록색 설치 슬롯을 클릭합니다. 선택은 설치 후에도 유지되며 화면 하단에 이름과 비용이 표시됩니다. Turrets를 다시 누르면 패널이 닫힙니다.
-5. 우측 상단 **Pause** 또는 **Esc**로 정지/재개합니다.
+1. Unity Hub에서 이 `GameDesign` 폴더를 열고 `Assets/Defense/Scenes/MainMenu.unity`를 실행합니다.
+2. **Start Game → Lobby**. **A / D**로 스테이지를 이동합니다. 길게 누르면 0.4초 후 0.15초마다 반복합니다.
+3. 중앙 스테이지가 정렬되면 **Enter** 또는 **Enter Stage**로 입장합니다. 목록은 1-1부터 1-10까지이며, 기존 해금 규칙대로 처음에는 1-1만 열려 있습니다.
+4. **Deck**에서 왼쪽 포탑 카드를 오른쪽 T1–T6 슬롯에 드래그합니다. 변경은 즉시 적용됩니다. **Back to Lobby**로 돌아갑니다.
+5. 전투 하단의 Hand 카드 3장 중 하나를 선택하고 초록 설치 슬롯을 클릭합니다. 성공하면 사용 카드가 Queue 뒤로 가고 다음 카드가 Hand 오른쪽에 들어옵니다.
+6. **Pause / Esc**로 정지·재개합니다. Pause → Exit → Yes 또는 Game Over → Lobby로 돌아오면 덱은 유지됩니다.
 
-두 Scene, 프리팹, ScriptableObject, Build Settings와 Inspector 연결은 이미 생성되어 있습니다. 별도 설정이 필요하지 않습니다. 설정 화면은 placeholder이며 실제 설정을 변경하지 않습니다.
+Settings는 placeholder입니다. Main Menu, Lobby, Deck Editor, Pause에서 진입한 화면으로 돌아갑니다.
 
-- 빨간 사각형: 적 (머리 위에 현재 HP 비율 표시)
-- 파란 작은 사각형: 설치한 포탑
-- 초록색 사각형: 사용 가능한 설치 슬롯 (8개). 호버 시 밝아지고, 설치 후 갈색으로 변경
-- 오른쪽 파란 큰 사각형: Base
-- 회색 선: 이동 경로
+## 데이터와 현재 가정
 
-## 기본 테스트 값
+- `Assets/Defense/Resources/GameCatalog.asset`: 스테이지 순서, Available Towers, 기본 T1–T6.
+- 포탑은 총 15종이며, 초기 덱은 기존 구성을 유지해 `[Test1, Test2, Test3, Test1, Test2, Test3]`입니다. 중복 정의는 허용하지만 카드 엔트리는 슬롯별로 구분합니다.
+- Available Towers는 **수량 제한 없는 타입 카탈로그**입니다. 넣은 타입도 계속 사용 가능하며, 교체된 타입도 목록에서 다시 사용할 수 있습니다. 별도 인벤토리 수량은 없습니다.
+- T1–T6는 덱 편집 위치입니다. 전투 진입 시 별도 복사본만 한 번 섞습니다. Hand/Queue 변화는 영구 덱을 수정하지 않습니다.
+- 세션 동안 유지하며 앱을 다시 실행하면 초기 덱·진행도로 돌아옵니다. 파일 저장/PlayerPrefs는 사용하지 않습니다.
+- `1-1`부터 `1-10`까지는 모두 TestStage 맵을 재사용합니다. 시작 자원은 150부터 375까지 증가하고, 스폰 간격은 2초부터 1.1초까지 감소합니다.
+- 진행도는 `PlayerSession.CompleteActiveStage()` 통지로 다음 항목을 해금합니다. 무한 스폰 테스트에 임의의 승리 조건은 추가하지 않았으므로 정상 플레이에서 자동 완료되지는 않습니다. Game Over는 해금하지 않습니다.
 
-| 설정 | 값 | 수정할 에셋 |
-|---|---:|---|
-| Base HP | 10 | `Assets/Defense/Data/TestStage.asset` |
-| 시작 자원 | 150 | 동일 |
-| 생성 간격 | 2초, 첫 생성도 2초 후 | 동일 |
-| 적 HP / 속도 / Base 피해 | 40 / 1.5 / 1 | `Assets/Defense/Data/BasicEnemy.asset` |
-| Test Turret 1 비용 / 피해 / 범위 / 쿨다운 | 50 / 10 / 3 / 1초 | `Assets/Defense/Data/TestTurret1.asset` |
-| Test Turret 2 비용 / 피해 / 범위 / 쿨다운 | 75 / 30 / 5 / 2.5초 | `Assets/Defense/Data/TestTurret2.asset` |
-| Test Turret 3 비용 / 피해 / 범위 / 쿨다운 | 100 / 5 / 2.5 / 약 0.333초 | `Assets/Defense/Data/TestTurret3.asset` |
+## 기본 수치
 
-적을 처치하면 해당 EnemyDefinition의 Resource Reward만큼 자원을 얻습니다. BasicEnemy의 기본 보상은 10이며, Base 도달·일반 제거에는 보상이 없습니다. 시간에 따른 자동 수급과 승리 조건은 없습니다. 적은 계속 생성됩니다. 처음 주어진 자원으로 Test Turret 1은 3개를 설치할 수 있으며, 선택한 종류에 따라 설치 가능 수가 달라집니다. 아무것도 설치하지 않으면 적이 Base에 도달하여 Game Over를 테스트할 수 있습니다.
+| 포탑 | 피해 | 범위 | 초당 공격 | 비용 |
+|---|---:|---:|---:|---:|
+| Test Turret 1 | 10 | 3 | 1 | 50 |
+| Test Turret 2 | 30 | 5 | 0.4 | 75 |
+| Test Turret 3 | 5 | 2.5 | 3 | 100 |
 
-## 적별 처치 보상 설정
+1-1 기준 Base HP 10, 시작 자원 150, 적 스폰 간격 2초입니다. 적 HP 40, 속도 1.5, Base 피해 1, 처치 보상 10입니다. `BasicEnemy.asset`의 **Resource Reward**를 적 정의별로 변경할 수 있습니다.
 
-`Assets/Defense/Data/BasicEnemy.asset`을 선택하고 Inspector의 **Resource Reward**를 변경하세요. 0은 보상 없음입니다. 다른 적은 별도의 EnemyDefinition 에셋을 만들어 각각 다른 값을 설정할 수 있습니다. 각 적은 스폰 시 보상 값을 저장하며 처치 시 한 번만 지급합니다. Resource HUD는 자동 갱신됩니다.
+초록 슬롯은 호버 시 밝아지고 점유 시 갈색입니다. 빨간 적 위에 HP 바가 표시됩니다. 15종 모두 기존 BasicTurret 프리팹과 전투 코드를 공유합니다. 덱 편집기 왼쪽 목록을 스크롤하면 추가 포탑을 볼 수 있습니다. 전체 수치는 `Documentation/TestCatalog.md`에 있습니다.
 
-## 구조 및 설정 문서
+## 문서
 
-- `Documentation/Architecture.md`: 책임, 상속·조합 구조, 통신과 확장 지점
-- `Documentation/SceneSetup.md`: Scene/GameObject/Prefab/Inspector 연결 및 새 스테이지 구성
-- `Documentation/Validation.md`: 자동 검증 실행 방법과 수동 확인 항목
-- `Documentation/ValidationResult.txt`: 마지막 자동 검증 결과
+- `Documentation/LobbyDeckHandUpdate.md`: 변경 파일 전체 목록, 데이터 구조, 카드 순환, 구현 범위
+- `Documentation/Architecture.md`: 현재 구조
+- `Documentation/SceneSetup.md`: Scene/Inspector 연결
+- `Documentation/Validation.md`: 233개 자동 검증과 미검증 항목
+- `Documentation/Main.md`, `Tower.md`, `enemy.md`, `Lobby.md`, `Deck.md`, `HandCycle.md`: 원본 specification 사본
 
-`Defense → Create Missing Prototype Assets`는 초기 에셋 생성용 Editor 도구입니다. Scene이 이미 있으면 수정을 보호하기 위해 실행을 건너뜁니다. 평소에는 다시 실행하지 않습니다.
-
-## 의존성
-
-Unity에 포함된 **uGUI 2.6.0**과 기본 모듈만 사용합니다. 외부 패키지, 새로운 Input System, TMP, 렌더 파이프라인 패키지는 추가하지 않았습니다. 입력은 Unity의 기본 Input Manager를 사용하며 프로젝트 설정이 이에 맞춰져 있습니다.
-
-프로젝트 데이터와 `.meta` 파일을 함께 보관하세요. `Library`, `Temp`, `Logs`는 캐시이며 버전 관리 대상이 아닙니다.
-
-테스트 포탑·빌드 메뉴·HP 바 변경 내역: `Documentation/TurretUIUpdate.md`.
+Unity 기본 uGUI와 모듈만 사용합니다. 새 외부 패키지는 추가하지 않았습니다. `.meta` 파일은 해당 에셋과 함께 보관하세요.

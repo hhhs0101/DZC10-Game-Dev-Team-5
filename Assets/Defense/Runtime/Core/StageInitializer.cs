@@ -9,6 +9,13 @@ public sealed class StageInitializer : MonoBehaviour {
     [SerializeField] private BaseHealth baseHealth;
     [SerializeField] private FixedIntervalSpawner schedule;
     private void Awake() {
+        PlayerSession.Ensure();
+        if (PlayerSession.ActiveStage != null && PlayerSession.ActiveStage.SceneName == gameObject.scene.name)
+            definition = PlayerSession.ActiveStage;
+        var placement = GetComponent<TurretPlacementController>();
+        var hand = GetComponent<GameplayHand>();
+        if (hand == null) hand = gameObject.AddComponent<GameplayHand>();
+        hand.Initialize(PlayerSession.Deck,placement,flow);
         wallet.Initialize(definition.StartingResources);
         baseHealth.Initialize(definition.BaseHealth);
         baseHealth.Depleted += flow.GameOver;

@@ -18,7 +18,7 @@ public sealed class GameplayUI : MonoBehaviour {
         hpLabel = UiFactory.Label(root,"",new Vector2(0,1),new Vector2(120,-35),new Vector2(220,50));
         resourcesLabel = UiFactory.Label(root,"",new Vector2(0,1),new Vector2(370,-35),new Vector2(260,50));
         pauseButton = UiFactory.Button(root,"Pause",new Vector2(-90,-35),flow.TogglePause,new Vector2(1,1),new Vector2(140,48));
-        messageLabel = UiFactory.Label(root,"Open Turrets, select a type, then click a green slot.",new Vector2(.5f,0),new Vector2(0,105),new Vector2(950,50));
+        messageLabel = UiFactory.Label(root,"",new Vector2(.5f,0),new Vector2(0,163),new Vector2(950,50));
         messageUntil = float.PositiveInfinity;
         GetComponent<BuildMenuUI>().Initialize(root);
         pause = Overlay("Pause",root);
@@ -32,7 +32,7 @@ public sealed class GameplayUI : MonoBehaviour {
         UiFactory.Button(confirmation.transform,"No",new Vector2(0,-70),() => { confirmation.SetActive(false); pause.SetActive(true); });
         gameOver = Overlay("Game Over",root);
         UiFactory.Label(gameOver.transform,"Game Over",new Vector2(.5f,.5f),new Vector2(0,90),new Vector2(600,70),42);
-        UiFactory.Button(gameOver.transform,"Main Menu",new Vector2(0,-20),flow.ExitToMenu);
+        UiFactory.Button(gameOver.transform,"Lobby",new Vector2(0,-20),flow.ExitToMenu);
         settings = GetComponent<SettingsUI>(); settings.Initialize(root);
         baseHealth.Changed += UpdateHealth; wallet.Changed += UpdateResources;
         flow.Changed += UpdateState; placement.Message += ShowMessage;

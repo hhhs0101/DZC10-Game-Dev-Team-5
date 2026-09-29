@@ -149,8 +149,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82660a38fd7b8424588a22673f3f575b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Defense.MainMenuUI
-  stages:
-  - {fileID: 11400000, guid: 9bbe8ca128f72427087c5025046a3089, type: 2}
   canvas: {fileID: 40682097}
 --- !u!114 &14481026
 MonoBehaviour:

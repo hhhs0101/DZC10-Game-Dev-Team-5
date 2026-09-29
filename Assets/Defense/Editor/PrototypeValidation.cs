@@ -1,33 +1,30 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
 namespace Defense.Editor {
-// No extra test package required. Runs assertions against the generated scenes in Play Mode.
 [InitializeOnLoad]
 public static class PrototypeValidation {
     private const string Key = "Defense.Validation.Running";
-    private static int step;
-    private static double deadline;
-    private static double started;
+    private static int step, assertions, turretIndex;
+    private static double started, deadline;
+    private static TurretDefinition[] persistentSnapshot;
+    private static RuntimeCardCycle firstRun;
     private static Enemy pausedEnemy, combatEnemy;
     private static Vector3 pausedPosition;
-    private static float pausedHealth;
-    private static int pausedCount;
-    private static string lastMessage;
-    private static int assertions;
-    private static int balanceBeforeBase, balanceBeforeCombat;
-    private static int turretIndex;
+    private static float pausedHP;
+    private static int pausedCount, balanceBeforeBase;
     private static Turret combatTurret;
     private static EnemyDefinition durableEnemy;
-    private static readonly System.Collections.Generic.List<float> hitTimes = new System.Collections.Generic.List<float>();
-    private static readonly System.Collections.Generic.List<float> hitHealth = new System.Collections.Generic.List<float>();
-    static PrototypeValidation() {
-        if (SessionState.GetBool(Key,false)) Attach();
-    }
+    private static readonly List<float> hits = new List<float>();
+    private static readonly List<float> healths = new List<float>();
+    private static string lastMessage;
+    static PrototypeValidation() { if (SessionState.GetBool(Key,false)) Attach(); }
     [MenuItem("Defense/Run Prototype Validation (Play Mode)")]
     public static void Run() {
         if (EditorApplication.isPlaying) throw new InvalidOperationException("Exit Play Mode before validation.");
@@ -41,216 +38,258 @@ public static class PrototypeValidation {
         Application.logMessageReceived -= OnLog; Application.logMessageReceived += OnLog;
     }
     private static void OnLog(string message, string trace, LogType type) {
-        // Unity 6000.6 can throw during its own asynchronous Search index startup in batch mode.
-        // Exclude only that Editor-only stack; all runtime/game exceptions still fail validation.
         if (trace.Contains("UnityEditor.Search.SearchDatabase") && !trace.Contains("Defense.")) {
-            Debug.LogWarning("Editor Search indexing issue (outside gameplay): " + message); return;
+            Debug.LogWarning("Editor Search indexing issue (outside gameplay): "+message); return;
         }
-        if (type == LogType.Exception || type == LogType.Error || type == LogType.Assert) Finish(false,message + "\n" + trace);
+        if (type == LogType.Error || type == LogType.Exception || type == LogType.Assert) Finish(false,message+"\n"+trace);
     }
     private static T Find<T>() where T : UnityEngine.Object => UnityEngine.Object.FindFirstObjectByType<T>();
-    private static void Check(bool condition, string label) {
-        if (!condition) throw new Exception(label);
-        assertions++; Debug.Log("PASS: " + label);
+    private static void Check(bool value, string message) {
+        if (!value) throw new Exception(message);
+        assertions++; Debug.Log("PASS: "+message);
     }
-    private static void Click(string label) {
-        Button button = UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Single(b => b.GetComponentInChildren<Text>().text == label);
-        Check(button.interactable,"Button available: " + label); button.onClick.Invoke();
+    private static void Click(string text) {
+        var button = UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Single(b=>b.GetComponentInChildren<Text>().text==text);
+        Check(button.interactable,"Button available: "+text); button.onClick.Invoke();
     }
-    private static void Wait(int next, double delay = .25) { step = next; deadline = EditorApplication.timeSinceStartup + delay; }
+    private static void Card(int index) {
+        var button = GameObject.Find("Hand Card "+(index+1)).GetComponent<Button>();
+        Check(button.interactable,"Hand card selectable"); button.onClick.Invoke();
+    }
+    private static void Wait(int next, double seconds=.3) { step = next; deadline = EditorApplication.timeSinceStartup+seconds; }
     private static void Tick() {
         if (!SessionState.GetBool(Key,false)) return;
         try {
-            if (EditorApplication.timeSinceStartup - started > 60) throw new Exception("Play Mode validation timed out.");
-            if (!EditorApplication.isPlaying || EditorApplication.isCompiling || EditorApplication.timeSinceStartup < deadline) return;
-            var stage = AssetDatabase.LoadAssetAtPath<StageDefinition>("Assets/Defense/Data/TestStage.asset");
+            if (EditorApplication.timeSinceStartup-started > 180) throw new Exception("Validation timed out.");
+            if (!EditorApplication.isPlaying || EditorApplication.isCompiling || EditorApplication.timeSinceStartup<deadline) return;
             switch (step) {
                 case 0:
-                    if (Find<MainMenuUI>() == null || Find<Button>() == null) return;
-                    Click("Settings"); Click("Back"); Click("Start Game"); Click("Test Stage"); Wait(1); break;
+                    if (Find<MainMenuUI>()==null || Find<Button>()==null) return;
+                    TestModels();
+                    Click("Settings"); Click("Back"); Click("Start Game");
+                    TestLobbyAndDeck();
+                    Find<LobbyUI>().HandleNavigation(-1,200); Find<LobbyUI>().Carousel.Advance(1);
+                    Check(PlayerSession.Selection.SelectedStageIndex==0,"A navigation moves backward to first stage");
+                    Click("Enter Stage"); Wait(1); break;
                 case 1:
-                    if (Find<EnemyRegistry>() == null || Find<EnemyRegistry>().Enemies.Count == 0) return;
-                    Check(SceneManager.GetActiveScene().name == "TestStage","Stage catalog loads TestStage");
-                    Check(Find<ResourceWallet>().Balance == 150,"Starting resources");
-                    Check(Find<BaseHealth>().Current == 10,"Starting Base HP");
-                    Check(Find<EnemyRegistry>().Enemies.Count > 0,"Fixed interval actually spawns enemies");
-                    Find<FixedIntervalSpawner>().enabled = false;
-                    TestBuildMenu(stage);
-                    TestPlacementAndTargeting(stage);
-                    TestKillRewards(stage);
-                    balanceBeforeBase = Find<ResourceWallet>().Balance;
-                    pausedEnemy = Find<EnemySpawner>().Spawn(stage.Enemy);
-                    Click("Pause");
-                    Check(Find<GameFlow>().State == GameplayState.Paused && Time.timeScale == 0,"Pause button freezes gameplay");
-                    pausedPosition = pausedEnemy.transform.position; pausedHealth = pausedEnemy.CurrentHealth;
-                    pausedCount = Find<EnemyRegistry>().Enemies.Count;
-                    Check(!Find<TurretPlacementController>().TryPlace(Find<TowerPlacementSlot>()),"Placement blocked during pause");
-                    Check(Find<EnemySpawner>().Spawn(stage.Enemy) == null,"Spawning blocked during pause");
-                    Click("Settings"); Click("Back");
-                    Check(Find<GameFlow>().State == GameplayState.Paused,"Settings Back preserves pause");
-                    Wait(2,.5); break;
-                case 2:
-                    Check(pausedEnemy.transform.position == pausedPosition,"Enemy position stays frozen");
-                    Check(pausedEnemy.CurrentHealth == pausedHealth,"Turrets do not damage while paused");
-                    Check(Find<EnemyRegistry>().Enemies.Count == pausedCount,"Enemy count stays frozen");
-                    Click("Resume"); Check(Time.timeScale == 1,"Resume restores time");
-                    pausedEnemy.GetComponent<EnemyPathFollower>().Advance(100);
-                    Check(Find<BaseHealth>().Current == 9,"Reaching Base applies damage");
-                    pausedEnemy.GetComponent<EnemyPathFollower>().Advance(100);
-                    Check(Find<BaseHealth>().Current == 9,"Reaching Base only applies damage once");
-                    Check(Find<ResourceWallet>().Balance == balanceBeforeBase,"Reaching Base grants no resources");
-                    balanceBeforeCombat = Find<ResourceWallet>().Balance;
-                    combatEnemy = Find<EnemySpawner>().Spawn(stage.Enemy);
-                    combatEnemy.GetComponent<EnemyPathFollower>().Stop();
-                    var tower = Find<Turret>(); combatEnemy.transform.position = tower.transform.position + Vector3.right*.2f;
-                    Wait(3,1); break;
-                case 3:
-                    Check(combatEnemy == null || combatEnemy.CurrentHealth < stage.Enemy.Health,"Turret auto attack applies damage");
-                    Wait(4,3.2); break;
-                case 4:
-                    Check(combatEnemy == null,"Combat removes enemy at zero HP");
-                    Check(Find<ResourceWallet>().Balance == balanceBeforeCombat + stage.Enemy.ResourceReward,"Turret kill credits configured reward");
-                    Find<BaseHealth>().ReceiveDamage(100);
-                    Check(Find<GameFlow>().State == GameplayState.GameOver && Time.timeScale == 0,"Base depletion enters Game Over");
-                    Check(Find<EnemySpawner>().Spawn(stage.Enemy) == null,"Game Over prevents spawning");
-                    Check(!Find<TurretPlacementController>().TryPlace(Find<TowerPlacementSlot>()),"Game Over prevents placement");
-                    Find<GameFlow>().TogglePause(); Check(Find<GameFlow>().State == GameplayState.GameOver,"Game Over cannot resume");
-                    Click("Main Menu"); Wait(5); break;
-                case 5:
-                    Check(Time.timeScale == 1,"Leaving Game Over resets time");
-                    Click("Start Game"); Click("Test Stage"); Wait(6); break;
-                case 6:
-                    Check(Find<ResourceWallet>().Balance == 150 && Find<BaseHealth>().Current == 10,"Reentering stage resets HP/resources");
-                    Check(UnityEngine.Object.FindObjectsByType<TowerPlacementSlot>(FindObjectsSortMode.None).All(s => !s.IsOccupied),"Reentering stage resets slots");
-                    Click("Pause"); Click("Exit"); Click("No");
-                    Check(Find<GameFlow>().State == GameplayState.Paused,"Exit No returns to paused state");
-                    Click("Exit"); Click("Yes"); Wait(7); break;
-                case 7:
-                    Check(SceneManager.GetActiveScene().name == "MainMenu" && Time.timeScale == 1,"Exit Yes returns to Main Menu");
-                    Click("Start Game"); Click("Test Stage"); Wait(8); break;
-                case 8:
-                    Find<FixedIntervalSpawner>().enabled = false;
+                    if (Find<EnemyRegistry>()==null || Find<EnemyRegistry>().Enemies.Count==0) return;
+                    Check(SceneManager.GetActiveScene().name=="TestStage","Unlocked centered stage loads");
+                    Check(Find<BaseHealth>().Current==10 && Find<ResourceWallet>().Balance==150,"Stage starts with HP and resources");
+                    Check(Find<EnemyRegistry>().Enemies.Count>0,"Fixed interval spawns enemies");
+                    Find<FixedIntervalSpawner>().enabled=false;
                     foreach (var enemy in Find<EnemyRegistry>().Enemies.ToArray()) enemy.ReceiveDamage(10000);
-                    Find<ResourceWallet>().Initialize(1000);
-                    BeginTurretCombat(stage); Wait(9,.3); break;
-                case 9:
-                    Check(combatEnemy.CurrentHealth == 1000,"Turret " + (turretIndex+1) + " excludes enemy outside its own range");
-                    combatEnemy.transform.position = combatTurret.transform.position + Vector3.right*(stage.AvailableTurrets[turretIndex].AttackRange-.1f);
-                    Wait(10,.01); break;
-                case 10:
-                    if (hitTimes.Count < 3) return;
-                    var data = stage.AvailableTurrets[turretIndex];
-                    Check(Mathf.Approximately(hitHealth[0],1000-data.Damage) && Mathf.Approximately(hitHealth[1],1000-2*data.Damage),"Turret " + (turretIndex+1) + " applies its own damage");
-                    Check(hitTimes[1]-hitTimes[0] >= data.AttackCooldown-.03f && hitTimes[2]-hitTimes[1] >= data.AttackCooldown-.03f,"Turret " + (turretIndex+1) + " respects its own cooldown");
-                    combatTurret.enabled = false;
+                    TestPlacementCycle(); TestRewardsAndHealth();
+                    foreach (var turret in UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None)) turret.enabled=false;
+                    pausedEnemy=Find<EnemySpawner>().Spawn(PlayerSession.Catalog.Stages[0].Enemy);
+                    Click("Pause");
+                    pausedPosition=pausedEnemy.transform.position; pausedHP=pausedEnemy.CurrentHealth; pausedCount=Find<EnemyRegistry>().Enemies.Count;
+                    Check(Find<GameFlow>().State==GameplayState.Paused && Time.timeScale==0,"Pause freezes game time");
+                    Check(!Find<GameplayHand>().Select(0),"Pause blocks Hand selection");
+                    Check(Find<EnemySpawner>().Spawn(PlayerSession.Catalog.Stages[0].Enemy)==null,"Pause blocks spawning");
+                    Click("Settings"); Click("Back");
+                    Check(Find<GameFlow>().State==GameplayState.Paused,"Settings Back stays paused"); Wait(2,.5); break;
+                case 2:
+                    Check(pausedEnemy.transform.position==pausedPosition && pausedEnemy.CurrentHealth==pausedHP && Find<EnemyRegistry>().Enemies.Count==pausedCount,"Paused movement, combat and spawning stay frozen");
+                    Click("Resume"); Check(Time.timeScale==1,"Resume restores time");
+                    balanceBeforeBase=Find<ResourceWallet>().Balance;
+                    pausedEnemy.GetComponent<EnemyPathFollower>().Advance(100);
+                    pausedEnemy.GetComponent<EnemyPathFollower>().Advance(100);
+                    Check(Find<BaseHealth>().Current==9 && Find<ResourceWallet>().Balance==balanceBeforeBase,"Base arrival damages once and grants no reward");
+                    Click("Pause"); Click("Exit"); Click("No");
+                    Check(Find<GameFlow>().State==GameplayState.Paused,"Exit cancellation remains paused");
+                    Click("Exit"); Click("Yes"); Wait(3); break;
+                case 3:
+                    Check(Find<LobbyUI>()!=null && Time.timeScale==1,"Exit returns to Lobby");
+                    Check(PlayerSession.Deck.Slots.SequenceEqual(persistentSnapshot),"Gameplay and scene exit preserve T1-T6");
+                    Click("Deck"); Check(Find<DeckEditorUI>()!=null,"Deck editor reopens with session deck"); Click("Back to Lobby");
+                    Click("Enter Stage"); Wait(4); break;
+                case 4:
+                    Check(Find<GameplayHand>().Cycle!=firstRun,"Stage reentry creates a fresh runtime cycle");
+                    Check(Find<GameplayHand>().Cycle.InitialOrder.All(c=>!firstRun.InitialOrder.Contains(c)),"New run owns new card instances");
+                    Check(Find<ResourceWallet>().Balance==150 && Find<BaseHealth>().Current==10,"Reentry resets battle HP/resources");
+                    Check(PlayerSession.Deck.Slots.SequenceEqual(persistentSnapshot),"New shuffle preserves persistent slot positions");
+                    Find<FixedIntervalSpawner>().enabled=false;
+                    BeginCombat(); Wait(5,.3); break;
+                case 5:
+                    Check(combatEnemy.CurrentHealth==1000,"Turret excludes enemy beyond configured range");
+                    combatEnemy.transform.position=combatTurret.transform.position+Vector3.right*(PlayerSession.Catalog.AvailableTowers[turretIndex].AttackRange-.1f);
+                    Wait(6,.01); break;
+                case 6:
+                    if (hits.Count<3) return;
+                    var definition=PlayerSession.Catalog.AvailableTowers[turretIndex];
+                    Check(Mathf.Approximately(healths[0],1000-definition.Damage) && Mathf.Approximately(healths[1],1000-2*definition.Damage),"Configured turret damage: "+definition.DisplayName);
+                    Check(hits[1]-hits[0]>=definition.AttackCooldown-.03f && hits[2]-hits[1]>=definition.AttackCooldown-.03f,"Configured turret cooldown: "+definition.DisplayName);
+                    combatTurret.enabled=false;
+                    UnityEngine.Object.Destroy(combatTurret.gameObject);
+                    int balance=Find<ResourceWallet>().Balance;
                     combatEnemy.ReceiveDamage(10000);
+                    Check(Find<ResourceWallet>().Balance==balance+durableEnemy.ResourceReward,"Combat death grants resource reward");
                     UnityEngine.Object.Destroy(durableEnemy);
                     turretIndex++;
-                    if (turretIndex < stage.AvailableTurrets.Count) { BeginTurretCombat(stage); Wait(9,.3); }
-                    else Finish(true,"Assertions: " + assertions);
+                    if (turretIndex<PlayerSession.Catalog.AvailableTowers.Count) { BeginCombat(); Wait(5,.3); }
+                    else { Find<BaseHealth>().ReceiveDamage(100); Wait(7); }
                     break;
+                case 7:
+                    Check(Find<GameFlow>().State==GameplayState.GameOver && Time.timeScale==0,"Base depletion enters Game Over");
+                    Check(!PlayerSession.Progression.IsUnlocked(1),"Game Over does not unlock next stage");
+                    Check(!Find<GameplayHand>().Select(0) && Find<EnemySpawner>().Spawn(PlayerSession.Catalog.Stages[0].Enemy)==null,"Game Over blocks selecting and spawning");
+                    Find<GameFlow>().TogglePause(); Check(Find<GameFlow>().State==GameplayState.GameOver,"Game Over cannot resume");
+                    Click("Lobby"); Wait(8); break;
+                case 8:
+                    Check(PlayerSession.Deck.Slots.SequenceEqual(persistentSnapshot),"All tests leave persistent deck unchanged after gameplay");
+                    Check(PlayerSession.CompleteActiveStage() && PlayerSession.Progression.IsUnlocked(1),"Explicit completion hook unlocks next stage");
+                    var lobby=Find<LobbyUI>(); lobby.HandleNavigation(1,300); lobby.Carousel.Advance(1);
+                    Check(PlayerSession.Selection.SelectedStageIndex==1 && PlayerSession.Progression.IsUnlocked(1),"Unlocked stage can be selected");
+                    Click("Enter Stage"); Wait(9); break;
+                case 9:
+                    Check(PlayerSession.ActiveStage==PlayerSession.Catalog.Stages[1] && Find<GameplayHand>()!=null,"Next stage entry reuses playable scene with selected definition");
+                    Finish(true,"Assertions: "+assertions); break;
             }
-        } catch (Exception exception) { Finish(false,exception.ToString()); }
+        } catch (Exception e) { Finish(false,e.ToString()); }
     }
-    private static void TestBuildMenu(StageDefinition stage) {
-        var menu = Find<BuildMenuUI>();
-        var placement = Find<TurretPlacementController>();
-        Check(!menu.IsOpen && placement.Selected == null,"Build options hidden by default with no selected type");
-        Check(!UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Any(b => b.name.Contains("Basic Turret")),"Old always-visible Basic Turret button removed");
-        Click("Turrets"); Check(menu.IsOpen,"Turrets button opens panel");
-        Click("Turrets"); Check(!menu.IsOpen,"Turrets button toggles panel closed");
-        Check(stage.AvailableTurrets.Count == 3,"Exactly three test turret definitions available");
-        foreach (var definition in stage.AvailableTurrets) {
-            Click("Turrets"); Click(definition.DisplayName + " (" + definition.Cost + ")");
-            Check(placement.Selected == definition && !menu.IsOpen,"Selection passes definition and closes panel");
-            Check(UnityEngine.Object.FindObjectsByType<Text>(FindObjectsSortMode.None).Any(t => t.text == "Selected: " + definition.DisplayName + " (" + definition.Cost + ")"),"Selected turret remains labelled with panel closed");
+    private static void TestModels() {
+        var catalog=PlayerSession.Catalog;
+        Check(catalog.Stages.Count==10 && catalog.Stages.Select(s=>s.DisplayName).SequenceEqual(Enumerable.Range(1,10).Select(i=>"1-"+i)),"Catalog contains stages 1-1 through 1-10 in order");
+        Check(catalog.AvailableTowers.Count==15 && catalog.AvailableTowers.Distinct().Count()==15,"Catalog contains fifteen distinct test tower definitions");
+        Check(catalog.AvailableTowers.All(t=>t.Prefab!=null && t.Targeting!=null && t.Damage>0 && t.AttackRange>0 && t.AttackCooldown>0 && t.Cost>0),"All test towers have valid combat settings and references");
+        var progression=new StageProgressionState(4);
+        Check(progression.IsUnlocked(0) && !progression.IsUnlocked(1),"Only first stage initially unlocked");
+        Check(!progression.Complete(2) && progression.Complete(0) && progression.IsUnlocked(1) && !progression.IsUnlocked(2),"Sequential completion unlocks only next stage");
+        var repeat=new KeyRepeat();
+        Check(repeat.Poll(1,0,.4f,.15f)==1 && repeat.Poll(1,.39f,.4f,.15f)==0,"Held key moves immediately then waits initial delay");
+        Check(repeat.Poll(1,.4f,.4f,.15f)==1 && repeat.Poll(1,.54f,.4f,.15f)==0 && repeat.Poll(1,.56f,.4f,.15f)==1,"Held key uses fixed repeat interval");
+        Check(repeat.Poll(-1,.57f,.4f,.15f)==-1 && repeat.Poll(0,.6f,.4f,.15f)==0 && repeat.Poll(-1,.61f,.4f,.15f)==-1,"Direction change and release reset repeat");
+        var deck=new PlayerDeck(catalog.InitialDeck); var snapshot=deck.Slots.ToArray();
+        var editor=new DeckEditorController(deck,catalog.AvailableTowers);
+        Check(!editor.Replace(-1,catalog.AvailableTowers[0]) && !editor.Replace(6,catalog.AvailableTowers[0]) && !editor.Replace(0,null) && deck.Slots.SequenceEqual(snapshot),"Invalid deck edits are atomic");
+        var random=new CountingRandom(1234); var cycle=new RuntimeCardCycle(deck,random);
+        Check(random.Draws==5,"Six-entry Fisher-Yates shuffles exactly once with five draws");
+        Check(cycle.InitialOrder.Select(c=>c.SourceSlot).OrderBy(i=>i).SequenceEqual(Enumerable.Range(0,6)),"Every persistent entry occurs exactly once, including duplicate definitions");
+        Check(cycle.Hand.SequenceEqual(cycle.InitialOrder.Take(3)) && cycle.UpcomingQueue.SequenceEqual(cycle.InitialOrder.Skip(3)),"Initial shuffled order splits into Hand and Queue");
+        Check(deck.Slots.SequenceEqual(snapshot),"Shuffle leaves T1-T6 unchanged");
+        var initial=cycle.InitialOrder.ToArray();
+        for (int iteration=0;iteration<30;iteration++) {
+            var before=cycle.Hand.ToArray(); var queue=cycle.UpcomingQueue.ToArray(); int used=iteration%3;
+            Check(cycle.Use(before[used]) && cycle.Hand.SequenceEqual(before.Where((_,i)=>i!=used).Concat(new[]{queue[0]})) && cycle.UpcomingQueue.SequenceEqual(queue.Skip(1).Concat(new[]{before[used]})),"Deterministic cycle step "+iteration);
         }
-        Check(Find<ResourceWallet>().Balance == 150,"UI selection does not place or spend resources");
+        Check(random.Draws==5 && cycle.InitialOrder.SequenceEqual(initial) && deck.Slots.SequenceEqual(snapshot),"Repeated cycling never reshuffles or changes PlayerDeck");
+        var hand=cycle.Hand.ToArray(); var upcoming=cycle.UpcomingQueue.ToArray();
+        Check(!cycle.Use(new RuntimeCard(0,snapshot[0])) && cycle.Hand.SequenceEqual(hand) && cycle.UpcomingQueue.SequenceEqual(upcoming),"Foreign/non-hand card cannot mutate cycle");
+        var orders=new HashSet<string>();
+        for (int seed=0;seed<20;seed++) orders.Add(string.Join(",",new RuntimeCardCycle(deck,new System.Random(seed)).InitialOrder.Select(c=>c.SourceSlot)));
+        Check(orders.Count>1,"Independent seeds produce varying orders without T1-first policy");
     }
-    private static void BeginTurretCombat(StageDefinition stage) {
-        var data = stage.AvailableTurrets[turretIndex];
-        Click("Turrets"); Click(data.DisplayName + " (" + data.Cost + ")");
-        var slot = UnityEngine.Object.FindObjectsByType<TowerPlacementSlot>(FindObjectsSortMode.None).OrderBy(s => s.name).First(s => !s.IsOccupied);
-        int before = Find<ResourceWallet>().Balance;
-        Check(Find<TurretPlacementController>().TryPlace(slot) && Find<ResourceWallet>().Balance == before-data.Cost,"Selected turret " + (turretIndex+1) + " spends its own cost");
-        combatTurret = slot.Occupant;
-        durableEnemy = UnityEngine.Object.Instantiate(stage.Enemy);
-        var serialized = new SerializedObject(durableEnemy); serialized.FindProperty("health").floatValue = 1000; serialized.ApplyModifiedPropertiesWithoutUndo();
-        combatEnemy = Find<EnemySpawner>().Spawn(durableEnemy); combatEnemy.GetComponent<EnemyPathFollower>().Stop();
-        combatEnemy.transform.position = combatTurret.transform.position + Vector3.right*(data.AttackRange+.1f);
-        hitTimes.Clear(); hitHealth.Clear();
-        combatEnemy.GetComponent<EnemyHealth>().Changed += (hp,max) => { if (hp > 0) { hitTimes.Add(Time.time); hitHealth.Add(hp); } };
+    private static void TestLobbyAndDeck() {
+        var lobby=Find<LobbyUI>(); Check(lobby!=null,"Start Game opens Lobby");
+        Check(Find<LobbyDeckPreview>()!=null && PlayerSession.Deck.Slots.Count==6,"Lobby displays shared six-slot deck");
+        for (int i=0;i<20;i++) PlayerSession.Selection.Move(1);
+        lobby.Carousel.Advance(1);
+        Check(PlayerSession.Selection.SelectedStageIndex==9 && lobby.Carousel.IsSettled,"Carousel reaches 1-10 and clamps at right edge");
+        for (int i=0;i<20;i++) PlayerSession.Selection.Move(-1);
+        lobby.Carousel.Advance(1);
+        Check(PlayerSession.Selection.SelectedStageIndex==0 && lobby.Carousel.IsSettled,"Carousel returns to 1-1 and clamps at left edge");
+        lobby.HandleNavigation(1,100);
+        Check(PlayerSession.Selection.SelectedStageIndex==1 && lobby.Carousel.VisualIndex==0,"D retargets carousel without teleporting");
+        lobby.Carousel.Advance(.1f); Check(lobby.Carousel.VisualIndex>0 && lobby.Carousel.VisualIndex<1,"Carousel position interpolates");
+        lobby.Carousel.Advance(1); Check(lobby.Carousel.IsSettled,"Selected stage settles at center");
+        Check(!lobby.TryEnter() && SceneManager.GetActiveScene().name=="MainMenu","Locked stage cannot load");
+        Click("Deck");
+        Check(Find<DeckEditorUI>()!=null && UnityEngine.Object.FindObjectsByType<DeckSlotDrop>(FindObjectsSortMode.None).Length==6,"Deck editor has six fixed drop targets");
+        var available=UnityEngine.Object.FindObjectsByType<DeckCardDrag>(FindObjectsSortMode.None);
+        Check(available.Length==15,"Deck editor builds all fifteen available tower cards");
+        var source=available.Single(c=>c.Definition==PlayerSession.Catalog.AvailableTowers[14]);
+        var targets=UnityEngine.Object.FindObjectsByType<DeckSlotDrop>(FindObjectsSortMode.None).OrderBy(t=>t.name).ToArray();
+        var before=PlayerSession.Deck.Slots.ToArray();
+        var data=new PointerEventData(EventSystem.current) { pointerDrag=source.gameObject, button=PointerEventData.InputButton.Left, position=new Vector2(200,200) };
+        ExecuteEvents.Execute(source.gameObject,data,ExecuteEvents.beginDragHandler);
+        ExecuteEvents.Execute(source.gameObject,data,ExecuteEvents.endDragHandler);
+        Check(PlayerSession.Deck.Slots.SequenceEqual(before),"Cancelled/outside drag changes no deck data");
+        ExecuteEvents.Execute(source.gameObject,data,ExecuteEvents.beginDragHandler);
+        ExecuteEvents.Execute(targets[2].gameObject,data,ExecuteEvents.dropHandler);
+        ExecuteEvents.Execute(source.gameObject,data,ExecuteEvents.endDragHandler);
+        Check(PlayerSession.Deck.Slots[2]==source.Definition && Enumerable.Range(0,6).Where(i=>i!=2).All(i=>PlayerSession.Deck.Slots[i]==before[i]),"Drag/drop replaces only T3");
+        Check(PlayerSession.Catalog.AvailableTowers.Contains(before[2]),"Replaced definition remains available for future assignment");
+        Check(UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None).Length==0,"Deck UI creates no combat objects");
+        persistentSnapshot=PlayerSession.Deck.Slots.ToArray();
+        Click("Settings"); Click("Back"); Check(Find<DeckEditorUI>()!=null && PlayerSession.Deck.Slots.SequenceEqual(persistentSnapshot),"Deck Settings returns without losing deck");
+        Click("Back to Lobby");
+        Check(PlayerSession.Selection.SelectedStageIndex==1 && Find<LobbyUI>().Carousel.VisualIndex==1,"Deck return preserves carousel selection and position");
+        var preview=GameObject.Find("Deck Preview T3").GetComponentInChildren<Text>();
+        Check(preview.text.Contains(persistentSnapshot[2].DisplayName),"Lobby preview observes edited T3");
+        Click("Settings"); Click("Back");
+        Check(PlayerSession.Selection.SelectedStageIndex==1 && Find<LobbyUI>()!=null,"Lobby Settings preserves selected stage");
     }
-    private static void TestPlacementAndTargeting(StageDefinition stage) {
-        var placement = Find<TurretPlacementController>(); var wallet = Find<ResourceWallet>();
-        placement.Message += message => lastMessage = message;
-        placement.Select(stage.AvailableTurrets[0]);
-        Check(!placement.TryPlace(null) && lastMessage == "You cannot place a turret here." && wallet.Balance == 150,"Invalid location consumes no resources");
-        var slots = UnityEngine.Object.FindObjectsByType<TowerPlacementSlot>(FindObjectsSortMode.None).OrderBy(s => s.name).ToArray();
-        Color available = slots[0].GetComponent<SpriteRenderer>().color;
-        slots[0].SetHovered(true);
-        Check(slots[0].GetComponent<SpriteRenderer>().color != available,"Available slot highlights on hover");
-        slots[0].SetHovered(false);
-        Check(slots[0].GetComponent<SpriteRenderer>().color == available,"Hover exit restores available appearance");
-        Check(placement.TryPlace(slots[0]) && wallet.Balance == 100,"Successful placement spends exact cost");
-        Color occupied = slots[0].GetComponent<SpriteRenderer>().color;
-        Check(occupied != available,"Occupied slot has distinct appearance");
-        slots[0].SetHovered(true);
-        Check(slots[0].GetComponent<SpriteRenderer>().color == occupied,"Occupied hover preserves occupied appearance");
-        Check(!placement.TryPlace(slots[0]) && lastMessage == "A turret is already placed here." && wallet.Balance == 100,"Occupied slot consumes no resources");
-        Check(placement.TryPlace(slots[1]) && placement.TryPlace(slots[2]) && wallet.Balance == 0,"Exact balance can be spent");
-        Check(!placement.TryPlace(slots[3]) && lastMessage == "Not enough resources." && !slots[3].IsOccupied && wallet.Balance == 0,"Insufficient resources leave slot and balance intact");
-        var registry = Find<EnemyRegistry>();
-        foreach (var enemy in registry.Enemies.ToArray()) enemy.ReceiveDamage(1000);
-        Enemy near = Find<EnemySpawner>().Spawn(stage.Enemy), far = Find<EnemySpawner>().Spawn(stage.Enemy);
-        near.transform.position = Vector3.right; far.transform.position = Vector3.right*2;
-        var strategy = stage.AvailableTurrets[0].Targeting;
-        Check(strategy.Select(Vector3.zero,3,registry.Enemies) == near,"Closest selects physical nearest");
-        near.transform.position = Vector3.right*4;
-        Check(strategy.Select(Vector3.zero,3,registry.Enemies) == far,"Out of range target is reacquired");
-        far.ReceiveDamage(1000);
-        Check(!far.IsAlive && !registry.Enemies.Contains(far),"Death immediately removes target from registry");
-        Check(strategy.Select(Vector3.zero,3,registry.Enemies) == null,"Dead and out of range enemies are excluded");
-        near.ReceiveDamage(1000);
+    private static TowerPlacementSlot[] Slots() => UnityEngine.Object.FindObjectsByType<TowerPlacementSlot>(FindObjectsSortMode.None).OrderBy(s=>s.name).ToArray();
+    private static void TestPlacementCycle() {
+        var hand=Find<GameplayHand>(); var placement=Find<TurretPlacementController>(); var wallet=Find<ResourceWallet>();
+        firstRun=hand.Cycle;
+        Check(firstRun.InitialOrder.All(c=>c.Definition==persistentSnapshot[c.SourceSlot]),"Stage Hand reads persistent edited PlayerDeck");
+        Check(UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Count(b=>b.name.StartsWith("Hand Card "))==3 && !UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Any(b=>b.GetComponentInChildren<Text>().text=="Turrets"),"Only three Hand cards replace turret catalog UI");
+        placement.Message+=value=>lastMessage=value;
+        Card(1); var before=hand.Cycle.Hand.ToArray(); var queue=hand.Cycle.UpcomingQueue.ToArray();
+        wallet.Initialize(0);
+        Check(!placement.TryPlace(null) && lastMessage=="You cannot place a turret here.","Invalid slot rejected");
+        Check(!placement.TryPlace(Slots()[0]) && lastMessage=="Not enough resources." && wallet.Balance==0,"Insufficient resources rejected without spending");
+        Check(hand.Cycle.Hand.SequenceEqual(before) && hand.Cycle.UpcomingQueue.SequenceEqual(queue),"Failed placement leaves Hand and Queue intact");
+        hand.CancelSelection();
+        Check(!placement.TryPlace(Slots()[0]) && hand.Cycle.Hand.SequenceEqual(before) && hand.Cycle.UpcomingQueue.SequenceEqual(queue),"Selection cancellation does not cycle cards");
+        wallet.Initialize(1000); Card(1);
+        var slot=Slots()[0]; var available=slot.GetComponent<SpriteRenderer>().color; slot.SetHovered(true);
+        Check(slot.GetComponent<SpriteRenderer>().color!=available,"Available slot hover highlights"); slot.SetHovered(false);
+        Check(slot.GetComponent<SpriteRenderer>().color==available,"Hover exit restores color");
+        Check(placement.TryPlace(slot) && wallet.Balance==1000-before[1].Definition.Cost,"Actual placement spends selected card cost");
+        Check(hand.Cycle.Hand.SequenceEqual(new[]{before[0],before[2],queue[0]}) && hand.Cycle.UpcomingQueue.SequenceEqual(new[]{queue[1],queue[2],before[1]}),"Success draws queue front and appends used card to queue back");
+        Check(hand.SelectedCard==null && placement.Selected==null,"Success clears selection to avoid stale card reuse");
+        Check(slot.GetComponent<SpriteRenderer>().color!=available,"Occupied slot remains visually distinct");
+        Card(0); before=hand.Cycle.Hand.ToArray(); queue=hand.Cycle.UpcomingQueue.ToArray(); int balance=wallet.Balance;
+        Check(!placement.TryPlace(slot) && lastMessage=="A turret is already placed here." && wallet.Balance==balance && hand.Cycle.Hand.SequenceEqual(before) && hand.Cycle.UpcomingQueue.SequenceEqual(queue),"Occupied placement preserves cost and full cycle");
+        Check(PlayerSession.Deck.Slots.SequenceEqual(persistentSnapshot),"Successful cycling never edits persistent deck");
     }
-    private static void TestKillRewards(StageDefinition stage) {
-        var wallet = Find<ResourceWallet>();
-        var spawner = Find<EnemySpawner>();
-        foreach (int reward in new[] { 7, 23, 0 }) {
-            var definition = UnityEngine.Object.Instantiate(stage.Enemy);
-            var serialized = new SerializedObject(definition);
-            serialized.FindProperty("resourceReward").intValue = reward;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            int before = wallet.Balance;
-            Enemy enemy = spawner.Spawn(definition);
-            var bar = enemy.GetComponent<EnemyHealthBar>();
-            Check(bar.IsVisible && Mathf.Approximately(bar.NormalizedHealth,1),"Enemy HP bar starts full");
-            enemy.ReceiveDamage(1);
-            Check(Mathf.Approximately(bar.NormalizedHealth,(enemy.MaximumHealth-1)/enemy.MaximumHealth),"Enemy HP bar updates on nonlethal damage");
-            Check(wallet.Balance == before,"Nonlethal damage grants no reward");
-            enemy.ReceiveDamage(1000);
-            Check(wallet.Balance == before + reward,"Per-definition reward credited: " + reward);
-            Check(!bar.IsVisible && bar.NormalizedHealth == 0,"Enemy HP bar hides immediately on death");
-            enemy.ReceiveDamage(1000);
-            Check(wallet.Balance == before + reward,"Repeated damage cannot duplicate reward");
-            UnityEngine.Object.Destroy(definition);
+    private static void TestRewardsAndHealth() {
+        var spawner=Find<EnemySpawner>(); var wallet=Find<ResourceWallet>();
+        foreach (int reward in new[]{7,23,0}) {
+            var data=UnityEngine.Object.Instantiate(PlayerSession.Catalog.Stages[0].Enemy);
+            var so=new SerializedObject(data); so.FindProperty("resourceReward").intValue=reward; so.ApplyModifiedPropertiesWithoutUndo();
+            var enemy=spawner.Spawn(data); int before=wallet.Balance; var bar=enemy.GetComponent<EnemyHealthBar>();
+            Check(bar.IsVisible && bar.NormalizedHealth==1,"HP bar starts full");
+            enemy.ReceiveDamage(1); Check(wallet.Balance==before && Mathf.Approximately(bar.NormalizedHealth,(enemy.MaximumHealth-1)/enemy.MaximumHealth),"Nonlethal damage updates HP bar without reward");
+            enemy.ReceiveDamage(10000); enemy.ReceiveDamage(10000);
+            Check(wallet.Balance==before+reward && !bar.IsVisible && !Find<EnemyRegistry>().Enemies.Contains(enemy),"Death pays once and removes target/HP bar");
+            UnityEngine.Object.Destroy(data);
         }
-        int balance = wallet.Balance;
-        Enemy removed = spawner.Spawn(stage.Enemy);
-        removed.gameObject.SetActive(false);
-        UnityEngine.Object.Destroy(removed.gameObject);
-        Check(wallet.Balance == balance,"Disabling/removing an enemy grants no reward");
-        Check(UnityEngine.Object.FindObjectsByType<Text>(FindObjectsSortMode.None).Any(t => t.text == "Resources: " + balance),"Resource HUD reflects kill rewards");
-        wallet.Add(0); wallet.Add(-10);
-        Check(wallet.Balance == balance,"Zero/negative credit cannot lower balance");
+        Enemy near=spawner.Spawn(PlayerSession.Catalog.Stages[0].Enemy), far=spawner.Spawn(PlayerSession.Catalog.Stages[0].Enemy);
+        near.transform.position=Vector3.right; far.transform.position=Vector3.right*2;
+        var strategy=PlayerSession.Catalog.AvailableTowers[0].Targeting;
+        Check(strategy.Select(Vector3.zero,3,Find<EnemyRegistry>().Enemies)==near,"Closest targeting selects physical nearest");
+        near.transform.position=Vector3.right*4;
+        Check(strategy.Select(Vector3.zero,3,Find<EnemyRegistry>().Enemies)==far,"Target reacquisition respects range");
+        near.ReceiveDamage(10000); far.ReceiveDamage(10000);
     }
-    private static void Finish(bool success, string detail) {
-        SessionState.SetBool(Key,false); EditorApplication.update -= Tick; Application.logMessageReceived -= OnLog;
-        string result = (success ? "DEFENSE_VALIDATION_PASSED " : "DEFENSE_VALIDATION_FAILED ") + detail;
-        Debug.Log(result);
-        System.IO.File.WriteAllText("Documentation/ValidationResult.txt", result + "\n");
-        if (Application.isBatchMode) EditorApplication.Exit(success ? 0 : 1);
-        else EditorApplication.isPlaying = false;
+    private static void BeginCombat() {
+        var definition=PlayerSession.Catalog.AvailableTowers[turretIndex];
+        // Isolate each combat variant using a test-only deck, without modifying session T1-T6.
+        Find<GameplayHand>().Initialize(new PlayerDeck(Enumerable.Repeat(definition,6).ToArray()),Find<TurretPlacementController>(),Find<GameFlow>());
+        Find<ResourceWallet>().Initialize(1000); Card(0);
+        var slot=Slots().First(s=>!s.IsOccupied);
+        Check(Find<TurretPlacementController>().TryPlace(slot) && Find<ResourceWallet>().Balance==1000-definition.Cost,"Variant cost: "+definition.DisplayName);
+        combatTurret=slot.Occupant;
+        durableEnemy=UnityEngine.Object.Instantiate(PlayerSession.Catalog.Stages[0].Enemy);
+        var so=new SerializedObject(durableEnemy); so.FindProperty("health").floatValue=1000; so.ApplyModifiedPropertiesWithoutUndo();
+        combatEnemy=Find<EnemySpawner>().Spawn(durableEnemy); combatEnemy.GetComponent<EnemyPathFollower>().Stop();
+        combatEnemy.transform.position=combatTurret.transform.position+Vector3.right*(definition.AttackRange+.1f);
+        hits.Clear(); healths.Clear();
+        combatEnemy.GetComponent<EnemyHealth>().Changed+=(hp,max)=> { if (hp>0) { hits.Add(Time.time); healths.Add(hp); } };
+    }
+    private sealed class CountingRandom : System.Random {
+        public int Draws { get; private set; }
+        public CountingRandom(int seed) : base(seed) { }
+        public override int Next(int maxValue) { Draws++; return base.Next(maxValue); }
+    }
+    private static void Finish(bool success,string detail) {
+        SessionState.SetBool(Key,false); EditorApplication.update-=Tick; Application.logMessageReceived-=OnLog;
+        string result=(success?"DEFENSE_VALIDATION_PASSED ":"DEFENSE_VALIDATION_FAILED ")+detail;
+        Debug.Log(result); System.IO.File.WriteAllText("Documentation/ValidationResult.txt",result+"\n");
+        if (Application.isBatchMode) EditorApplication.Exit(success?0:1); else EditorApplication.isPlaying=false;
     }
 }
 }
