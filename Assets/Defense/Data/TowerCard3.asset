@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e0efb92fdc84df39200c407f02451f9, type: 3}
+  m_Name: TowerCard3
+  m_EditorClassIdentifier: Assembly-CSharp::Defense.TowerCardDefinition
+  cardId: tower.test.3
+  displayName: Test Turret 3
+  elixirCost: 0
+  color: {r: 0.18, g: 0.26, b: 0.34, a: 1}
+  tower: {fileID: 11400000, guid: da7da4367609414b848cbffc6eeb6989, type: 2}

@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.EventSystems;
 namespace Defense {
 [RequireComponent(typeof(GameplayHand))]
 public sealed class TurretPlacementController : MonoBehaviour {
@@ -20,7 +19,7 @@ public sealed class TurretPlacementController : MonoBehaviour {
         selected = definition; SelectionChanged?.Invoke(selected);
     }
     private void Update() {
-        if (!flow.IsPlaying || (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())) {
+        if (!flow.IsPlaying || (GameplayPointer.IsOverUI(Input.mousePosition))) {
             SetHoveredSlot(null); return;
         }
         Vector2 point = worldCamera.ScreenToWorldPoint(Input.mousePosition);
@@ -43,11 +42,15 @@ public sealed class TurretPlacementController : MonoBehaviour {
         if (selected.Prefab == null || selected.Targeting == null) {
             Debug.LogError("Selected turret requires a prefab and targeting strategy.", this); return false;
         }
+        var hand = GetComponent<GameplayHand>();
+        var card = hand.SelectedCard;
+        if (!hand.CanUse(card)) return false;
         Turret turret = Instantiate(selected.Prefab, slot.transform.position, Quaternion.identity, slot.transform);
         turret.Initialize(selected, registry);
         if (!slot.TryOccupy(turret)) { Destroy(turret.gameObject); return Fail("A turret is already placed here."); }
         wallet.TrySpend(selected.Cost);
         var used = selected;
+        hand.CompleteUse(card, CardUseResult.Success);
         Placed?.Invoke(used);
         Message?.Invoke("Turret placed."); return true;
     }

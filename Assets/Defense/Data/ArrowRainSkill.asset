@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eba6649ba37748e29d5f441ea4c883fd, type: 3}
+  m_Name: ArrowRainSkill
+  m_EditorClassIdentifier: Assembly-CSharp::Defense.SkillDefinition
+  damage: 25
+  radius: 3
+  castingTime: 0
+  effect: {fileID: 11400000, guid: e2b8dd86fe1f41fb8b9873ae3041ee5b, type: 2}

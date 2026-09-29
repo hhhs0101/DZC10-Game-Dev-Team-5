@@ -23,13 +23,13 @@ public sealed class RuntimeCardCycle {
     private void ValidateState() {
         if (hand.Count != 3 || upcoming.Count != 3)
             throw new InvalidOperationException("Runtime cycle must have three Hand and three Upcoming cards.");
-        var definitions = new HashSet<TurretDefinition>();
+        var definitions = new HashSet<CardDefinition>();
         foreach (var card in hand)
             if (card == null || card.Definition == null || !definitions.Add(card.Definition))
-                throw new InvalidOperationException("Duplicate or invalid tower definition in Hand.");
+                throw new InvalidOperationException("Duplicate or invalid card definition in Hand.");
         foreach (var card in upcoming)
             if (card == null || card.Definition == null || !definitions.Add(card.Definition))
-                throw new InvalidOperationException("Duplicate or invalid tower definition in runtime cycle.");
+                throw new InvalidOperationException("Duplicate or invalid card definition in runtime cycle.");
     }
     public bool Contains(RuntimeCard card) => card != null && hand.Contains(card);
     public bool Use(RuntimeCard card) {

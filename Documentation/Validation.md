@@ -1,9 +1,15 @@
-# 검증 결과 — Lobby / Deck / Hand
+# 검증 결과 — Card / Elixir / Skill
 
-Unity **6000.6.0f1**에서 Play Mode 자동 검증 **301개 assertion 통과**.
+Unity **6000.6.0f1**에서 Play Mode 자동 검증 **378개 assertion 통과**.
 최종 결과는 `ValidationResult.txt`입니다. 원본에서 열려 있을 수 있는 Editor를 방해하지 않도록 Assets/Packages/ProjectSettings/Documentation을 `/tmp/defense-lobby-validation`에 복사해 실행했습니다.
 
-이번 확장에서는 1-1~1-10 순서와 캐러셀 양 끝 경계, 15종 정의·참조 및 덱 편집기 목록, 추가 포탑을 T3에 드롭하는 동작도 확인했습니다. 현재 패치 로그: `/tmp/defense-patch-validation.log`.
+기존 확장의 1-1~1-10 순서와 캐러셀 양 끝 경계, 15종 정의·참조 및 덱 편집기 목록, 추가 포탑을 T3에 드롭하는 동작도 확인했습니다. 최종 로그: `/tmp/defense-card-validation-final.log`.
+
+## 최신 Card / Elixir / Skill 검증
+
+기존 회귀 검사에 혼합 카드 덱, 마지막 Tower 보호, Available 11장 동기화, 두 스킬 시전/취소/범위 피해, 지연 효과, Elixir 공통 결제와 회복, 안내 fade, 표시 보간, 혼합 덱 Retry를 추가했습니다. 상세 assertion 범위와 파일 목록은 `CardElixirSkillUpdate.md`를 확인하세요.
+
+자동 스킬 검사는 입력 처리 메서드와 현재 UI 위치의 실제 GraphicRaycaster 결과를 사용합니다. 원래 Hand 카드와 다른 UI의 취소는 자동으로 확인했지만, 실제 OS 마우스 down/hold/up 조작이나 렌더링을 수동으로 확인한 것은 아닙니다. 한국어 글리프 렌더링 및 다른 OS 폰트 fallback도 미검증입니다.
 
 ## 최신 패치 집중 검증
 

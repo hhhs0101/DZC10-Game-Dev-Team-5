@@ -11,17 +11,17 @@ public static class PatchInvariantValidation {
         catch (ArgumentException) { duplicateRejected = true; }
         check(duplicateRejected,"PlayerDeck constructor rejects duplicate definitions");
         var deck = new PlayerDeck(catalog.InitialDeck);
-        var editor = new DeckEditorController(deck,catalog.AvailableTowers);
+        var editor = new DeckEditorController(deck,catalog.AvailableCards);
         var snapshot = deck.Slots.ToArray(); int notifications = 0;
         deck.Changed += ()=>notifications++;
         check(!editor.Replace(2,deck.Slots[0]) && deck.Slots.SequenceEqual(snapshot) && notifications==0,"Duplicate edit is rejected atomically without Changed notification");
         var replace = typeof(PlayerDeck).GetMethod("Replace",BindingFlags.Instance|BindingFlags.NonPublic);
         check(!(bool)replace.Invoke(deck,new object[]{2,deck.Slots[0]}) && deck.Slots.SequenceEqual(snapshot),"PlayerDeck itself rejects duplicates even if controller is bypassed");
-        check(editor.Available.Count==9 && !editor.Available.Intersect(deck.Slots).Any(),"Available is fifteen catalog definitions minus six deck definitions");
+        check(editor.Available.Count==11 && !editor.Available.Intersect(deck.Slots).Any(),"Available is seventeen catalog definitions minus six deck definitions");
         for (int i=0;i<24;i++) {
             int slot = i%6; var incoming = editor.Available[i%editor.Available.Count]; var outgoing = deck.Slots[slot];
             check(editor.Replace(slot,incoming) && deck.Slots.Count==6 && deck.Slots.Distinct().Count()==6 && editor.Available.Contains(outgoing) && !editor.Available.Contains(incoming)
-                && editor.Available.SequenceEqual(catalog.AvailableTowers.Where(t=>!deck.Slots.Contains(t))),"Available and unique deck stay synchronized after replacement "+i);
+                && editor.Available.SequenceEqual(catalog.AvailableCards.Where(t=>!deck.Slots.Contains(t))),"Available and unique deck stay synchronized after replacement "+i);
         }
         check(notifications==24,"Every successful edit sends exactly one update");
         bool allUnique = true;
@@ -29,7 +29,7 @@ public static class PatchInvariantValidation {
             var cycle = new RuntimeCardCycle(deck,new System.Random(seed));
             for (int i=0;i<60;i++) {
                 allUnique &= cycle.Hand.Count==3 && cycle.UpcomingQueue.Count==3 && cycle.Hand.Select(c=>c.Definition).Distinct().Count()==3
-                    && new HashSet<TurretDefinition>(cycle.Hand.Concat(cycle.UpcomingQueue).Select(c=>c.Definition)).SetEquals(deck.Slots);
+                    && new HashSet<CardDefinition>(cycle.Hand.Concat(cycle.UpcomingQueue).Select(c=>c.Definition)).SetEquals(deck.Slots);
                 cycle.Use(cycle.Hand[i%3]);
             }
         }

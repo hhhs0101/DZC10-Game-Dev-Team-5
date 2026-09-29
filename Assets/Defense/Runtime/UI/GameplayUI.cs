@@ -12,14 +12,18 @@ public sealed class GameplayUI : MonoBehaviour {
     private GameObject pause, confirmation, gameOver;
     private SettingsUI settings;
     private Button pauseButton;
-    private float messageUntil;
+    private FadingMessageUI feedback;
+    private GameplayHand hand;
     private void Start() {
         Transform root = canvas.transform;
         hpLabel = UiFactory.Label(root,"",new Vector2(0,1),new Vector2(120,-35),new Vector2(220,50));
         resourcesLabel = UiFactory.Label(root,"",new Vector2(0,1),new Vector2(370,-35),new Vector2(260,50));
         pauseButton = UiFactory.Button(root,"Pause",new Vector2(-90,-35),flow.TogglePause,new Vector2(1,1),new Vector2(140,48));
         messageLabel = UiFactory.Label(root,"",new Vector2(.5f,0),new Vector2(0,163),new Vector2(950,50));
-        messageUntil = float.PositiveInfinity;
+        feedback = messageLabel.gameObject.AddComponent<FadingMessageUI>();
+        hand = placement.GetComponent<GameplayHand>();
+        hand.Message += ShowMessage;
+        gameObject.AddComponent<ElixirBarUI>().Initialize(root,placement.GetComponent<ElixirSystem>());
         GetComponent<BuildMenuUI>().Initialize(root);
         pause = Overlay("Pause",root);
         UiFactory.Label(pause.transform,"Paused",new Vector2(.5f,.5f),new Vector2(0,150),new Vector2(500,60),36);
@@ -42,11 +46,11 @@ public sealed class GameplayUI : MonoBehaviour {
     private static GameObject Overlay(string name, Transform parent) => UiFactory.Panel(name,parent,new Color(0,0,0,.78f));
     private void Update() {
         if (Input.GetKeyDown(KeyCode.Escape)) flow.TogglePause();
-        if (Time.unscaledTime >= messageUntil) messageLabel.text = "";
+
     }
     private void UpdateHealth(int health) { hpLabel.text = "Base HP: " + health; }
     private void UpdateResources(int resources) { resourcesLabel.text = "Resources: " + resources; }
-    private void ShowMessage(string message) { messageLabel.text = message; messageUntil = Time.unscaledTime + 3; }
+    private void ShowMessage(string message) { feedback.Show(message,message == GameplayHand.InsufficientElixirMessage ? 1.5f : 3); }
     private void UpdateState(GameplayState state) {
         GetComponent<BuildMenuUI>().SetInteractionEnabled(state == GameplayState.Playing);
         settings.Hide(); confirmation.SetActive(false);
@@ -58,6 +62,7 @@ public sealed class GameplayUI : MonoBehaviour {
         if (wallet != null) wallet.Changed -= UpdateResources;
         if (flow != null) flow.Changed -= UpdateState;
         if (placement != null) placement.Message -= ShowMessage;
+        if (hand != null) hand.Message -= ShowMessage;
     }
 }
 }

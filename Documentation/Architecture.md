@@ -10,7 +10,7 @@ TurretDefinition에는 prefab, Damage, AttackRange, AttackCooldown, Cost, Target
 
 | 타입 | 책임 |
 |---|---|
-| GameCatalog | ScriptableObject. stage 순서, 사용 가능한 tower 정의, 초기 6개 덱 슬롯 |
+| GameCatalog | ScriptableObject. stage 순서, 사용 가능한 tower 및 card 정의, 초기 6개 덱 슬롯 |
 | PlayerSession | 정적 세션 소유자. 씬 오브젝트를 보관하지 않으며 도메인 재로드 비활성 상태에서도 새 Play 시작 시 리셋 |
 | StageSelection | selectedStageIndex와 경계가 있는 앞/뒤 이동 |
 | StageProgressionState | 완료/잠금 상태. 첫 항목만 기본 해금, 완료한 다음 항목 해금 |
@@ -19,9 +19,9 @@ TurretDefinition에는 prefab, Damage, AttackRange, AttackCooldown, Cost, Target
 | KeyRepeat | 입력 방향에 대한 즉시 이동·최초 지연·반복 간격 |
 | StageCarouselView | 임의의 stage 수에 대응하는 카드 위치/크기 보간, 잠금 표시 |
 | LobbyDeckPreview | PlayerDeck.Changed 구독, T1–T6의 읽기 전용 표시 |
-| PlayerDeck | 서로 다른 6개 정의의 세션 할당. 생성·교체 중복 검증, 읽기 전용 노출, Changed 이벤트 |
-| DeckEditorController | 전체 카탈로그 minus PlayerDeck으로 Available을 계산하고, 해당 tower만 정확한 슬롯에 교체 |
-| DeckEditorUI | 책 형태 배치, Available Towers 스크롤 목록, T1–T6 고정 표시 |
+| PlayerDeck | 서로 다른 CardDefinition 6개(최소 Tower Card 1개)의 세션 할당. 생성·교체 중복 및 최소 포탑 검증, 읽기 전용 노출, Changed 이벤트 |
+| DeckEditorController | 전체 카탈로그 minus PlayerDeck으로 Available을 계산하고, 해당 card만 정확한 슬롯에 교체 |
+| DeckEditorUI | 책 형태 배치, Available Cards 스크롤 목록, T1–T6 고정 표시 |
 | DeckCardDrag / DeckSlotDrop | uGUI 드래그 ghost/드롭 이벤트. 유효 드롭 때만 controller 호출 |
 
 전투 진입 때 StageInitializer가 PlayerSession을 준비합니다. Lobby에서 선택한 StageDefinition이 현재 씬과 일치하면 그 초기 수치를 사용합니다. 서로 다른 정의가 같은 TestStage 맵을 사용하는 것도 가능합니다.
@@ -42,19 +42,30 @@ GameCatalog.InitialDeck
              └─ UpcomingQueue[3]
 ```
 
-같은 포탑 정의를 T1과 T4에 중복 할당할 수 없습니다. SourceSlot은 원래 덱 위치를 추적하는 정보이지 추첨 우선순위가 아닙니다. RuntimeCardCycle은 시작과 순환 전후에 3장 Hand + 3장 Queue와 6개 정의의 고유성을 검증합니다. Shuffle은 생성자에서만 실행하며, 카드 사용 시 난수를 호출하지 않습니다. 생성자에 System.Random을 전달할 수 있어 테스트 재현이 가능합니다. 일반 플레이에는 seed 조절 UI가 없습니다. 새로운 실행은 새 난수로 섞지만 우연히 같은 순서가 나올 가능성은 정상입니다.
+같은 카드 정의를 T1과 T4에 중복 할당할 수 없습니다. SourceSlot은 원래 덱 위치를 추적하는 정보이지 추첨 우선순위가 아닙니다. RuntimeCardCycle은 시작과 순환 전후에 3장 Hand + 3장 Queue와 6개 정의의 고유성을 검증합니다. Shuffle은 생성자에서만 실행하며, 카드 사용 시 난수를 호출하지 않습니다. 생성자에 System.Random을 전달할 수 있어 테스트 재현이 가능합니다. 일반 플레이에는 seed 조절 UI가 없습니다. 새로운 실행은 새 난수로 섞지만 우연히 같은 순서가 나올 가능성은 정상입니다.
 
-## Hand와 배치의 연결
+## 공통 Card와 사용 계약
 
-- `GameplayHand`는 스테이지별 Cycle과 선택된 RuntimeCard를 소유합니다.
-- 기존 `BuildMenuUI` 컴포넌트는 현재 세 Hand 카드만 표시합니다. 기존 serialized 연결과 GamePlayUI 호출을 유지하기 위해 파일명은 보존했습니다.
-- Hand UI → GameplayHand.Select(index) → placement.Select(Definition).
-- TurretPlacementController는 선택 카드가 현재 Hand에 있는지 확인한 뒤 기존 위치·점유·자원 검증을 수행합니다.
-- 프리팹 생성·슬롯 점유·비용 차감 후에만 `Placed(Definition)` 이벤트를 발생시킵니다.
-- GameplayHand는 사용 카드의 identity로 Cycle.Use를 호출하고 선택을 해제합니다.
-- Cycle은 Hand의 선택 엔트리만 제거하고, Queue 첫 장을 Hand 오른쪽에 추가하고, 사용 카드를 Queue 뒤에 붙입니다.
-- 실패·선택 취소·Pause·Game Over에서는 Placed가 발생하지 않아 Hand와 Queue 모두 유지됩니다.
-- UI는 자원 차감/포탑 생성/피해를 직접 실행하지 않습니다.
+```text
+CardDefinition (ID / 표시 이름 / ElixirCost / 색상)
+├─ TowerCardDefinition → TurretDefinition → Turret / BasicTurret
+└─ SkillCardDefinition → SkillDefinition → Skill / CircularDamageSkill
+```
+
+- `GameplayHand`는 Cycle과 선택 카드를 소유하며, `CanUse`와 `CompleteUse`가 두 카드 타입의 공통 Elixir 검증·차감·순환 경로입니다.
+- `BuildMenuUI`는 선택과 표시만 담당합니다. Tower 선택은 기존 placement에 TurretDefinition을 넘기며 Skill 선택은 placement 선택을 비웁니다.
+- `TurretPlacementController`는 위치·점유·기존 자원·Elixir·프리팹을 검증하고 포탑 생성/점유 성공 후 자원 차감과 `CompleteUse(Success)`를 호출합니다. 기존 Placed 이벤트는 알림 용도로 유지합니다.
+- `SkillCastingController`는 유효 영역 LMB down → 조준/반경 표시 → release를 처리합니다. UI 위·영역 밖 release는 Cancelled, 잔액 부족은 Failure입니다.
+- 성공 시에만 `CompleteUse`가 Elixir를 한 번 차감하고 선택 해제 및 `Cycle.Use`를 실행합니다. UI는 자원이나 피해를 직접 변경하지 않습니다.
+- Skill 효과는 성공 결제/순환 이후 CastingTime에 따라 실행합니다. 지연된 효과는 이미 결제되었으므로 재결제/재검증하지 않습니다. Pause는 대기 시간을 멈추고 Game Over는 대기 효과를 폐기합니다.
+- `CircularDamageSkill`은 EnemyRegistry의 snapshot을 순회하여 살아 있는 반경 내 모든 Enemy에 ReceiveDamage를 호출합니다. 사망 중 registry 수정과 기존 처치 보상을 안전하게 재사용합니다.
+- `GameplayPointer`는 현재 화면 좌표를 uGUI에 직접 raycast하여 이전 프레임 hover cache에 의존하지 않습니다.
+
+## Elixir와 표시
+
+`ElixirSystem`의 float Current가 실제 상태입니다. 시작 3, 최대 10, Playing에서 초당 .36 회복하며 `CanAfford` / `TrySpend`로 비용을 처리합니다. 기존 ResourceWallet과는 독립적이며 Tower의 기존 자원 비용은 그대로입니다.
+
+`ElixirBarUI`는 별도 DisplayedFill을 실제 비율로 보간합니다. `FadingMessageUI`는 unscaled 시간으로 안내를 유지한 후 .3초 동안 fade합니다. 마지막 Tower 제거 안내는 3초, Elixir 부족 안내는 1.5초 유지합니다.
 
 ## 진행도와 화면 상태
 
@@ -74,4 +85,4 @@ PlayerDeck 생성자는 null·개수·중복을 검증합니다. Replace는 현�
 
 StageSelection.MovePrevious/MoveNext는 키보드와 마우스 공통 진입점입니다. StageCarouselView는 좌우 카드의 Button 클릭을 이 메서드에 연결합니다. 위치가 이동 중인 카드의 클릭은 잠시 비활성화되며, 키보드 held-key 로직과 보간은 그대로 유지합니다.
 
-GameFlow.Retry는 GameOver일 때만 현재 씬을 다시 로드합니다. PlayerSession.ActiveStage/Selection/Deck/Progression은 그대로 유지하고, 새 씬의 StageInitializer가 HP·자원·스폰·카드 순환을 초기화합니다. 새 EnemyRegistry·슬롯·UI가 생성되어 이전 실행의 적/포탑/점유/선택/이벤트 연결은 씬과 함께 제거됩니다. Retry는 timeScale을 1로 복원하고 한 번의 중복 로드 요청을 막습니다.
+GameFlow.Retry는 GameOver일 때만 현재 씬을 다시 로드합니다. PlayerSession.ActiveStage/Selection/Deck/Progression은 그대로 유지하고, 새 씬의 StageInitializer가 HP·자원·Elixir·스폰·카드 순환을 초기화합니다. 새 EnemyRegistry·슬롯·UI가 생성되어 이전 실행의 적/포탑/점유/선택/이벤트 연결은 씬과 함께 제거됩니다. Retry는 timeScale을 1로 복원하고 한 번의 중복 로드 요청을 막습니다.

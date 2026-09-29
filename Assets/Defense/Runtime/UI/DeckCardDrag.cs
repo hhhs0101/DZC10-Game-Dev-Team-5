@@ -3,11 +3,11 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 namespace Defense {
 public sealed class DeckCardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler {
-    public TurretDefinition Definition { get; private set; }
+    public CardDefinition Definition { get; private set; }
     public bool IsDragging { get; private set; }
     private RectTransform ghost;
     private RectTransform canvas;
-    public void Initialize(TurretDefinition definition, RectTransform canvasRoot) { Definition = definition; canvas = canvasRoot; }
+    public void Initialize(CardDefinition definition, RectTransform canvasRoot) { Definition = definition; canvas = canvasRoot; }
     public void OnBeginDrag(PointerEventData data) {
         if (!isActiveAndEnabled || IsDragging || data.button != PointerEventData.InputButton.Left || Definition == null) return;
         IsDragging = true;

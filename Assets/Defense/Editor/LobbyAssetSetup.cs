@@ -5,7 +5,7 @@ public static class LobbyAssetSetup {
     [MenuItem("Defense/Create Missing Lobby Catalog")]
     public static void CreateCatalog() {
         const string path = "Assets/Defense/Resources/GameCatalog.asset";
-        if (AssetDatabase.LoadAssetAtPath<GameCatalog>(path) != null) return;
+        if (AssetDatabase.LoadAssetAtPath<GameCatalog>(path) != null) { CardAssetSetup.Run(); return; }
         if (!AssetDatabase.IsValidFolder("Assets/Defense/Resources")) AssetDatabase.CreateFolder("Assets/Defense","Resources");
         var first = AssetDatabase.LoadAssetAtPath<StageDefinition>("Assets/Defense/Data/TestStage.asset");
         var stages = new Object[10];
@@ -43,8 +43,8 @@ public static class LobbyAssetSetup {
             towers[i] = tower;
         }
         SetArray(so,"availableTowers",towers);
-        SetArray(so,"initialDeck",new[]{towers[0],towers[1],towers[2],towers[3],towers[4],towers[5]});
-        so.ApplyModifiedPropertiesWithoutUndo(); AssetDatabase.SaveAssets();
+        
+        so.ApplyModifiedPropertiesWithoutUndo(); AssetDatabase.SaveAssets(); CardAssetSetup.Run();
     }
     private static void SetArray(SerializedObject so, string field, Object[] values) {
         var array = so.FindProperty(field); array.arraySize = values.Length;

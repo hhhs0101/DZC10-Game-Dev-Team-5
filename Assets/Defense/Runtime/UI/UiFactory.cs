@@ -4,7 +4,8 @@ using UnityEngine.Events;
 namespace Defense {
 // Small placeholder UI helper; replace visuals without changing gameplay components.
 public static class UiFactory {
-    private static Font Font => Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+    private static Font cachedFont;
+    private static Font Font => cachedFont != null ? cachedFont : (cachedFont = Font.CreateDynamicFontFromOSFont(new[] { "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans CJK KR", "Arial" },24));
     public static RectTransform Rect(string name, Transform parent, Vector2 anchor, Vector2 position, Vector2 size) {
         var go = new GameObject(name, typeof(RectTransform));
         var rect = go.GetComponent<RectTransform>(); rect.SetParent(parent, false);

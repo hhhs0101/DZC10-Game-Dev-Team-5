@@ -21,11 +21,11 @@ public sealed class BuildMenuUI : MonoBehaviour {
     }
     private void Refresh() {
         for (int i=0;i<3;i++) {
-            var card = hand.Cycle.Hand[i]; labels[i].text = card.Definition.DisplayName+"\nCost: "+card.Definition.Cost;
-            cards[i].image.color = card == hand.SelectedCard ? new Color(.2f,.55f,.36f) : new Color(.18f,.26f,.34f);
+            var card = hand.Cycle.Hand[i]; labels[i].text = card.Definition.DisplayName+"\n"+card.Definition.CostDescription;
+            cards[i].image.color = card == hand.SelectedCard ? new Color(.2f,.55f,.36f) : card.Definition.Color;
             cards[i].interactable = interactive;
         }
-        selection.text = hand.SelectedCard == null ? "Select a Hand card, then a green slot." : "Selected: "+hand.SelectedCard.Definition.DisplayName;
+        selection.text = hand.SelectedCard == null ? "Select a card: place a tower or hold/release to cast." : "Selected: "+hand.SelectedCard.Definition.DisplayName;
     }
     public void SetInteractionEnabled(bool enabled) { interactive = enabled; Refresh(); }
     private void OnDestroy() { if (hand != null) hand.Changed -= Refresh; }
