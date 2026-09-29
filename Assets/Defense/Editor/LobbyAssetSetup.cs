@@ -43,7 +43,7 @@ public static class LobbyAssetSetup {
             towers[i] = tower;
         }
         SetArray(so,"availableTowers",towers);
-        SetArray(so,"initialDeck",new[]{towers[0],towers[1],towers[2],towers[0],towers[1],towers[2]});
+        SetArray(so,"initialDeck",new[]{towers[0],towers[1],towers[2],towers[3],towers[4],towers[5]});
         so.ApplyModifiedPropertiesWithoutUndo(); AssetDatabase.SaveAssets();
     }
     private static void SetArray(SerializedObject so, string field, Object[] values) {

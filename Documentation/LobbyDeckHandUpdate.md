@@ -1,3 +1,5 @@
+> 이전 변경 기록입니다. 현재 덱은 6종 고유 정의이며 Available은 덱을 제외합니다. 최신 동작은 DeckLobbyHandRetryPatch.md를 참고하세요.
+
 # Lobby / Deck / Hand 구현 보고
 
 ## 구현 전 확인한 구조

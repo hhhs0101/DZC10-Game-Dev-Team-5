@@ -14,7 +14,12 @@ public static class PrototypeValidation {
     private static int step, assertions, turretIndex;
     private static double started, deadline;
     private static TurretDefinition[] persistentSnapshot;
-    private static RuntimeCardCycle firstRun;
+    private static RuntimeCardCycle firstRun, failedRun;
+    private static StageDefinition retryStage;
+    private static int retryStageIndex;
+    private static Enemy[] failedEnemies;
+    private static Turret[] failedTurrets;
+    private static bool[] progressionBeforeRetry;
     private static Enemy pausedEnemy, combatEnemy;
     private static Vector3 pausedPosition;
     private static float pausedHP;
@@ -127,14 +132,14 @@ public static class PrototypeValidation {
                     UnityEngine.Object.Destroy(durableEnemy);
                     turretIndex++;
                     if (turretIndex<PlayerSession.Catalog.AvailableTowers.Count) { BeginCombat(); Wait(5,.3); }
-                    else { Find<BaseHealth>().ReceiveDamage(100); Wait(7); }
+                    else { PrepareRetry(); Wait(7); }
                     break;
                 case 7:
                     Check(Find<GameFlow>().State==GameplayState.GameOver && Time.timeScale==0,"Base depletion enters Game Over");
                     Check(!PlayerSession.Progression.IsUnlocked(1),"Game Over does not unlock next stage");
                     Check(!Find<GameplayHand>().Select(0) && Find<EnemySpawner>().Spawn(PlayerSession.Catalog.Stages[0].Enemy)==null,"Game Over blocks selecting and spawning");
                     Find<GameFlow>().TogglePause(); Check(Find<GameFlow>().State==GameplayState.GameOver,"Game Over cannot resume");
-                    Click("Lobby"); Wait(8); break;
+                    Click("Retry"); Wait(10); break;
                 case 8:
                     Check(PlayerSession.Deck.Slots.SequenceEqual(persistentSnapshot),"All tests leave persistent deck unchanged after gameplay");
                     Check(PlayerSession.CompleteActiveStage() && PlayerSession.Progression.IsUnlocked(1),"Explicit completion hook unlocks next stage");
@@ -143,12 +148,23 @@ public static class PrototypeValidation {
                     Click("Enter Stage"); Wait(9); break;
                 case 9:
                     Check(PlayerSession.ActiveStage==PlayerSession.Catalog.Stages[1] && Find<GameplayHand>()!=null,"Next stage entry reuses playable scene with selected definition");
+                    PrepareRetry(); Click("Retry"); Wait(12); break;
+                case 10:
+                    CheckRetry();
+                    Wait(11,retryStage.SpawnInterval+.2f); break;
+                case 11:
+                    Check(Find<EnemyRegistry>().Enemies.Count>0,"Retry restarts periodic spawning");
+                    Find<BaseHealth>().ReceiveDamage(100); Click("Lobby"); Wait(8); break;
+                case 12:
+                    CheckRetry();
+                    Check(Find<ResourceWallet>().Balance==175 && PlayerSession.Selection.SelectedStageIndex==1,"Retry keeps non-first stage definition and its own starting resources");
                     Finish(true,"Assertions: "+assertions); break;
             }
         } catch (Exception e) { Finish(false,e.ToString()); }
     }
     private static void TestModels() {
         var catalog=PlayerSession.Catalog;
+        PatchInvariantValidation.Run(catalog,Check);
         Check(catalog.Stages.Count==10 && catalog.Stages.Select(s=>s.DisplayName).SequenceEqual(Enumerable.Range(1,10).Select(i=>"1-"+i)),"Catalog contains stages 1-1 through 1-10 in order");
         Check(catalog.AvailableTowers.Count==15 && catalog.AvailableTowers.Distinct().Count()==15,"Catalog contains fifteen distinct test tower definitions");
         Check(catalog.AvailableTowers.All(t=>t.Prefab!=null && t.Targeting!=null && t.Damage>0 && t.AttackRange>0 && t.AttackCooldown>0 && t.Cost>0),"All test towers have valid combat settings and references");
@@ -164,8 +180,9 @@ public static class PrototypeValidation {
         Check(!editor.Replace(-1,catalog.AvailableTowers[0]) && !editor.Replace(6,catalog.AvailableTowers[0]) && !editor.Replace(0,null) && deck.Slots.SequenceEqual(snapshot),"Invalid deck edits are atomic");
         var random=new CountingRandom(1234); var cycle=new RuntimeCardCycle(deck,random);
         Check(random.Draws==5,"Six-entry Fisher-Yates shuffles exactly once with five draws");
-        Check(cycle.InitialOrder.Select(c=>c.SourceSlot).OrderBy(i=>i).SequenceEqual(Enumerable.Range(0,6)),"Every persistent entry occurs exactly once, including duplicate definitions");
+        Check(cycle.InitialOrder.Select(c=>c.SourceSlot).OrderBy(i=>i).SequenceEqual(Enumerable.Range(0,6)),"Every unique persistent tower occurs exactly once");
         Check(cycle.Hand.SequenceEqual(cycle.InitialOrder.Take(3)) && cycle.UpcomingQueue.SequenceEqual(cycle.InitialOrder.Skip(3)),"Initial shuffled order splits into Hand and Queue");
+        Check(cycle.InitialOrder.Select(c=>c.Definition).Distinct().Count()==6 && cycle.Hand.Select(c=>c.Definition).Distinct().Count()==3,"Runtime copy and initial Hand have unique tower definitions");
         Check(deck.Slots.SequenceEqual(snapshot),"Shuffle leaves T1-T6 unchanged");
         var initial=cycle.InitialOrder.ToArray();
         for (int iteration=0;iteration<30;iteration++) {
@@ -193,10 +210,26 @@ public static class PrototypeValidation {
         lobby.Carousel.Advance(.1f); Check(lobby.Carousel.VisualIndex>0 && lobby.Carousel.VisualIndex<1,"Carousel position interpolates");
         lobby.Carousel.Advance(1); Check(lobby.Carousel.IsSettled,"Selected stage settles at center");
         Check(!lobby.TryEnter() && SceneManager.GetActiveScene().name=="MainMenu","Locked stage cannot load");
+        var left = GameObject.Find("Stage Card 0").GetComponent<Button>();
+        Check(left.interactable,"Left side stage is mouse-navigable"); left.onClick.Invoke();
+        Check(PlayerSession.Selection.SelectedStageIndex==0 && lobby.Carousel.VisualIndex==1,"Mouse previous uses same step and animation as A");
+        lobby.HandleNavigation(0,101);
+        lobby.HandleNavigation(1,102);
+        Check(PlayerSession.Selection.SelectedStageIndex==1,"Keyboard retarget during mouse animation shares one state");
+        lobby.Carousel.Advance(1);
+        var center = GameObject.Find("Stage Card 1").GetComponent<Button>(); center.onClick.Invoke();
+        Check(!center.interactable && PlayerSession.Selection.SelectedStageIndex==1,"Clicking center does not navigate");
+        var right = GameObject.Find("Stage Card 2").GetComponent<Button>();
+        Check(right.interactable,"Right side stage is mouse-navigable"); right.onClick.Invoke();
+        Check(PlayerSession.Selection.SelectedStageIndex==2 && lobby.Carousel.VisualIndex==1,"Mouse next uses same step and animation as D");
+        right.onClick.Invoke();
+        Check(PlayerSession.Selection.SelectedStageIndex==2,"Repeated mouse input during animation does not double-step");
+        lobby.Carousel.Advance(1);
+        GameObject.Find("Stage Card 1").GetComponent<Button>().onClick.Invoke(); lobby.Carousel.Advance(1);
         Click("Deck");
         Check(Find<DeckEditorUI>()!=null && UnityEngine.Object.FindObjectsByType<DeckSlotDrop>(FindObjectsSortMode.None).Length==6,"Deck editor has six fixed drop targets");
         var available=UnityEngine.Object.FindObjectsByType<DeckCardDrag>(FindObjectsSortMode.None);
-        Check(available.Length==15,"Deck editor builds all fifteen available tower cards");
+        Check(available.Length==9 && available.All(c=>!PlayerSession.Deck.Contains(c.Definition)),"Deck editor only shows the nine towers outside PlayerDeck");
         var source=available.Single(c=>c.Definition==PlayerSession.Catalog.AvailableTowers[14]);
         var targets=UnityEngine.Object.FindObjectsByType<DeckSlotDrop>(FindObjectsSortMode.None).OrderBy(t=>t.name).ToArray();
         var before=PlayerSession.Deck.Slots.ToArray();
@@ -208,7 +241,25 @@ public static class PrototypeValidation {
         ExecuteEvents.Execute(targets[2].gameObject,data,ExecuteEvents.dropHandler);
         ExecuteEvents.Execute(source.gameObject,data,ExecuteEvents.endDragHandler);
         Check(PlayerSession.Deck.Slots[2]==source.Definition && Enumerable.Range(0,6).Where(i=>i!=2).All(i=>PlayerSession.Deck.Slots[i]==before[i]),"Drag/drop replaces only T3");
-        Check(PlayerSession.Catalog.AvailableTowers.Contains(before[2]),"Replaced definition remains available for future assignment");
+        var visible = UnityEngine.Object.FindObjectsByType<DeckCardDrag>(FindObjectsSortMode.None);
+        Check(visible.Length==9 && visible.Any(c=>c.Definition==before[2]) && visible.All(c=>!PlayerSession.Deck.Contains(c.Definition)),"Available UI immediately adds outgoing and removes incoming definition");
+        var edited = PlayerSession.Deck.Slots.ToArray();
+        ExecuteEvents.Execute(source.gameObject,data,ExecuteEvents.beginDragHandler);
+        ExecuteEvents.Execute(targets[0].gameObject,data,ExecuteEvents.dropHandler);
+        ExecuteEvents.Execute(source.gameObject,data,ExecuteEvents.endDragHandler);
+        Check(PlayerSession.Deck.Slots.SequenceEqual(edited) && edited.Distinct().Count()==6,"Stale/hidden drag source cannot duplicate an assigned tower");
+        // Swap T3 back and forth through actual UI events, checking refresh after every operation.
+        for (int i=0;i<4;i++) {
+            var next = UnityEngine.Object.FindObjectsByType<DeckCardDrag>(FindObjectsSortMode.None).First();
+            var incoming = next.Definition; var outgoing = PlayerSession.Deck.Slots[2];
+            data.pointerDrag = next.gameObject;
+            ExecuteEvents.Execute(next.gameObject,data,ExecuteEvents.beginDragHandler);
+            ExecuteEvents.Execute(targets[2].gameObject,data,ExecuteEvents.dropHandler);
+            ExecuteEvents.Execute(next.gameObject,data,ExecuteEvents.endDragHandler);
+            visible = UnityEngine.Object.FindObjectsByType<DeckCardDrag>(FindObjectsSortMode.None);
+            Check(PlayerSession.Deck.Slots[2]==incoming && PlayerSession.Deck.Slots.Distinct().Count()==6 && visible.Any(c=>c.Definition==outgoing)
+                && visible.All(c=>!PlayerSession.Deck.Contains(c.Definition)),"Repeated drag/drop refresh keeps Available and Deck disjoint");
+        }
         Check(UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None).Length==0,"Deck UI creates no combat objects");
         persistentSnapshot=PlayerSession.Deck.Slots.ToArray();
         Click("Settings"); Click("Back"); Check(Find<DeckEditorUI>()!=null && PlayerSession.Deck.Slots.SequenceEqual(persistentSnapshot),"Deck Settings returns without losing deck");
@@ -268,8 +319,13 @@ public static class PrototypeValidation {
     private static void BeginCombat() {
         var definition=PlayerSession.Catalog.AvailableTowers[turretIndex];
         // Isolate each combat variant using a test-only deck, without modifying session T1-T6.
-        Find<GameplayHand>().Initialize(new PlayerDeck(Enumerable.Repeat(definition,6).ToArray()),Find<TurretPlacementController>(),Find<GameFlow>());
-        Find<ResourceWallet>().Initialize(1000); Card(0);
+        var testDeck = new[]{definition}.Concat(PlayerSession.Catalog.AvailableTowers.Where(t=>t!=definition).Take(5)).ToArray();
+        var hand = Find<GameplayHand>();
+        hand.Initialize(new PlayerDeck(testDeck),Find<TurretPlacementController>(),Find<GameFlow>());
+        // Arrange the isolated combat target in Hand using model rotations, with six unique definitions throughout.
+        while (!hand.Cycle.Hand.Any(c=>c.Definition==definition)) hand.Cycle.Use(hand.Cycle.Hand[0]);
+        Find<ResourceWallet>().Initialize(1000);
+        Card(hand.Cycle.Hand.ToList().FindIndex(c=>c.Definition==definition));
         var slot=Slots().First(s=>!s.IsOccupied);
         Check(Find<TurretPlacementController>().TryPlace(slot) && Find<ResourceWallet>().Balance==1000-definition.Cost,"Variant cost: "+definition.DisplayName);
         combatTurret=slot.Occupant;
@@ -279,6 +335,33 @@ public static class PrototypeValidation {
         combatEnemy.transform.position=combatTurret.transform.position+Vector3.right*(definition.AttackRange+.1f);
         hits.Clear(); healths.Clear();
         combatEnemy.GetComponent<EnemyHealth>().Changed+=(hp,max)=> { if (hp>0) { hits.Add(Time.time); healths.Add(hp); } };
+    }
+    private static void PrepareRetry() {
+        retryStage = PlayerSession.ActiveStage;
+        retryStageIndex = PlayerSession.Selection.SelectedStageIndex;
+        progressionBeforeRetry = Enumerable.Range(0,PlayerSession.Catalog.Stages.Count).Select(i=>PlayerSession.Progression.IsComplete(i)).ToArray();
+        Find<FixedIntervalSpawner>().enabled = false;
+        Find<ResourceWallet>().Initialize(1000); Card(0);
+        var slot = Slots().First(s=>!s.IsOccupied);
+        Check(Find<TurretPlacementController>().TryPlace(slot),"Retry fixture includes an occupied slot");
+        slot.Occupant.enabled = false;
+        var enemy = Find<EnemySpawner>().Spawn(retryStage.Enemy); enemy.GetComponent<EnemyPathFollower>().Stop();
+        failedEnemies = UnityEngine.Object.FindObjectsByType<Enemy>(FindObjectsSortMode.None);
+        failedTurrets = UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None);
+        failedRun = Find<GameplayHand>().Cycle;
+        Find<ResourceWallet>().Initialize(1);
+        Find<BaseHealth>().ReceiveDamage(10000);
+    }
+    private static void CheckRetry() {
+        Check(PlayerSession.ActiveStage==retryStage && PlayerSession.Selection.SelectedStageIndex==retryStageIndex && SceneManager.GetActiveScene().name==retryStage.SceneName,"Retry preserves same stage and selected index");
+        Check(Find<GameFlow>().IsPlaying && Time.timeScale==1 && Find<BaseHealth>().Current==retryStage.BaseHealth && Find<ResourceWallet>().Balance==retryStage.StartingResources,"Retry resets HP, resources, state and time scale");
+        Check(failedEnemies.All(e=>e==null) && failedTurrets.All(t=>t==null) && Find<EnemyRegistry>().Enemies.Count==0 && UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None).Length==0 && Slots().All(s=>!s.IsOccupied),"Retry destroys old enemies/turrets and clears slots/registry");
+        Check(Find<FixedIntervalSpawner>().enabled,"Retry restores spawn scheduler");
+        var hand = Find<GameplayHand>(); var cycle = hand.Cycle;
+        Check(cycle!=failedRun && cycle.InitialOrder.All(c=>!failedRun.InitialOrder.Contains(c)) && cycle.Hand.SequenceEqual(cycle.InitialOrder.Take(3)) && cycle.UpcomingQueue.SequenceEqual(cycle.InitialOrder.Skip(3)),"Retry creates a fresh shuffled cycle split into untouched Hand/Queue");
+        Check(cycle.Hand.Select(c=>c.Definition).Distinct().Count()==3 && new HashSet<TurretDefinition>(cycle.InitialOrder.Select(c=>c.Definition)).SetEquals(PlayerSession.Deck.Slots),"Retry cycle contains exactly the six unique PlayerDeck towers");
+        Check(hand.SelectedCard==null && Find<TurretPlacementController>().Selected==null,"Retry clears temporary card selection");
+        Check(PlayerSession.Deck.Slots.SequenceEqual(persistentSnapshot) && progressionBeforeRetry.SequenceEqual(Enumerable.Range(0,PlayerSession.Catalog.Stages.Count).Select(i=>PlayerSession.Progression.IsComplete(i))),"Retry leaves PlayerDeck and session progression unchanged");
     }
     private sealed class CountingRandom : System.Random {
         public int Draws { get; private set; }

@@ -1,3 +1,5 @@
+> 이전 변경 기록입니다. 현재 덱은 6종 고유 정의이며 Available은 덱을 제외합니다. 최신 동작은 DeckLobbyHandRetryPatch.md를 참고하세요.
+
 # Expanded test catalog
 
 Lobby lists 1-1 through 1-10. These are separate stage definitions sharing the existing TestStage map and BasicEnemy. Existing sequential unlocking remains: only 1-1 starts unlocked. No automatic victory or unlock cheat was added.

@@ -5,19 +5,19 @@ Unity **6000.6.0f1** 프로젝트입니다. 기존 전투에 세션 Lobby·6칸 
 ## 실행과 조작
 
 1. Unity Hub에서 이 `GameDesign` 폴더를 열고 `Assets/Defense/Scenes/MainMenu.unity`를 실행합니다.
-2. **Start Game → Lobby**. **A / D**로 스테이지를 이동합니다. 길게 누르면 0.4초 후 0.15초마다 반복합니다.
+2. **Start Game → Lobby**. **A / D** 또는 좌우 스테이지 카드 클릭으로 이동합니다. 길게 누르면 0.4초 후 0.15초마다 반복합니다.
 3. 중앙 스테이지가 정렬되면 **Enter** 또는 **Enter Stage**로 입장합니다. 목록은 1-1부터 1-10까지이며, 기존 해금 규칙대로 처음에는 1-1만 열려 있습니다.
 4. **Deck**에서 왼쪽 포탑 카드를 오른쪽 T1–T6 슬롯에 드래그합니다. 변경은 즉시 적용됩니다. **Back to Lobby**로 돌아갑니다.
 5. 전투 하단의 Hand 카드 3장 중 하나를 선택하고 초록 설치 슬롯을 클릭합니다. 성공하면 사용 카드가 Queue 뒤로 가고 다음 카드가 Hand 오른쪽에 들어옵니다.
-6. **Pause / Esc**로 정지·재개합니다. Pause → Exit → Yes 또는 Game Over → Lobby로 돌아오면 덱은 유지됩니다.
+6. **Pause / Esc**로 정지·재개합니다. Pause → Exit → Yes 또는 Game Over → Lobby로 돌아오면 덱은 유지됩니다. Game Over의 **Retry**는 같은 스테이지를 새 실행으로 재시작합니다.
 
 Settings는 placeholder입니다. Main Menu, Lobby, Deck Editor, Pause에서 진입한 화면으로 돌아갑니다.
 
 ## 데이터와 현재 가정
 
 - `Assets/Defense/Resources/GameCatalog.asset`: 스테이지 순서, Available Towers, 기본 T1–T6.
-- 포탑은 총 15종이며, 초기 덱은 기존 구성을 유지해 `[Test1, Test2, Test3, Test1, Test2, Test3]`입니다. 중복 정의는 허용하지만 카드 엔트리는 슬롯별로 구분합니다.
-- Available Towers는 **수량 제한 없는 타입 카탈로그**입니다. 넣은 타입도 계속 사용 가능하며, 교체된 타입도 목록에서 다시 사용할 수 있습니다. 별도 인벤토리 수량은 없습니다.
+- 포탑은 총 15종이며, 초기 덱은 `[Test1, Test2, Test3, Test4, Test5, Test6]`입니다. PlayerDeck은 항상 서로 다른 포탑 정의 6개를 가집니다.
+- Available Towers는 **전체 포탑 카탈로그에서 현재 덱의 6종을 제외한 목록**입니다. 현재는 9종이 표시됩니다. 교체 시 들어간 타입은 숨겨지고 빠진 타입이 즉시 나타납니다. 중복 할당은 거부합니다. 별도 수량 인벤토리는 없습니다.
 - T1–T6는 덱 편집 위치입니다. 전투 진입 시 별도 복사본만 한 번 섞습니다. Hand/Queue 변화는 영구 덱을 수정하지 않습니다.
 - 세션 동안 유지하며 앱을 다시 실행하면 초기 덱·진행도로 돌아옵니다. 파일 저장/PlayerPrefs는 사용하지 않습니다.
 - `1-1`부터 `1-10`까지는 모두 TestStage 맵을 재사용합니다. 시작 자원은 150부터 375까지 증가하고, 스폰 간격은 2초부터 1.1초까지 감소합니다.
@@ -37,10 +37,11 @@ Settings는 placeholder입니다. Main Menu, Lobby, Deck Editor, Pause에서 진
 
 ## 문서
 
+- `Documentation/DeckLobbyHandRetryPatch.md`: 중복 원인·수정·마우스 이동·Retry·검증 보고
 - `Documentation/LobbyDeckHandUpdate.md`: 변경 파일 전체 목록, 데이터 구조, 카드 순환, 구현 범위
 - `Documentation/Architecture.md`: 현재 구조
 - `Documentation/SceneSetup.md`: Scene/Inspector 연결
-- `Documentation/Validation.md`: 233개 자동 검증과 미검증 항목
+- `Documentation/Validation.md`: 301개 자동 검증과 미검증 항목
 - `Documentation/Main.md`, `Tower.md`, `enemy.md`, `Lobby.md`, `Deck.md`, `HandCycle.md`: 원본 specification 사본
 
 Unity 기본 uGUI와 모듈만 사용합니다. 새 외부 패키지는 추가하지 않았습니다. `.meta` 파일은 해당 에셋과 함께 보관하세요.

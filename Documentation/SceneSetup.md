@@ -28,7 +28,7 @@ Build Settings는 MainMenu → TestStage입니다. 새로운 씬이나 프리팹
 
 - Stages: Stage1_1부터 Stage1_10까지. 순서가 진행도 순서입니다.
 - Available Towers: TestTurret1부터 TestTurret15까지.
-- Initial Deck: 정확히 6개. T1부터 배열 순서대로 Test1, Test2, Test3, Test1, Test2, Test3.
+- Initial Deck: 정확히 6개. T1부터 배열 순서대로 Test1, Test2, Test3, Test4, Test5, Test6. 여섯 정의는 모두 달라야 합니다.
 
 GameCatalog는 Resources.Load로 한 번 읽는 작은 composition root입니다. Runtime은 카탈로그 ScriptableObject를 변경하지 않습니다. Scene 참조나 덱 현재값을 디스크에 저장하지 않습니다.
 
@@ -48,8 +48,8 @@ GameCatalog는 Resources.Load로 한 번 읽는 작은 composition root입니다
 ## 조정 가능한 UI 값
 
 - LobbyUI: Initial Hold Delay=0.4, Repeat Interval=0.15 (런타임 생성 컴포넌트 기본값).
-- StageCarouselView: Duration=0.2초. 위치와 scale을 함께 보간합니다.
-- DeckEditorUI: 왼쪽 3열 스크롤 목록, 오른쪽 T1/T2, T3/T4, T5/T6.
+- StageCarouselView: Duration=0.2초. 위치와 scale을 함께 보간합니다. 좌/우 카드에는 이전/다음 단계 Button이 연결되며 중앙·이동 중 카드는 클릭 이동하지 않습니다.
+- DeckEditorUI: 왼쪽 3열 스크롤 목록(현재 덱 6종을 제외한 9종), 오른쪽 T1/T2, T3/T4, T5/T6.
 - 슬롯 색상·적 HP 바 설정은 이전과 동일합니다.
 
 UI 오브젝트는 기존 방식처럼 코드로 생성합니다. 영구적인 레이아웃 변경은 해당 UI 스크립트의 생성 위치/크기를 바꾸면 됩니다. Play 중 Inspector 변경은 종료 시 저장되지 않습니다.
@@ -61,3 +61,7 @@ UI 오브젝트는 기존 방식처럼 코드로 생성합니다. 영구적인 �
 - `Defense → Run Prototype Validation (Play Mode)`: 모델·UI 이벤트·전투 통합 자동 검증.
 
 이미 생성된 프로젝트에서 수동 연결이나 생성 도구 재실행은 필요하지 않습니다.
+
+## Retry
+
+Game Over 패널은 Retry / Lobby를 표시합니다. Retry는 GameFlow.Retry에 연결됩니다. 새로운 Scene/Prefab/Inspector 연결은 필요하지 않습니다. 같은 TestStage 씬을 공유하는 1-2 등의 정의도 ActiveStage를 유지하므로 해당 정의의 자원·스폰 설정으로 다시 시작합니다. 패치 적용 시 기존 Play Mode는 종료하고 다시 실행하여 수정된 초기 덱을 로드하세요.

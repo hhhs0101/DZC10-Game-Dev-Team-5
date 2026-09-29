@@ -32,7 +32,8 @@ public sealed class GameplayUI : MonoBehaviour {
         UiFactory.Button(confirmation.transform,"No",new Vector2(0,-70),() => { confirmation.SetActive(false); pause.SetActive(true); });
         gameOver = Overlay("Game Over",root);
         UiFactory.Label(gameOver.transform,"Game Over",new Vector2(.5f,.5f),new Vector2(0,90),new Vector2(600,70),42);
-        UiFactory.Button(gameOver.transform,"Lobby",new Vector2(0,-20),flow.ExitToMenu);
+        UiFactory.Button(gameOver.transform,"Retry",new Vector2(0,0),flow.Retry);
+        UiFactory.Button(gameOver.transform,"Lobby",new Vector2(0,-70),flow.ExitToMenu);
         settings = GetComponent<SettingsUI>(); settings.Initialize(root);
         baseHealth.Changed += UpdateHealth; wallet.Changed += UpdateResources;
         flow.Changed += UpdateState; placement.Message += ShowMessage;

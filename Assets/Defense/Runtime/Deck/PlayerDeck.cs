@@ -11,11 +11,15 @@ public sealed class PlayerDeck {
         if (initial == null || initial.Count != SlotCount) throw new ArgumentException("PlayerDeck requires six entries.");
         slots = new TurretDefinition[SlotCount];
         for (int i=0;i<SlotCount;i++) slots[i] = initial[i] != null ? initial[i] : throw new ArgumentException("Deck entries cannot be null.");
+        if (new HashSet<TurretDefinition>(slots).Count != SlotCount)
+            throw new ArgumentException("PlayerDeck requires six unique tower definitions.");
         view = Array.AsReadOnly(slots);
     }
+    public bool Contains(TurretDefinition tower) => Array.IndexOf(slots,tower) >= 0;
     internal bool Replace(int slot, TurretDefinition tower) {
         if (slot < 0 || slot >= SlotCount || tower == null) return false;
         if (slots[slot] == tower) return true;
+        if (Contains(tower)) return false;
         slots[slot] = tower; Changed?.Invoke(); return true;
     }
 }

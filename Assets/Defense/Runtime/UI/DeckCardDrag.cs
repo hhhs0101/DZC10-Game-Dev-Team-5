@@ -9,7 +9,7 @@ public sealed class DeckCardDrag : MonoBehaviour, IBeginDragHandler, IDragHandle
     private RectTransform canvas;
     public void Initialize(TurretDefinition definition, RectTransform canvasRoot) { Definition = definition; canvas = canvasRoot; }
     public void OnBeginDrag(PointerEventData data) {
-        if (data.button != PointerEventData.InputButton.Left || Definition == null) return;
+        if (!isActiveAndEnabled || IsDragging || data.button != PointerEventData.InputButton.Left || Definition == null) return;
         IsDragging = true;
         ghost = UiFactory.Rect("Dragged Tower",canvas,new Vector2(.5f,.5f),Vector2.zero,new Vector2(160,100));
         var image = ghost.gameObject.AddComponent<Image>(); image.color = new Color(.3f,.55f,.7f,.85f); image.raycastTarget = false;

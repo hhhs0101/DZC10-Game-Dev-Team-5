@@ -19,8 +19,8 @@ TurretDefinition에는 prefab, Damage, AttackRange, AttackCooldown, Cost, Target
 | KeyRepeat | 입력 방향에 대한 즉시 이동·최초 지연·반복 간격 |
 | StageCarouselView | 임의의 stage 수에 대응하는 카드 위치/크기 보간, 잠금 표시 |
 | LobbyDeckPreview | PlayerDeck.Changed 구독, T1–T6의 읽기 전용 표시 |
-| PlayerDeck | 6칸의 세션 할당. 슬롯 읽기 전용 노출, 유효한 교체와 Changed 이벤트 |
-| DeckEditorController | 카탈로그에 있는 tower만 정확한 슬롯에 교체 |
+| PlayerDeck | 서로 다른 6개 정의의 세션 할당. 생성·교체 중복 검증, 읽기 전용 노출, Changed 이벤트 |
+| DeckEditorController | 전체 카탈로그 minus PlayerDeck으로 Available을 계산하고, 해당 tower만 정확한 슬롯에 교체 |
 | DeckEditorUI | 책 형태 배치, Available Towers 스크롤 목록, T1–T6 고정 표시 |
 | DeckCardDrag / DeckSlotDrop | uGUI 드래그 ghost/드롭 이벤트. 유효 드롭 때만 controller 호출 |
 
@@ -42,7 +42,7 @@ GameCatalog.InitialDeck
              └─ UpcomingQueue[3]
 ```
 
-같은 포탑 정의를 T1과 T4에 넣어도 서로 다른 RuntimeCard입니다. SourceSlot은 중복을 구분하는 식별 정보이지 추첨 우선순위가 아닙니다. Shuffle은 생성자에서만 실행하며, 카드 사용 시 난수를 호출하지 않습니다. 생성자에 System.Random을 전달할 수 있어 테스트 재현이 가능합니다. 일반 플레이에는 seed 조절 UI가 없습니다. 새로운 실행은 새 난수로 섞지만 우연히 같은 순서가 나올 가능성은 정상입니다.
+같은 포탑 정의를 T1과 T4에 중복 할당할 수 없습니다. SourceSlot은 원래 덱 위치를 추적하는 정보이지 추첨 우선순위가 아닙니다. RuntimeCardCycle은 시작과 순환 전후에 3장 Hand + 3장 Queue와 6개 정의의 고유성을 검증합니다. Shuffle은 생성자에서만 실행하며, 카드 사용 시 난수를 호출하지 않습니다. 생성자에 System.Random을 전달할 수 있어 테스트 재현이 가능합니다. 일반 플레이에는 seed 조절 UI가 없습니다. 새로운 실행은 새 난수로 섞지만 우연히 같은 순서가 나올 가능성은 정상입니다.
 
 ## Hand와 배치의 연결
 
@@ -67,3 +67,11 @@ Settings/Deck으로 갈 때 Lobby를 숨기므로 selectedStageIndex와 보간 �
 ## 범위 밖
 
 디스크 저장, 덱 프리셋, 인벤토리 수량, 카드 희귀도, reroll/discard, 중간 재셔플, 터치/swipe, 추가 적, projectile, 완성형 아트는 추가하지 않았습니다. 기존 자원 보상과 세 테스트 포탑을 유지하고, 추가 12개 포탑 정의를 같은 전투 코드로 구성했습니다.
+
+## 중복 방지 / Available / Retry 패치
+
+PlayerDeck 생성자는 null·개수·중복을 검증합니다. Replace는 현재 슬롯의 동일 값은 무변경으로 처리하며 다른 슬롯과 겹치는 정의는 변경 전에 거부합니다. DeckEditorController.Available은 매 접근 시 전체 정의에서 현재 덱을 제외하므로 별도 인벤토리 상태가 없습니다. DeckEditorUI는 기존 카드 view를 재사용하고 Changed에 맞춰 활성화·배열 위치·스크롤 높이만 갱신합니다.
+
+StageSelection.MovePrevious/MoveNext는 키보드와 마우스 공통 진입점입니다. StageCarouselView는 좌우 카드의 Button 클릭을 이 메서드에 연결합니다. 위치가 이동 중인 카드의 클릭은 잠시 비활성화되며, 키보드 held-key 로직과 보간은 그대로 유지합니다.
+
+GameFlow.Retry는 GameOver일 때만 현재 씬을 다시 로드합니다. PlayerSession.ActiveStage/Selection/Deck/Progression은 그대로 유지하고, 새 씬의 StageInitializer가 HP·자원·스폰·카드 순환을 초기화합니다. 새 EnemyRegistry·슬롯·UI가 생성되어 이전 실행의 적/포탑/점유/선택/이벤트 연결은 씬과 함께 제거됩니다. Retry는 timeScale을 1로 복원하고 한 번의 중복 로드 요청을 막습니다.
