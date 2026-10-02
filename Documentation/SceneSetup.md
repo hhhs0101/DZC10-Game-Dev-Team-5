@@ -1,3 +1,18 @@
+# Scene / Inspector — 3D Stage 1
+
+현재 설정은 `3D_Stage1_Report.md`의 Scene 구성 및 Collider/Layer 표를 기준으로 합니다. 아래는 이전 카드/로비 구성 기록이며, 2D 외형에 관한 내용은 이번 전환으로 대체되었습니다.
+
+- TestStage의 Battlefield/Tabletop: 크기 20×12, 표면 Y=0, BoxCollider, GameplaySurface layer.
+- Main Camera: Perspective FOV 45, 위치 (10,19,-22), 원점 방향. Inspector에서 조절.
+- WaypointPath: 자식 17개 Transform과 points 배열. 높이는 path root Y 사용.
+- PlacementSlots: 8개 독립 Scene 위치, root BoxCollider와 별도 Slot Visual.
+- BasicEnemy/BasicTurret prefab: 로직 root 아래 Visual 자식의 Sphere/Cuboid를 교체.
+- EnemyHealthBar는 SpriteRenderer 참조 없이 월드 Canvas를 만들고 카메라를 바라봄.
+- PathVisualization/PlacementSlotView는 표시 전용이며 비활성화/제거해도 상태 로직은 유지.
+- TabletopSurface의 카메라와 Surface/Placement/Enemy masks는 다음 단계 입력용 연결 지점.
+- 별도 수동 연결이나 변환 도구 재실행 없이 저장된 Scene을 열면 됨.
+- 마우스 월드 배치/시전은 Stage 2 대기 상태. UI와 programmatic API만 현재 동작.
+
 # Scene / GameObject / Inspector 설정
 
 ## 기존 씬 유지

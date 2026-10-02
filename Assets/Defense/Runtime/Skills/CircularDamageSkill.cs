@@ -7,7 +7,7 @@ public sealed class CircularDamageSkill : Skill {
         // Death unregisters synchronously, so iterate a snapshot.
         var enemies = new List<Enemy>(registry.Enemies);
         foreach (var enemy in enemies)
-            if (enemy != null && enemy.IsAlive && ((Vector2)enemy.transform.position-position).sqrMagnitude <= definition.Radius*definition.Radius)
+            if (enemy != null && enemy.IsAlive && (PlanarSpace.Project(enemy.transform.position)-position).sqrMagnitude <= definition.Radius*definition.Radius)
                 enemy.ReceiveDamage(definition.Damage);
     }
 }

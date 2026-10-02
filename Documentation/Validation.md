@@ -1,6 +1,16 @@
+# 최신 검증 — 3D Stage 1
+
+Unity 6000.6.0f1 Play Mode에서 **400 assertions 통과**. 기존 378개 회귀 검사에 22개 3D 구조/평면 규칙/표시 분리 검사를 추가했습니다.
+
+검증 폴더 `/tmp/defense-stage1-check`, 로그 `/tmp/defense-stage1-validation.log`, 결과 `ValidationResult.txt`.
+
+카메라 자동 렌더 `3D_Stage1_Preview.png`를 직접 확인했습니다. 이는 3D 월드 카메라 캡처이며 overlay HUD나 수동 플레이 검증이 아닙니다. 마우스 3D 배치/조준은 아직 연결되지 않았습니다. 자세한 내용은 `3D_Stage1_Report.md`를 참고하세요.
+
+아래는 이전 카드/덱 테스트 범위의 기록입니다. 최신 실행 경로와 미구현 입력 범위는 위 설명을 우선합니다.
+
 # 검증 결과 — Card / Elixir / Skill
 
-Unity **6000.6.0f1**에서 Play Mode 자동 검증 **378개 assertion 통과**.
+Unity **6000.6.0f1**에서 Play Mode 자동 검증 **400개 assertion 통과**.
 최종 결과는 `ValidationResult.txt`입니다. 원본에서 열려 있을 수 있는 Editor를 방해하지 않도록 Assets/Packages/ProjectSettings/Documentation을 `/tmp/defense-lobby-validation`에 복사해 실행했습니다.
 
 기존 확장의 1-1~1-10 순서와 캐러셀 양 끝 경계, 15종 정의·참조 및 덱 편집기 목록, 추가 포탑을 T3에 드롭하는 동작도 확인했습니다. 최종 로그: `/tmp/defense-card-validation-final.log`.

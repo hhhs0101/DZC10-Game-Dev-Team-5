@@ -66,7 +66,7 @@ public static class CardSkillValidation {
             check(casting.BeginAim(Vector2.zero,false) && casting.IsAiming && casting.IndicatorRadius==card.Skill.Radius,"Aiming uses actual "+card.DisplayName+" radius");
             casting.MoveAim(Vector2.one); check(casting.AimPosition==Vector2.one,"Indicator follows aiming position");
             var indicator=casting.GetComponentInChildren<LineRenderer>();
-            check(indicator.enabled && Mathf.Approximately(Vector2.Distance(indicator.GetPosition(0),Vector2.one),card.Skill.Radius),"Rendered indicator vertices use the configured gameplay radius");
+            check(indicator.enabled && Mathf.Approximately(Vector2.Distance(PlanarSpace.Project(indicator.GetPosition(0)),Vector2.one),card.Skill.Radius),"Rendered indicator vertices use the configured gameplay radius");
             Canvas.ForceUpdateCanvases();
             var selectedButton=GameObject.Find("Hand Card "+(hand.Cycle.Hand.ToList().IndexOf(used)+1)).GetComponent<RectTransform>();
             bool cardUi=GameplayPointer.IsOverUI(RectTransformUtility.WorldToScreenPoint(null,selectedButton.position));

@@ -8,6 +8,7 @@ public sealed class TurretPlacementController : MonoBehaviour {
     [SerializeField] private ResourceWallet wallet;
     [SerializeField] private EnemyRegistry registry;
     [SerializeField] private LayerMask placementLayers;
+    [SerializeField] private TabletopSurface surface;
     private TurretDefinition selected;
     private TowerPlacementSlot hoveredSlot;
     public TurretDefinition Selected => selected;
@@ -18,16 +19,7 @@ public sealed class TurretPlacementController : MonoBehaviour {
         if (!flow.IsPlaying) return;
         selected = definition; SelectionChanged?.Invoke(selected);
     }
-    private void Update() {
-        if (!flow.IsPlaying || (GameplayPointer.IsOverUI(Input.mousePosition))) {
-            SetHoveredSlot(null); return;
-        }
-        Vector2 point = worldCamera.ScreenToWorldPoint(Input.mousePosition);
-        Collider2D hit = Physics2D.OverlapPoint(point, placementLayers);
-        TowerPlacementSlot slot = hit != null ? hit.GetComponent<TowerPlacementSlot>() : null;
-        SetHoveredSlot(slot);
-        if (selected != null && Input.GetMouseButtonDown(0)) TryPlace(slot);
-    }
+    // Stage 1 intentionally has no world mouse input. Stage 2 will call TryPlace from 3D raycasts.
     private void SetHoveredSlot(TowerPlacementSlot slot) {
         if (hoveredSlot != null) hoveredSlot.SetHovered(false);
         hoveredSlot = slot;
@@ -36,7 +28,7 @@ public sealed class TurretPlacementController : MonoBehaviour {
     private void OnDisable() { SetHoveredSlot(null); }
     public bool TryPlace(TowerPlacementSlot slot) {
         if (!flow.IsPlaying || selected == null || !GetComponent<GameplayHand>().CanPlace(selected)) return false;
-        if (slot == null) return Fail("You cannot place a turret here.");
+        if (slot == null || (surface != null && !surface.Contains(PlanarSpace.Project(slot.transform.position)))) return Fail("You cannot place a turret here.");
         if (slot.IsOccupied) return Fail("A turret is already placed here.");
         if (!wallet.CanAfford(selected.Cost)) return Fail("Not enough resources.");
         if (selected.Prefab == null || selected.Targeting == null) {

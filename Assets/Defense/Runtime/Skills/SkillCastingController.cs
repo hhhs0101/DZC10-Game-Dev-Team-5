@@ -3,6 +3,7 @@ using UnityEngine;
 namespace Defense {
 public sealed class SkillCastingController : MonoBehaviour {
     [SerializeField, Tooltip("Valid world coordinates for skill casts. UI always cancels.")] private Rect gameplayArea = new Rect(-9,-4.5f,18,9);
+    [SerializeField] private TabletopSurface surface;
     private GameplayHand hand;
     private GameFlow flow;
     private EnemyRegistry registry;
@@ -27,14 +28,11 @@ public sealed class SkillCastingController : MonoBehaviour {
     private void Update() {
         Advance(Time.deltaTime);
         if (!flow.IsPlaying) { CancelAim(); return; }
-        Vector2 position = worldCamera.ScreenToWorldPoint(Input.mousePosition);
-        bool overUi = GameplayPointer.IsOverUI(Input.mousePosition);
-        if (Input.GetMouseButtonDown(0)) BeginAim(position,overUi);
-        if (IsAiming && Input.GetMouseButton(0)) MoveAim(position);
-        if (IsAiming && Input.GetMouseButtonUp(0)) ReleaseAim(position,overUi);
+        // World pointer input is deferred to Stage 2. Planar APIs remain testable.
     }
+    private bool IsValidPoint(Vector2 point) => surface != null ? surface.Contains(point) : gameplayArea.Contains(point);
     public bool BeginAim(Vector2 position, bool overUi) {
-        if (!flow.IsPlaying || overUi || !gameplayArea.Contains(position) || !(hand.SelectedCard?.Definition is SkillCardDefinition card) || card.Skill == null || card.Skill.Effect == null) return false;
+        if (!flow.IsPlaying || overUi || !IsValidPoint(position) || !(hand.SelectedCard?.Definition is SkillCardDefinition card) || card.Skill == null || card.Skill.Effect == null) return false;
         aimingCard = hand.SelectedCard; IndicatorRadius = card.Skill.Radius;
         indicator.enabled = true; MoveAim(position); return true;
     }
@@ -43,13 +41,13 @@ public sealed class SkillCastingController : MonoBehaviour {
         AimPosition = position;
         for (int i=0;i<indicator.positionCount;i++) {
             float angle = i*Mathf.PI*2/indicator.positionCount;
-            indicator.SetPosition(i,new Vector3(position.x+Mathf.Cos(angle)*IndicatorRadius,position.y+Mathf.Sin(angle)*IndicatorRadius,-.2f));
+            indicator.SetPosition(i,PlanarSpace.World(position + new Vector2(Mathf.Cos(angle),Mathf.Sin(angle))*IndicatorRadius,(surface != null ? surface.Height : 0)+.06f));
         }
     }
     public CardUseResult ReleaseAim(Vector2 position, bool overUi) {
         if (!IsAiming) return CardUseResult.Cancelled;
         var card = aimingCard; CancelAim();
-        if (!flow.IsPlaying || overUi || !gameplayArea.Contains(position) || card != hand.SelectedCard) return CardUseResult.Cancelled;
+        if (!flow.IsPlaying || overUi || !IsValidPoint(position) || card != hand.SelectedCard) return CardUseResult.Cancelled;
         if (!hand.CanUse(card)) return CardUseResult.Failure;
         var definition = ((SkillCardDefinition)card.Definition).Skill;
         var result = hand.CompleteUse(card,CardUseResult.Success);

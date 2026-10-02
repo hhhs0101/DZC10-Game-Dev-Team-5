@@ -1,6 +1,14 @@
-# Unity 2D Defense — Cards / Elixir / Skills Prototype
+# Unity Defense — 3D Tabletop Stage 1
 
 A Unity **6000.6.0f1** project that extends the existing combat prototype with a session-based Lobby, a six-slot Deck Editor, and a three-card gameplay Hand shared by towers and skills. Final graphics and disk persistence are not implemented.
+
+## Current Migration Status
+
+The Test Stage now uses a fixed perspective camera, a 3D table, Sphere enemies, and Cuboid towers. Gameplay stays planar on **XZ**; height does not affect range, targeting, movement speed, or skill radius.
+
+**Stage 1 intentionally defers 3D mouse input.** Hand selection and menu/HUD controls work, but clicking slots to build and holding/releasing to aim skills are not connected yet. The old 2D world input has been removed to avoid incorrect coordinates. Placement/casting APIs and all cost/cycle rules remain available and tested. Stage 2 will connect them to camera raycasts.
+
+See `Documentation/3D_Stage1_Report.md` for the full status, scene setup, changed files, preview, and verification. The supplied prompt is preserved in `Documentation/3D_Implementation_Stage1.md`.
 
 ## Getting Started and Controls
 
@@ -8,7 +16,7 @@ A Unity **6000.6.0f1** project that extends the existing combat prototype with a
 2. Select **Start Game → Lobby**. Navigate with **A / D** or click the left or right stage card. Holding a key repeats navigation every 0.15 seconds after an initial 0.4-second delay.
 3. Once the selected stage is centered, press **Enter** or click **Enter Stage**. The list contains stages 1-1 through 1-10; only 1-1 is initially unlocked under the existing progression rules.
 4. Open **Deck** and drag a tower or skill card from the left page onto a T1–T6 slot on the right. Changes apply immediately. Select **Back to Lobby** to return.
-5. During gameplay, select a Tower Card and click a green placement slot. For a Skill Card, press and hold the left mouse button in the gameplay area, aim the circle, then release to cast. Release over a Hand card or other UI to cancel. After successful card use, the used card moves to the back of the Upcoming Queue, and the next queued card enters the right side of the Hand.
+5. Enter the stage to observe enemies moving from the right side of the tabletop toward the Base on the left. Hand cards can be selected. World mouse placement and skill aiming are deferred to Stage 2; successful API-driven uses still pay costs and rotate the common Hand/Queue.
 6. Use **Pause / Esc** to pause or resume. Your deck is preserved when returning through Pause → Exit → Yes or Game Over → Lobby. **Retry** on the Game Over screen starts a fresh run of the same stage.
 
 Settings is a placeholder screen. Closing it returns to the screen that opened it: Main Menu, Lobby, Deck Editor, or Pause.
@@ -33,7 +41,7 @@ Settings is a placeholder screen. Closing it returns to the screen that opened i
 
 Stage 1-1 starts with 10 Base HP, 150 resources, and a 2-second enemy spawn interval. The basic enemy has 40 HP, a movement speed of 1.5, Base damage of 1, and a kill reward of 10 resources. Edit **Resource Reward** in `BasicEnemy.asset` to configure the reward for that enemy definition.
 
-Green placement slots brighten on hover and turn brown when occupied. HP bars appear above the red enemies. All 15 tower types share the existing BasicTurret prefab and combat code. Scroll the left page of the Deck Editor to view additional cards. The complete statistics are listed in `Documentation/TestCatalog.md`.
+Green placement slots have available, highlighted, and occupied presentation states. Mouse hover wiring is deferred to Stage 2. HP bars appear above the red enemies. All 15 tower types share the existing BasicTurret prefab and combat code. Scroll the left page of the Deck Editor to view additional cards. The complete statistics are listed in `Documentation/TestCatalog.md`.
 
 ## Cards, Elixir, and Skills
 
@@ -46,7 +54,7 @@ Every run starts with **3 Elixir**, regenerates **0.36 per second** while Playin
 | Fireball | 60 | 1.5 | 0 s | 3 |
 | Arrow Rain | 25 | 3 | 0 s | 2 |
 
-Both use a shared circular damage effect and the existing Enemy damage/reward API. Empty-area casts still consume the card. Cancellation, invalid placement, or insufficient funds never spend Elixir or advance the cycle. Future non-zero casting time is supported: commit, pay and cycle immediately, then apply the effect after the delay. Pausing freezes that delay; Game Over discards pending effects.
+Both retain their data and programmatic casting pipeline; mouse aiming awaits Stage 2. Both use a shared circular damage effect and the existing Enemy damage/reward API. Empty-area casts still consume the card. Cancellation, invalid placement, or insufficient funds never spend Elixir or advance the cycle. Future non-zero casting time is supported: commit, pay and cycle immediately, then apply the effect after the delay. Pausing freezes that delay; Game Over discards pending effects.
 
 Tower Cards currently cost **0 Elixir** and retain their existing resource costs. Their Elixir cost can be changed independently in the card asset. The default deck remains the original six towers; add Fireball and Arrow Rain through the Deck Editor.
 

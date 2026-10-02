@@ -81,6 +81,8 @@ public static class PrototypeValidation {
                     Check(SceneManager.GetActiveScene().name=="TestStage","Unlocked centered stage loads");
                     Check(Find<BaseHealth>().Current==10 && Find<ResourceWallet>().Balance==150,"Stage starts with HP and resources");
                     Check(Find<EnemyRegistry>().Enemies.Count>0,"Fixed interval spawns enemies");
+                    TabletopStageValidation.Run(Check);
+                    TabletopStageValidation.CapturePreview();
                     Find<FixedIntervalSpawner>().enabled=false;
                     foreach (var enemy in Find<EnemyRegistry>().Enemies.ToArray()) enemy.ReceiveDamage(10000);
                     TestPlacementCycle(); TestRewardsAndHealth();
@@ -95,6 +97,7 @@ public static class PrototypeValidation {
                     Click("Settings"); Click("Back");
                     Check(Find<GameFlow>().State==GameplayState.Paused,"Settings Back stays paused"); Wait(2,.5); break;
                 case 2:
+                    TabletopStageValidation.VerifyFixedCamera(Check);
                     Check(pausedEnemy.transform.position==pausedPosition && pausedEnemy.CurrentHealth==pausedHP && Find<EnemyRegistry>().Enemies.Count==pausedCount,"Paused movement, combat and spawning stay frozen");
                     Click("Resume"); Check(Time.timeScale==1,"Resume restores time");
                     balanceBeforeBase=Find<ResourceWallet>().Balance;
@@ -296,13 +299,13 @@ public static class PrototypeValidation {
         hand.CancelSelection();
         Check(!placement.TryPlace(Slots()[0]) && hand.Cycle.Hand.SequenceEqual(before) && hand.Cycle.UpcomingQueue.SequenceEqual(queue),"Selection cancellation does not cycle cards");
         wallet.Initialize(1000); Card(1);
-        var slot=Slots()[0]; var available=slot.GetComponent<SpriteRenderer>().color; slot.SetHovered(true);
-        Check(slot.GetComponent<SpriteRenderer>().color!=available,"Available slot hover highlights"); slot.SetHovered(false);
-        Check(slot.GetComponent<SpriteRenderer>().color==available,"Hover exit restores color");
+        var slot=Slots()[0]; var available=slot.GetComponentInChildren<PlacementSlotView>().CurrentColor; slot.SetHovered(true);
+        Check(slot.GetComponentInChildren<PlacementSlotView>().CurrentColor!=available,"Available slot hover highlights"); slot.SetHovered(false);
+        Check(slot.GetComponentInChildren<PlacementSlotView>().CurrentColor==available,"Hover exit restores color");
         Check(placement.TryPlace(slot) && wallet.Balance==1000-((TowerCardDefinition)before[1].Definition).Tower.Cost,"Actual placement spends selected card cost");
         Check(hand.Cycle.Hand.SequenceEqual(new[]{before[0],before[2],queue[0]}) && hand.Cycle.UpcomingQueue.SequenceEqual(new[]{queue[1],queue[2],before[1]}),"Success draws queue front and appends used card to queue back");
         Check(hand.SelectedCard==null && placement.Selected==null,"Success clears selection to avoid stale card reuse");
-        Check(slot.GetComponent<SpriteRenderer>().color!=available,"Occupied slot remains visually distinct");
+        Check(slot.GetComponentInChildren<PlacementSlotView>().CurrentColor!=available,"Occupied slot remains visually distinct");
         Card(0); before=hand.Cycle.Hand.ToArray(); queue=hand.Cycle.UpcomingQueue.ToArray(); int balance=wallet.Balance;
         Check(!placement.TryPlace(slot) && lastMessage=="A turret is already placed here." && wallet.Balance==balance && hand.Cycle.Hand.SequenceEqual(before) && hand.Cycle.UpcomingQueue.SequenceEqual(queue),"Occupied placement preserves cost and full cycle");
         Check(PlayerSession.Deck.Slots.SequenceEqual(persistentSnapshot),"Successful cycling never edits persistent deck");

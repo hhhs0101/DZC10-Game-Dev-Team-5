@@ -1,4 +1,17 @@
-# 현재 구조
+# 현재 구조 — 3D Stage 1
+
+현재 월드 구성과 제한은 `3D_Stage1_Report.md`를 기준으로 합니다. 월드는 3D, 게임 규칙은 XZ 평면이며 완전한 마우스 입력 연결은 Stage 2에 남아 있습니다.
+
+- PlanarSpace: XZ 투영/변환/거리 계산.
+- TabletopSurface: 수평 표면 범위, 카메라 참조와 Raycast LayerMasks. 게임 상태를 소유하지 않음.
+- WaypointPath/EnemyPathFollower: 설정된 XZ 경로와 path root Y에서 이동.
+- TowerPlacementSlot: 점유/하이라이트 상태와 Changed 이벤트만 소유.
+- PlacementSlotView, PathVisualization, EnemyHealthBar: 교체하거나 끌 수 있는 표시 컴포넌트.
+- TryPlace/스킬 조준 API는 유지. 기존 Physics2D/ScreenToWorldPoint 입력은 중단했으며 아직 3D 입력으로 연결하지 않았음.
+- Turret/Enemy의 시각적 자식 Mesh와 런타임 책임 분리. 사거리/스킬 radius에 Y는 사용하지 않음.
+
+아래는 유지되는 카드/상태 구조 설명입니다. 마우스 down/release 흐름은 API의 의미를 설명하며 현재 연결된 사용자 입력을 뜻하지 않습니다.
+
 
 ## 재사용한 기반
 
