@@ -3,6 +3,8 @@ using UnityEngine;
 namespace Defense {
 // Owns slot state only; a removable view observes Changed.
 public sealed class TowerPlacementSlot : MonoBehaviour {
+    [SerializeField, Tooltip("Optional spawn anchor, independent from the slot visual/collider. Defaults to this Transform.")] private Transform placementPoint;
+    public Transform PlacementPoint => placementPoint != null ? placementPoint : transform;
     public Turret Occupant { get; private set; }
     public bool IsOccupied => Occupant != null;
     public bool IsHovered { get; private set; }

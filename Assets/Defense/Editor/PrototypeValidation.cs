@@ -82,6 +82,7 @@ public static class PrototypeValidation {
                     Check(Find<BaseHealth>().Current==10 && Find<ResourceWallet>().Balance==150,"Stage starts with HP and resources");
                     Check(Find<EnemyRegistry>().Enemies.Count>0,"Fixed interval spawns enemies");
                     TabletopStageValidation.Run(Check);
+                    PlacementCameraValidation.Run(Check);
                     TabletopStageValidation.CapturePreview();
                     Find<FixedIntervalSpawner>().enabled=false;
                     foreach (var enemy in Find<EnemyRegistry>().Enemies.ToArray()) enemy.ReceiveDamage(10000);
@@ -387,7 +388,9 @@ public static class PrototypeValidation {
     private static void Finish(bool success,string detail) {
         SessionState.SetBool(Key,false); EditorApplication.update-=Tick; Application.logMessageReceived-=OnLog;
         string result=(success?"DEFENSE_VALIDATION_PASSED ":"DEFENSE_VALIDATION_FAILED ")+detail;
-        Debug.Log(result); System.IO.File.WriteAllText("Documentation/ValidationResult.txt",result+"\n");
+        Debug.Log(result);
+        System.IO.Directory.CreateDirectory("Documentation/Report");
+        System.IO.File.WriteAllText("Documentation/Report/ValidationResult.txt",result+"\n");
         if (Application.isBatchMode) EditorApplication.Exit(success?0:1); else EditorApplication.isPlaying=false;
     }
 }

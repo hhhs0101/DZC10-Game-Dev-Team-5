@@ -25,7 +25,7 @@ public sealed class BuildMenuUI : MonoBehaviour {
             cards[i].image.color = card == hand.SelectedCard ? new Color(.2f,.55f,.36f) : card.Definition.Color;
             cards[i].interactable = interactive;
         }
-        selection.text = hand.SelectedCard == null ? "Select a card." : "Selected: "+hand.SelectedCard.Definition.DisplayName;
+        selection.text = hand.SelectedCard == null ? "Select a Tower Card, then click a green slot." : "Selected: "+hand.SelectedCard.Definition.DisplayName;
     }
     public void SetInteractionEnabled(bool enabled) { interactive = enabled; Refresh(); }
     private void OnDestroy() { if (hand != null) hand.Changed -= Refresh; }
