@@ -115,7 +115,7 @@ If `CurrentElixir < Card.ElixirCost`:
 - Keep the card in Hand.
 - Display:
 
-`엘릭서가 부족합니다`
+`Not enough Elixir.`
 
 The message should:
 
@@ -235,3 +235,9 @@ Verify at minimum:
 15. Elixir Bar tracks state smoothly.
 
 Report files changed, Elixir data flow, spending API, UI implementation, tests performed, and unverified behavior.
+
+## Translation note
+
+The English messages above translate the originally specified Korean UI messages. This document translation does not request a change to the runtime UI language. Decode the Unicode escapes below to recover the exact original text.
+
+- English meaning: `Not enough Elixir.` Original required UI text (Unicode-escaped): `\uc5d8\ub9ad\uc11c\uac00 \ubd80\uc871\ud569\ub2c8\ub2e4`.

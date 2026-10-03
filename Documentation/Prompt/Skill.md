@@ -181,7 +181,7 @@ No card cycle
 Skill remains in Hand
 Exit Aiming Mode
 Hide indicator
-Display "엘릭서가 부족합니다"
+Display "Not enough Elixir."
 ```
 
 Message timing/fade is defined in `Elixir.md`.
@@ -339,3 +339,9 @@ Verify at minimum:
 20. Skill logic does not depend on Tower Placement Slots.
 
 Report files changed, Skill hierarchy, aiming/casting state flow, Fireball/Arrow Rain values, Hand integration, tests performed, and unverified behavior.
+
+## Translation note
+
+The English messages above translate the originally specified Korean UI messages. This document translation does not request a change to the runtime UI language. Decode the Unicode escapes below to recover the exact original text.
+
+- English meaning: `Not enough Elixir.` Original required UI text (Unicode-escaped): `\uc5d8\ub9ad\uc11c\uac00 \ubd80\uc871\ud569\ub2c8\ub2e4`.

@@ -1,0 +1,27 @@
+# Normalize text without requiring Git LFS or a machine-specific merge driver.
+* text=auto
+*.cs text eol=lf diff=csharp
+*.md text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.unity text eol=lf
+*.prefab text eol=lf
+*.mat text eol=lf
+*.meta text eol=lf
+*.shader text eol=lf
+*.cginc text eol=lf
+# .asset may be text or binary; retain automatic detection.
+*.asset text=auto
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.fbx binary
+*.FBX binary
+*.blend binary
+*.wav binary
+*.mp3 binary
+*.ogg binary
+*.zip binary

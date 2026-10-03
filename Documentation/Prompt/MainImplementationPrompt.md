@@ -77,7 +77,7 @@ If the player attempts to replace the final Tower Card with a Skill Card:
 
 - reject the edit,
 - preserve the previous deck,
-- display `덱에 최소 1장의 Tower 카드가 들어가야 합니다`,
+- display `At least one Tower Card must be included in the deck.`,
 - fade the message out after approximately 3 seconds.
 
 Cards already in the deck must not appear in the Available Cards collection.
@@ -125,7 +125,7 @@ If the player cannot afford a Card:
 - reject the action,
 - spend no Elixir,
 - do not cycle the Card,
-- display `엘릭서가 부족합니다`,
+- display `Not enough Elixir.`,
 - fade the message out after approximately 1.5 seconds.
 
 Spend Elixir only after Card use has been successfully committed.
@@ -271,3 +271,10 @@ After implementation, report:
 9. Automated tests performed.
 10. Manual behavior actually verified.
 11. Anything that remains unverified.
+
+## Translation note
+
+The English messages above translate the originally specified Korean UI messages. This document translation does not request a change to the runtime UI language. Decode the Unicode escapes below to recover the exact original text.
+
+- English meaning: `At least one Tower Card must be included in the deck.` Original required UI text (Unicode-escaped): `\ub371\uc5d0 \ucd5c\uc18c 1\uc7a5\uc758 Tower \uce74\ub4dc\uac00 \ub4e4\uc5b4\uac00\uc57c \ud569\ub2c8\ub2e4`.
+- English meaning: `Not enough Elixir.` Original required UI text (Unicode-escaped): `\uc5d8\ub9ad\uc11c\uac00 \ubd80\uc871\ud569\ub2c8\ub2e4`.

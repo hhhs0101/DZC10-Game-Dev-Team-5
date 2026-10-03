@@ -103,7 +103,7 @@ If the player tries to replace the final Tower Card with a Skill Card:
 - Preserve the current deck.
 - Display:
 
-`덱에 최소 1장의 Tower 카드가 들어가야 합니다`
+`At least one Tower Card must be included in the deck.`
 
 The message should remain visible for approximately 3 seconds and then fade out automatically.
 
@@ -298,3 +298,9 @@ Verify at minimum:
 13. Runtime cycle does not modify PlayerDeck.
 
 Report files changed, hierarchy/design, deck validation, Hand integration, tests performed, and unverified behavior.
+
+## Translation note
+
+The English messages above translate the originally specified Korean UI messages. This document translation does not request a change to the runtime UI language. Decode the Unicode escapes below to recover the exact original text.
+
+- English meaning: `At least one Tower Card must be included in the deck.` Original required UI text (Unicode-escaped): `\ub371\uc5d0 \ucd5c\uc18c 1\uc7a5\uc758 Tower \uce74\ub4dc\uac00 \ub4e4\uc5b4\uac00\uc57c \ud569\ub2c8\ub2e4`.

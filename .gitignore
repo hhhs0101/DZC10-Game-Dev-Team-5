@@ -7,3 +7,24 @@
 *.csproj
 *.sln
 .DS_Store
+
+# Additional Unity build output and local development caches
+/[Bb]uild/
+/[Bb]uilds/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+.vs/
+.gradle/
+*.unityproj
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+sysinfo.txt
+
+# Local assistant reports, validation output, previews and reference templates
+/Documentation/Report/

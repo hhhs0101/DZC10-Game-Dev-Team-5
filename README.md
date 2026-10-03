@@ -4,11 +4,11 @@ A Unity **6000.6.0f1** project that extends the existing combat prototype with a
 
 ## Current Migration Status
 
-The Test Stage now uses a fixed perspective camera, a 3D table, Sphere enemies, and Cuboid towers. Gameplay stays planar on **XZ**; height does not affect range, targeting, movement speed, or skill radius.
+The Test Stage now uses a fixed front-facing perspective camera, a 3D table, Sphere enemies, and Cuboid towers. Gameplay stays planar on **XZ**; height does not affect range, targeting, movement speed, or skill radius.
 
-**Stage 1 intentionally defers 3D mouse input.** Hand selection and menu/HUD controls work, but clicking slots to build and holding/releasing to aim skills are not connected yet. The old 2D world input has been removed to avoid incorrect coordinates. Placement/casting APIs and all cost/cycle rules remain available and tested. Stage 2 will connect them to camera raycasts.
+**Tower mouse placement now works in 3D.** Select a Tower Card, hover an available green slot, and click to build. Slot-only 3D raycasts ignore table/enemy colliders and respect UI blocking. Failed placement preserves your card and resources. **Skill mouse aiming remains deferred**; its casting APIs and existing behavior are unchanged.
 
-See `Documentation/3D_Stage1_Report.md` for the full status, scene setup, changed files, preview, and verification. The supplied prompt is preserved in `Documentation/3D_Implementation_Stage1.md`.
+Implementation reports and previews are stored locally in `Documentation/Report/` and excluded from Git. User-provided specifications are versioned in `Documentation/Prompt/`.
 
 ## Getting Started and Controls
 
@@ -16,7 +16,7 @@ See `Documentation/3D_Stage1_Report.md` for the full status, scene setup, change
 2. Select **Start Game → Lobby**. Navigate with **A / D** or click the left or right stage card. Holding a key repeats navigation every 0.15 seconds after an initial 0.4-second delay.
 3. Once the selected stage is centered, press **Enter** or click **Enter Stage**. The list contains stages 1-1 through 1-10; only 1-1 is initially unlocked under the existing progression rules.
 4. Open **Deck** and drag a tower or skill card from the left page onto a T1–T6 slot on the right. Changes apply immediately. Select **Back to Lobby** to return.
-5. Enter the stage to observe enemies moving from the right side of the tabletop toward the Base on the left. Hand cards can be selected. World mouse placement and skill aiming are deferred to Stage 2; successful API-driven uses still pay costs and rotate the common Hand/Queue.
+5. Enter the stage to observe enemies moving from the right side of the tabletop toward the Base on the left. Select a Tower Card and click a green slot to place it. Successful placement pays costs and rotates the common Hand/Queue. Skill mouse aiming remains deferred.
 6. Use **Pause / Esc** to pause or resume. Your deck is preserved when returning through Pause → Exit → Yes or Game Over → Lobby. **Retry** on the Game Over screen starts a fresh run of the same stage.
 
 Settings is a placeholder screen. Closing it returns to the screen that opened it: Main Menu, Lobby, Deck Editor, or Pause.
@@ -41,7 +41,7 @@ Settings is a placeholder screen. Closing it returns to the screen that opened i
 
 Stage 1-1 starts with 10 Base HP, 150 resources, and a 2-second enemy spawn interval. The basic enemy has 40 HP, a movement speed of 1.5, Base damage of 1, and a kill reward of 10 resources. Edit **Resource Reward** in `BasicEnemy.asset` to configure the reward for that enemy definition.
 
-Green placement slots have available, highlighted, and occupied presentation states. Mouse hover wiring is deferred to Stage 2. HP bars appear above the red enemies. All 15 tower types share the existing BasicTurret prefab and combat code. Scroll the left page of the Deck Editor to view additional cards. The complete statistics are listed in `Documentation/TestCatalog.md`.
+Green placement slots have available, highlighted, and occupied presentation states. Available slots highlight when hovered with a Tower Card selected. HP bars appear above the red enemies. All 15 tower types share the existing BasicTurret prefab and combat code. Scroll the left page of the Deck Editor to view additional cards. All tower statistics are configurable in the corresponding definition assets.
 
 ## Cards, Elixir, and Skills
 
@@ -58,15 +58,15 @@ Both retain their data and programmatic casting pipeline; mouse aiming awaits St
 
 Tower Cards currently cost **0 Elixir** and retain their existing resource costs. Their Elixir cost can be changed independently in the card asset. The default deck remains the original six towers; add Fireball and Arrow Rain through the Deck Editor.
 
-New data lives in `Assets/Defense/Data/TowerCard*.asset`, `FireballCard.asset`, `ArrowRainCard.asset`, and the corresponding skill definitions. `Documentation/CardElixirSkillUpdate.md` lists the architecture, files, configuration, and verification details.
+New data lives in `Assets/Defense/Data/TowerCard*.asset`, `FireballCard.asset`, `ArrowRainCard.asset`, and the corresponding skill definitions.
 
-## Documentation
+## Documentation and Git configuration
 
-- `Documentation/DeckLobbyHandRetryPatch.md`: Duplicate-card root cause and fixes, mouse navigation, Retry, and verification report.
-- `Documentation/LobbyDeckHandUpdate.md`: Full change list, data structures, card cycling, and implementation scope.
-- `Documentation/Architecture.md`: Current architecture.
-- `Documentation/SceneSetup.md`: Scene and Inspector configuration.
-- `Documentation/Validation.md`: Current automated verification and unverified behavior.
-- `Documentation/Main.md`, `Tower.md`, `enemy.md`, `Lobby.md`, `Deck.md`, and `HandCycle.md`: Copies of the original specifications.
+- [Documentation/Prompt/](Documentation/Prompt/): user-provided specifications and implementation prompts, tracked in Git.
+- `Documentation/Report/`: local implementation reports, architecture/setup notes, validation results, and previews. This directory is excluded from Git; it will not be included in a fresh clone.
+- Future assistant reports and generated validation results belong in `Documentation/Report/`.
+- Prompts use English prose. Original Korean UI-message requirements are retained as Unicode escapes beside their English translations; this does not change runtime localization.
+- `.gitignore` excludes generated Unity files and local reports. Keep Assets (including .meta), Packages, and ProjectSettings tracked.
+- `.gitattributes` defines text normalization and binary handling. Git LFS and custom Unity merge drivers are not enabled by this configuration.
 
 The project uses Unity's built-in uGUI and modules. No additional external packages have been added. Keep `.meta` files alongside their corresponding assets.
