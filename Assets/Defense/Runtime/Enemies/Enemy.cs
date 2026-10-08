@@ -13,6 +13,7 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     public float CurrentHealth => health != null ? health.Current : 0;
     public float MaximumHealth => health != null ? health.Maximum : 0;
     public int ResourceReward { get; private set; }
+    public EnemyPathFollower Movement => movement;
     public event Action<Enemy> Died;
     public void Initialize(EnemyDefinition data, WaypointPath path, IDamageable target, EnemyRegistry enemies) {
         health = GetComponent<EnemyHealth>(); movement = GetComponent<EnemyPathFollower>();
@@ -20,8 +21,9 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
         ResourceReward = data.ResourceReward;
         health.Initialize(data.Health);
         health.Depleted += Die; movement.ReachedEnd += ReachBase;
-        active = true; registry.Register(this);
         movement.Initialize(path, data.MovementSpeed);
+        movement.Moved += OnMoved;
+        active = true; registry.Register(this);
     }
     public void ReceiveDamage(float amount) { if (IsAlive) health.ReceiveDamage(amount); }
     protected virtual void Die() {
@@ -32,8 +34,9 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
         if (!active) return;
         Retire(); baseTarget.ReceiveDamage(baseDamage); Destroy(gameObject);
     }
+    private void OnMoved() { if (active) registry.NotifyMoved(this); }
     private void Retire() {
-        active = false; movement.Stop();
+        active = false; movement.Stop(); movement.Moved -= OnMoved; movement.Modifiers.Clear();
         if (registry != null) registry.Unregister(this);
     }
     protected virtual void OnDisable() { if (active) Retire(); }

@@ -18,6 +18,7 @@ public static class PrototypeValidation {
     private static StageDefinition retryStage;
     private static int retryStageIndex;
     private static Enemy[] failedEnemies;
+    private static PersistentSlowArea[] failedAreas;
     private static Turret[] failedTurrets;
     private static bool[] progressionBeforeRetry;
     private static Enemy pausedEnemy, combatEnemy;
@@ -88,6 +89,7 @@ public static class PrototypeValidation {
                     foreach (var enemy in Find<EnemyRegistry>().Enemies.ToArray()) enemy.ReceiveDamage(10000);
                     TestPlacementCycle(); TestRewardsAndHealth();
                     CardSkillValidation.Gameplay(Check);
+                    SkillInteractionValidation.Run(Check);
                     foreach (var turret in UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None)) turret.enabled=false;
                     pausedEnemy=Find<EnemySpawner>().Spawn(PlayerSession.Catalog.Stages[0].Enemy);
                     Click("Pause");
@@ -98,6 +100,7 @@ public static class PrototypeValidation {
                     Click("Settings"); Click("Back");
                     Check(Find<GameFlow>().State==GameplayState.Paused,"Settings Back stays paused"); Wait(2,.5); break;
                 case 2:
+                    SkillInteractionValidation.VerifyNextFrame(Check);
                     TabletopStageValidation.VerifyFixedCamera(Check);
                     Check(pausedEnemy.transform.position==pausedPosition && pausedEnemy.CurrentHealth==pausedHP && Find<EnemyRegistry>().Enemies.Count==pausedCount,"Paused movement, combat and spawning stay frozen");
                     Click("Resume"); Check(Time.timeScale==1,"Resume restores time");
@@ -361,6 +364,10 @@ public static class PrototypeValidation {
         Check(Find<TurretPlacementController>().TryPlace(slot),"Retry fixture includes an occupied slot");
         slot.Occupant.enabled = false;
         var enemy = Find<EnemySpawner>().Spawn(retryStage.Enemy); enemy.GetComponent<EnemyPathFollower>().Stop();
+        var slow = PlayerSession.Catalog.AvailableCards.OfType<SkillCardDefinition>().Single(c=>c.Skill.Effect is SlowAreaSkill).Skill;
+        slow.Effect.Apply(slow,new SkillCastContext(enemy.transform.position,Find<EnemyRegistry>(),Find<GameFlow>()));
+        failedAreas = UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None);
+        Check(failedAreas.Any(a=>a.IsActive) && enemy.Movement.Modifiers.SourceCount>0,"Retry fixture includes an active slow area affecting an enemy");
         failedEnemies = UnityEngine.Object.FindObjectsByType<Enemy>(FindObjectsSortMode.None);
         failedTurrets = UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None);
         failedRun = Find<GameplayHand>().Cycle;
@@ -372,6 +379,7 @@ public static class PrototypeValidation {
         Check(PlayerSession.ActiveStage==retryStage && PlayerSession.Selection.SelectedStageIndex==retryStageIndex && SceneManager.GetActiveScene().name==retryStage.SceneName,"Retry preserves same stage and selected index");
         Check(Find<GameFlow>().IsPlaying && Time.timeScale==1 && Find<BaseHealth>().Current==retryStage.BaseHealth && Find<ResourceWallet>().Balance==retryStage.StartingResources,"Retry resets HP, resources, state and time scale");
         Check(failedEnemies.All(e=>e==null) && failedTurrets.All(t=>t==null) && Find<EnemyRegistry>().Enemies.Count==0 && UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None).Length==0 && Slots().All(s=>!s.IsOccupied),"Retry destroys old enemies/turrets and clears slots/registry");
+        Check(failedAreas.All(a=>a==null) && UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None).Length==0,"Retry destroys previous slow areas and their modifier sources with the old enemies");
         Check(Find<FixedIntervalSpawner>().enabled,"Retry restores spawn scheduler");
         Check(Find<ElixirSystem>().Current >= 3 && Find<ElixirSystem>().Current < 3.5f,"Retry restores starting Elixir with only elapsed regeneration");
         var hand = Find<GameplayHand>(); var cycle = hand.Cycle;

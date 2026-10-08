@@ -10,9 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: eba6649ba37748e29d5f441ea4c883fd, type: 3}
-  m_Name: FireballSkill
+  m_Name: SlowAreaSkill
   m_EditorClassIdentifier: Assembly-CSharp::Defense.SkillDefinition
-  damage: 60
-  radius: 1.5
+  damage: 0
+  radius: 3
   castingTime: 0
-  effect: {fileID: 11400000, guid: e2b8dd86fe1f41fb8b9873ae3041ee5b, type: 2}
+  travelTime: 0
+  activeDuration: 8
+  fadeDuration: 0.5
+  slowMultiplier: 0.5
+  effect: {fileID: 11400000, guid: a295fb96ee9541149670b87a8d6659d8, type: 2}

@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6f1e6715bcbc46f6a718aef62520a573, type: 3}
-  m_Name: FireballCard
+  m_Name: ToyThrowCard
   m_EditorClassIdentifier: Assembly-CSharp::Defense.SkillCardDefinition
   cardId: skill.fireball
-  displayName: Fireball
+  displayName: Toy Throw
   elixirCost: 3
   color: {r: 0.45, g: 0.22, b: 0.32, a: 1}
   skill: {fileID: 11400000, guid: 729bc6cc2d1544a589c37f08292cbc4c, type: 2}

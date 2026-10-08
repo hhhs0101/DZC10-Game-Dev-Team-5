@@ -38,8 +38,8 @@ public static class TabletopStageValidation {
         var hp=enemy.GetComponent<EnemyHealthBar>(); hp.enabled=false; float health=enemy.CurrentHealth; enemy.ReceiveDamage(1);
         check(!hp.IsVisible && enemy.CurrentHealth==health-1,"Removing HP presentation from updates does not affect health logic"); hp.enabled=true;
         check(hp.IsVisible && enemy.transform.Find("Enemy HP").GetComponent<Canvas>().renderMode==RenderMode.WorldSpace,"Reusable HP bar uses world-space Canvas and reconnects to health");
-        var effect=PlayerSession.Catalog.AvailableCards.OfType<SkillCardDefinition>().Last().Skill;
-        health=enemy.CurrentHealth; effect.Effect.Apply(effect,Vector2.zero,Find<EnemyRegistry>());
+        var effect=PlayerSession.Catalog.AvailableCards.OfType<SkillCardDefinition>().First().Skill;
+        health=enemy.CurrentHealth; effect.Effect.Apply(effect,new SkillCastContext(Vector3.zero,Find<EnemyRegistry>(),Find<GameFlow>()));
         check(Mathf.Approximately(enemy.CurrentHealth,Mathf.Max(0,health-effect.Damage)),"Skill AoE uses planar XZ radius regardless of height");
         enemy.ReceiveDamage(10000);
         var root=new GameObject("Isolated slot without view"); var isolated=root.AddComponent<TowerPlacementSlot>();
