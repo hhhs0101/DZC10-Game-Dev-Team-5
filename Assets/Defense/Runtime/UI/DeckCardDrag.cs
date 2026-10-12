@@ -22,6 +22,6 @@ public sealed class DeckCardDrag : MonoBehaviour, IBeginDragHandler, IDragHandle
     }
     public void OnEndDrag(PointerEventData data) { Cancel(); }
     private void OnDisable() { Cancel(); }
-    private void Cancel() { IsDragging = false; if (ghost != null) Destroy(ghost.gameObject); }
+    public void Cancel() { IsDragging = false; if (ghost != null) { ghost.gameObject.SetActive(false); Destroy(ghost.gameObject); ghost = null; } }
 }
 }

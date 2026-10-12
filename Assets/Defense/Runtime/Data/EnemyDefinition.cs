@@ -8,6 +8,10 @@ public sealed class EnemyDefinition : ScriptableObject {
     [SerializeField, Min(1)] private int baseDamage = 1;
     [SerializeField, Min(0), Tooltip("Resources awarded once when this enemy is killed. Reaching the Base grants nothing.")]
     private int resourceReward = 10;
+    [SerializeField, Range(0,1)] private float candyDropChance;
+    [SerializeField, Min(0)] private int candyDropAmount = 1;
+    public float CandyDropChance => float.IsNaN(candyDropChance) ? 0 : Mathf.Clamp01(candyDropChance);
+    public int CandyDropAmount => Mathf.Max(0,candyDropAmount);
     public int ResourceReward => Mathf.Max(0, resourceReward);
     public Enemy Prefab => prefab;
     public float Health => health;

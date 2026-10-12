@@ -28,3 +28,6 @@ sysinfo.txt
 
 # Local assistant reports, validation output, previews and reference templates
 /Documentation/Report/
+
+# Original downloads; imported Unity assets are tracked under Assets.
+/Free-3D-Assets/*.zip

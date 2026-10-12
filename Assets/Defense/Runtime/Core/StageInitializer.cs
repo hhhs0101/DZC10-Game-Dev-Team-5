@@ -23,7 +23,12 @@ public sealed class StageInitializer : MonoBehaviour {
         wallet.Initialize(definition.StartingResources);
         baseHealth.Initialize(definition.BaseHealth);
         baseHealth.Depleted += flow.GameOver;
-        schedule.Configure(definition.Enemy, definition.SpawnInterval);
+        PlayerSession.BindActiveStage(definition);
+        schedule.Configure(definition.Enemy,definition.SpawnInterval,definition.FiniteSpawning ? definition.TotalEnemies : 0);
+        var candy = GetComponent<CandyDropSystem>() ?? gameObject.AddComponent<CandyDropSystem>();
+        candy.Initialize(GetComponent<EnemySpawner>(),PlayerSession.Currency);
+        var victory = GetComponent<StageVictoryController>() ?? gameObject.AddComponent<StageVictoryController>();
+        victory.Initialize(flow,schedule,GetComponent<EnemyRegistry>(),definition,PlayerSession.Currency,()=>PlayerSession.CompleteActiveStage());
     }
     private void OnDestroy() { if (baseHealth != null) baseHealth.Depleted -= flow.GameOver; }
 }

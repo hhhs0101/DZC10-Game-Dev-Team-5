@@ -5,6 +5,7 @@ namespace Defense {
 public sealed class EnemyRegistry : MonoBehaviour {
     private readonly List<Enemy> enemies = new List<Enemy>();
     public IReadOnlyList<Enemy> Enemies => enemies;
+    public int AliveEnemyCount => enemies.Count;
     public event Action<Enemy> Registered;
     public event Action<Enemy> Unregistered;
     public event Action<Enemy> Moved;

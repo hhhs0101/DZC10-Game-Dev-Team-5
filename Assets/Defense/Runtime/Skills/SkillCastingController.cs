@@ -99,7 +99,7 @@ public sealed class SkillCastingController : MonoBehaviour {
     }
     public void CancelAim() { aimingCard = null; if (indicator != null) indicator.Hide(); }
     private void OnSelectionChanged() { if (aimingCard != hand.SelectedCard) CancelAim(); }
-    private void OnStateChanged(GameplayState state) { if (state != GameplayState.Playing) CancelAim(); if (state == GameplayState.GameOver) pending.Clear(); }
+    private void OnStateChanged(GameplayState state) { if (state != GameplayState.Playing) CancelAim(); if (state == GameplayState.GameOver || state == GameplayState.Victory) pending.Clear(); }
     private void OnApplicationFocus(bool focused) { if (!focused) CancelAim(); }
     private void OnDisable() => CancelAim();
     private void OnDestroy() {

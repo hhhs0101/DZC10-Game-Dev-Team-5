@@ -6,6 +6,7 @@ public sealed class EnemySpawner : MonoBehaviour {
     [SerializeField] private EnemyRegistry registry;
     [SerializeField] private GameFlow flow;
     [SerializeField] private Transform enemyRoot;
+    public bool CanSpawn => flow != null && flow.IsPlaying;
     // Lifecycle notification; resource policy belongs to EnemyKillRewards.
     public event System.Action<Enemy> EnemyDefeated;
     private void OnEnemyDied(Enemy enemy) {

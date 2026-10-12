@@ -4,17 +4,22 @@ using UnityEngine;
 using UnityEngine.UI;
 namespace Defense {
 public sealed class DeckEditorUI : MonoBehaviour {
+    private DeckPresetManager presets;
     private PlayerDeck deck;
+    private readonly DeckSlotDrop[] drops = new DeckSlotDrop[PlayerDeck.SlotCount];
     private FadingMessageUI warning;
     private DeckEditorController editor;
     private RectTransform content;
     private readonly Dictionary<CardDefinition, RectTransform> availableViews = new Dictionary<CardDefinition, RectTransform>();
     private readonly Text[] labels = new Text[6];
     public void Initialize(RectTransform canvas, Action back, Action settings) {
-        deck = PlayerSession.Deck;
+        presets = PlayerSession.Presets;
+        deck = presets.ActiveDeck;
         editor = new DeckEditorController(deck,PlayerSession.Catalog.AvailableCards);
         UiFactory.Button(transform,"Back to Lobby",new Vector2(140,-40),()=>back(),new Vector2(0,1),new Vector2(250,48));
         UiFactory.Button(transform,"Settings",new Vector2(-100,-40),()=>settings(),new Vector2(1,1),new Vector2(180,48));
+        var presetRow = UiFactory.Rect("Deck Presets",transform,new Vector2(.5f,1),new Vector2(0,-40),new Vector2(465,42));
+        presetRow.gameObject.AddComponent<DeckPresetButtons>().Initialize(presets);
         UiFactory.Label(transform,"Available Cards",new Vector2(.25f,1),new Vector2(0,-105),new Vector2(500,55),30);
         UiFactory.Label(transform,"Current Deck",new Vector2(.75f,1),new Vector2(0,-105),new Vector2(500,55),30);
         var divider = UiFactory.Rect("Book Divider",transform,new Vector2(.5f,.5f),Vector2.zero,new Vector2(3,550));
@@ -38,12 +43,23 @@ public sealed class DeckEditorUI : MonoBehaviour {
             var card = UiFactory.Rect("Deck Slot T"+(i+1),transform,new Vector2(.75f,1),new Vector2((i%2-.5f)*240,-235-i/2*155),new Vector2(220,135));
             card.gameObject.AddComponent<Image>().color = new Color(.2f,.28f,.25f);
             labels[i] = UiFactory.Label(card,"",new Vector2(.5f,.5f),Vector2.zero,new Vector2(215,130),23);
-            card.gameObject.AddComponent<DeckSlotDrop>().Initialize(editor,i);
+            drops[i] = card.gameObject.AddComponent<DeckSlotDrop>(); drops[i].Initialize(editor,i);
         }
-        UiFactory.Label(transform,"Drag an available card onto T1-T6. Changes apply immediately.",new Vector2(.5f,0),new Vector2(0,35),new Vector2(1100,50),20);
+        UiFactory.Label(transform,"Drag an available card onto T1-T6. Changes save automatically.",new Vector2(.5f,0),new Vector2(0,35),new Vector2(1100,50),20);
         warning = UiFactory.Label(transform,"",new Vector2(.5f,0),new Vector2(0,80),new Vector2(1100,45),22).gameObject.AddComponent<FadingMessageUI>();
         deck.Rejected += ShowWarning;
-        deck.Changed += Refresh; Refresh();
+        presets.Changed += OnPresetsChanged; Refresh();
+    }
+    private void OnPresetsChanged() {
+        if (deck != presets.ActiveDeck) {
+            foreach (var view in availableViews.Values) view.GetComponent<DeckCardDrag>().Cancel();
+            deck.Rejected -= ShowWarning; deck = presets.ActiveDeck; deck.Rejected += ShowWarning;
+            editor = new DeckEditorController(deck,PlayerSession.Catalog.AvailableCards);
+            for (int i=0;i<drops.Length;i++) drops[i].Initialize(editor,i);
+            content.anchoredPosition = Vector2.zero;
+            warning.Show("",0);
+        }
+        Refresh();
     }
     private void Refresh() {
         for (int i=0;i<6;i++) labels[i].text = "T"+(i+1)+"\n"+deck.Slots[i].DisplayName;
@@ -56,6 +72,6 @@ public sealed class DeckEditorUI : MonoBehaviour {
         content.sizeDelta = new Vector2(530,Mathf.Max(450,Mathf.CeilToInt(available.Count/3f)*140));
     }
     private void ShowWarning(string message) => warning.Show(message,3);
-    private void OnDestroy() { if (deck != null) { deck.Changed -= Refresh; deck.Rejected -= ShowWarning; } }
+    private void OnDestroy() { if (presets != null) presets.Changed -= OnPresetsChanged; if (deck != null) deck.Rejected -= ShowWarning; }
 }
 }

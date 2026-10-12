@@ -8,19 +8,24 @@ public static class LobbyAssetSetup {
         if (AssetDatabase.LoadAssetAtPath<GameCatalog>(path) != null) { CardAssetSetup.Run(); return; }
         if (!AssetDatabase.IsValidFolder("Assets/Defense/Resources")) AssetDatabase.CreateFolder("Assets/Defense","Resources");
         var first = AssetDatabase.LoadAssetAtPath<StageDefinition>("Assets/Defense/Data/TestStage.asset");
-        var stages = new Object[10];
+        var stages = new Object[11];
         for (int i=0;i<10;i++) {
             string stagePath = "Assets/Defense/Data/Stage1_"+(i+1)+".asset";
             var stage = AssetDatabase.LoadAssetAtPath<StageDefinition>(stagePath);
             if (stage == null) {
                 stage = Object.Instantiate(first); stage.name = "Stage1_"+(i+1);
                 var serialized = new SerializedObject(stage); serialized.FindProperty("displayName").stringValue = "1-"+(i+1);
+                serialized.FindProperty("finiteSpawning").boolValue = false;
+                serialized.FindProperty("alwaysUnlocked").boolValue = false;
+                serialized.FindProperty("baseHealth").intValue = 10;
+                serialized.FindProperty("enemy").objectReferenceValue = AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/Defense/Data/BasicEnemy.asset");
                 serialized.FindProperty("startingResources").intValue = 150+i*25;
                 serialized.FindProperty("spawnInterval").floatValue = 2-i*.1f;
                 serialized.ApplyModifiedPropertiesWithoutUndo(); AssetDatabase.CreateAsset(stage,stagePath);
             }
             stages[i] = stage;
         }
+        stages[10] = first;
         var catalog = ScriptableObject.CreateInstance<GameCatalog>(); AssetDatabase.CreateAsset(catalog,path);
         var so = new SerializedObject(catalog);
         SetArray(so,"stages",stages);

@@ -12,13 +12,14 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     public bool IsAlive => active && isActiveAndEnabled && health.Current > 0;
     public float CurrentHealth => health != null ? health.Current : 0;
     public float MaximumHealth => health != null ? health.Maximum : 0;
+    public EnemyDefinition Definition { get; private set; }
     public int ResourceReward { get; private set; }
     public EnemyPathFollower Movement => movement;
     public event Action<Enemy> Died;
     public void Initialize(EnemyDefinition data, WaypointPath path, IDamageable target, EnemyRegistry enemies) {
         health = GetComponent<EnemyHealth>(); movement = GetComponent<EnemyPathFollower>();
         registry = enemies; baseTarget = target; baseDamage = data.BaseDamage;
-        ResourceReward = data.ResourceReward;
+        Definition = data; ResourceReward = data.ResourceReward;
         health.Initialize(data.Health);
         health.Depleted += Die; movement.ReachedEnd += ReachBase;
         movement.Initialize(path, data.MovementSpeed);

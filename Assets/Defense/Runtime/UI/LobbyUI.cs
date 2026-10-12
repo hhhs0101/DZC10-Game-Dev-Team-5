@@ -13,13 +13,15 @@ public sealed class LobbyUI : MonoBehaviour {
         UiFactory.Label(transform,"Lobby",new Vector2(.5f,1),new Vector2(0,-45),new Vector2(350,60),36);
         UiFactory.Button(transform,"Back",new Vector2(95,-40),()=>back(),new Vector2(0,1),new Vector2(160,48));
         UiFactory.Button(transform,"Settings",new Vector2(-100,-40),()=>settings(),new Vector2(1,1),new Vector2(180,48));
+        var currency = UiFactory.Rect("Player Currency",transform,new Vector2(.5f,1),new Vector2(0,-95),new Vector2(480,36));
+        currency.gameObject.AddComponent<PlayerCurrencyUI>().Initialize(PlayerSession.Currency);
         var viewport = UiFactory.Rect("Stage Carousel",transform,new Vector2(.5f,1),new Vector2(0,-230),new Vector2(970,290));
         Carousel = viewport.gameObject.AddComponent<StageCarouselView>();
         Carousel.Initialize(PlayerSession.Catalog,PlayerSession.Selection,PlayerSession.Progression);
         feedback = UiFactory.Label(transform,"A / D or click side cards   |   Enter: play",new Vector2(.5f,1),new Vector2(0,-405),new Vector2(850,48),21);
         UiFactory.Button(transform,"Enter Stage",new Vector2(0,-460),()=>TryEnter(),new Vector2(.5f,1));
         var preview = UiFactory.Rect("Deck Preview",transform,new Vector2(.5f,0),new Vector2(0,145),new Vector2(960,110));
-        preview.gameObject.AddComponent<LobbyDeckPreview>().Initialize(PlayerSession.Deck);
+        preview.gameObject.AddComponent<LobbyDeckPreview>().Initialize(PlayerSession.Presets);
         UiFactory.Button(transform,"Deck",new Vector2(0,50),()=>openDeck(),new Vector2(.5f,0));
     }
     private void Update() {

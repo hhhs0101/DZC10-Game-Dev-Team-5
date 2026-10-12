@@ -17,3 +17,5 @@ MonoBehaviour:
   movementSpeed: 1.5
   baseDamage: 1
   resourceReward: 10
+  candyDropChance: 0.1
+  candyDropAmount: 1
