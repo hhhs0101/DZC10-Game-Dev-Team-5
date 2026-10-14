@@ -13,7 +13,7 @@ public static class CardSkillValidation {
         check(catalog.AvailableCards.Count==17 && catalog.AvailableCards.Select(c=>c.CardId).Distinct().Count()==17,"Seventeen unique stable Card IDs: fifteen towers and two skills");
         check(catalog.AvailableCards.OfType<TowerCardDefinition>().All(c=>c.ElixirCost==0 && catalog.AvailableTowers.Contains(c.Tower)),"Tower cards reuse original turret definitions with zero Elixir cost");
         var skills = catalog.AvailableCards.OfType<SkillCardDefinition>().ToArray();
-        check(skills.Length==2 && skills.All(c=>c.ElixirCost>0 && c.Skill.CastingTime==0 && c.Skill.Effect!=null) && skills[0].Skill.Radius<skills[1].Skill.Radius && skills[0].Skill.Damage>skills[1].Skill.Damage,"Fireball and Arrow Rain have configurable contrasting instant AoE data");
+        check(skills.Length==2 && skills.All(c=>c.ElixirCost>0 && c.Skill.CastingTime==0 && c.Skill.Effect!=null) && skills[0].Skill.Radius<skills[1].Skill.Radius && skills[0].Skill.Damage>skills[1].Skill.Damage,"Toy Throw and Slow Area have distinct configured effects");
         var mixed = catalog.InitialDeck.Take(4).Concat(skills).ToArray();
         var deck = new PlayerDeck(mixed); var editor = new DeckEditorController(deck,catalog.AvailableCards);
         check(deck.Slots.OfType<SkillCardDefinition>().Count()==2 && editor.Available.Count==11 && !editor.Available.Intersect(deck.Slots).Any(),"Mixed deck excludes both skill and tower cards from Available");
@@ -66,7 +66,7 @@ public static class CardSkillValidation {
             check(casting.BeginAim(Vector2.zero,false) && casting.IsAiming && casting.IndicatorRadius==card.Skill.Radius,"Aiming uses actual "+card.DisplayName+" radius");
             casting.MoveAim(Vector2.one); check(casting.AimPosition==Vector2.one,"Indicator follows aiming position");
             var indicator=casting.GetComponentInChildren<LineRenderer>();
-            check(indicator.enabled && Mathf.Approximately(Vector2.Distance(indicator.GetPosition(0),Vector2.one),card.Skill.Radius),"Rendered indicator vertices use the configured gameplay radius");
+            check(indicator.enabled && Mathf.Approximately(Vector2.Distance(PlanarSpace.Project(indicator.GetPosition(0)),Vector2.one),card.Skill.Radius),"Rendered indicator vertices use the configured gameplay radius");
             Canvas.ForceUpdateCanvases();
             var selectedButton=GameObject.Find("Hand Card "+(hand.Cycle.Hand.ToList().IndexOf(used)+1)).GetComponent<RectTransform>();
             bool cardUi=GameplayPointer.IsOverUI(RectTransformUtility.WorldToScreenPoint(null,selectedButton.position));
@@ -99,7 +99,7 @@ public static class CardSkillValidation {
         var lethalTargets=new[]{spawner.Spawn(catalog.Stages[0].Enemy),spawner.Spawn(catalog.Stages[0].Enemy)};
         foreach(var enemy in lethalTargets) { enemy.GetComponent<EnemyPathFollower>().Stop(); enemy.transform.position=Vector3.zero; }
         int goldBefore=wallet.Balance;
-        skills[0].Skill.Effect.Apply(skills[0].Skill,Vector2.zero,registry);
+        skills[0].Skill.Effect.Apply(skills[0].Skill,new SkillCastContext(Vector3.zero,registry,flow));
         check(lethalTargets.All(e=>!e.IsAlive && !registry.Enemies.Contains(e)) && wallet.Balance==goldBefore+2*catalog.Stages[0].Enemy.ResourceReward,"Lethal AoE safely removes multiple registry entries and grants normal kill rewards");
         // Non-zero future cast time: charge and cycle now, apply later without checking funds again.
         var delayed=UnityEngine.Object.Instantiate(skills[0]); var delayedData=UnityEngine.Object.Instantiate(delayed.Skill);

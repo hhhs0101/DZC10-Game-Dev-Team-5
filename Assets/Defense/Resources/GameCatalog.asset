@@ -23,6 +23,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0b30a91b34944a97a51f114a662eff77, type: 2}
   - {fileID: 11400000, guid: 4d350fd01a4c49a19bcd0fe02e5db334, type: 2}
   - {fileID: 11400000, guid: 7e8b7810c28847e7a09eb5eb4bcc5799, type: 2}
+  - {fileID: 11400000, guid: 9bbe8ca128f72427087c5025046a3089, type: 2}
   availableTowers:
   - {fileID: 11400000, guid: 04ae679be013433580c018e4b27e4bd9, type: 2}
   - {fileID: 11400000, guid: 1e6ab288cd744598bff374d5eeffb51a, type: 2}

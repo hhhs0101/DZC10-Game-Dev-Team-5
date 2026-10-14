@@ -7,3 +7,33 @@
 *.csproj
 *.sln
 .DS_Store
+
+# Additional Unity build output and local development caches
+/[Bb]uild/
+/[Bb]uilds/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+.vs/
+.gradle/
+*.unityproj
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+sysinfo.txt
+
+# Local assistant reports, validation output, previews and reference templates
+/Documentation/Report/
+/AGENTS.md
+
+# Local third-party kitchen asset packs. The committed gameplay background stays
+# under Assets/Defense/Art.
+/Assets/Art/ThirdParty/
+/Assets/Art/ThirdParty.meta
+
+# Original downloads; imported Unity assets are tracked under Assets.
+/Free-3D-Assets/*.zip

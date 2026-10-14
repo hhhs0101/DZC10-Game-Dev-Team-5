@@ -21,7 +21,12 @@ public abstract class Turret : MonoBehaviour {
     }
     protected virtual void OnDrawGizmosSelected() {
         if (definition == null) return;
-        Gizmos.color = Color.cyan; Gizmos.DrawWireSphere(transform.position, definition.AttackRange);
+        Gizmos.color = Color.cyan;
+        for (int i=0;i<48;i++) {
+            float a=i*Mathf.PI*2/48, b=(i+1)*Mathf.PI*2/48;
+            Gizmos.DrawLine(transform.position+new Vector3(Mathf.Cos(a),0,Mathf.Sin(a))*definition.AttackRange,
+                transform.position+new Vector3(Mathf.Cos(b),0,Mathf.Sin(b))*definition.AttackRange);
+        }
     }
 }
 }

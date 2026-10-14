@@ -7,7 +7,7 @@ public sealed class ClosestTargeting : TargetingStrategy {
         Enemy best = null; float distance = range * range;
         foreach (Enemy enemy in enemies) {
             if (enemy == null || !enemy.IsAlive) continue;
-            float candidate = (enemy.transform.position - origin).sqrMagnitude;
+            float candidate = PlanarSpace.SqrDistance(enemy.transform.position,origin);
             if (candidate <= distance) { best = enemy; distance = candidate; }
         }
         return best;

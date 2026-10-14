@@ -18,6 +18,7 @@ public static class PrototypeValidation {
     private static StageDefinition retryStage;
     private static int retryStageIndex;
     private static Enemy[] failedEnemies;
+    private static PersistentSlowArea[] failedAreas;
     private static Turret[] failedTurrets;
     private static bool[] progressionBeforeRetry;
     private static Enemy pausedEnemy, combatEnemy;
@@ -33,6 +34,8 @@ public static class PrototypeValidation {
     [MenuItem("Defense/Run Prototype Validation (Play Mode)")]
     public static void Run() {
         if (EditorApplication.isPlaying) throw new InvalidOperationException("Exit Play Mode before validation.");
+        SessionState.SetString(Key+".PreviousSavePath",Environment.GetEnvironmentVariable(DeckPersistenceValidation.TestPathVariable) ?? "");
+        Environment.SetEnvironmentVariable(DeckPersistenceValidation.TestPathVariable,System.IO.Path.Combine(System.IO.Path.GetTempPath(),"defense-regression-"+Guid.NewGuid().ToString("N"),"deck.json"));
         SessionState.SetBool(Key,true);
         EditorSceneManager.OpenScene("Assets/Defense/Scenes/MainMenu.unity");
         Attach(); EditorApplication.isPlaying = true;
@@ -81,10 +84,15 @@ public static class PrototypeValidation {
                     Check(SceneManager.GetActiveScene().name=="TestStage","Unlocked centered stage loads");
                     Check(Find<BaseHealth>().Current==10 && Find<ResourceWallet>().Balance==150,"Stage starts with HP and resources");
                     Check(Find<EnemyRegistry>().Enemies.Count>0,"Fixed interval spawns enemies");
+                    TabletopStageValidation.Run(Check);
+                    PlacementCameraValidation.Run(Check);
+                    TabletopStageValidation.CapturePreview();
                     Find<FixedIntervalSpawner>().enabled=false;
                     foreach (var enemy in Find<EnemyRegistry>().Enemies.ToArray()) enemy.ReceiveDamage(10000);
                     TestPlacementCycle(); TestRewardsAndHealth();
+                    DeckPersistenceValidation.VerifyBattle(Check,false);
                     CardSkillValidation.Gameplay(Check);
+                    SkillInteractionValidation.Run(Check);
                     foreach (var turret in UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None)) turret.enabled=false;
                     pausedEnemy=Find<EnemySpawner>().Spawn(PlayerSession.Catalog.Stages[0].Enemy);
                     Click("Pause");
@@ -95,6 +103,8 @@ public static class PrototypeValidation {
                     Click("Settings"); Click("Back");
                     Check(Find<GameFlow>().State==GameplayState.Paused,"Settings Back stays paused"); Wait(2,.5); break;
                 case 2:
+                    SkillInteractionValidation.VerifyNextFrame(Check);
+                    TabletopStageValidation.VerifyFixedCamera(Check);
                     Check(pausedEnemy.transform.position==pausedPosition && pausedEnemy.CurrentHealth==pausedHP && Find<EnemyRegistry>().Enemies.Count==pausedCount,"Paused movement, combat and spawning stay frozen");
                     Click("Resume"); Check(Time.timeScale==1,"Resume restores time");
                     balanceBeforeBase=Find<ResourceWallet>().Balance;
@@ -168,7 +178,23 @@ public static class PrototypeValidation {
                 case 13:
                     CheckRetry();
                     Check(Find<GameplayHand>().Cycle.InitialOrder.Count(c=>c.Definition is SkillCardDefinition)==2,"Retry rebuilds the same mixed tower/skill deck");
-                    Finish(true,"Assertions: "+assertions); break;
+                    RewardValidation.Enter(Check); Wait(14); break;
+                case 14:
+                    RewardValidation.ClearFirst(Check); Wait(15); break;
+                case 15:
+                    RewardValidation.VerifyVictory(Check,1); Click("Replay"); Wait(16); break;
+                case 16:
+                    RewardValidation.VerifyReplay(Check); RewardValidation.ClearAgain(Check); Wait(17); break;
+                case 17:
+                    RewardValidation.VerifyVictory(Check,2); Click("Replay"); Wait(18); break;
+                case 18:
+                    RewardValidation.FailRun(Check); Wait(19); break;
+                case 19:
+                    RewardValidation.VerifyFailure(Check); Click("Retry"); Wait(20); break;
+                case 20:
+                    RewardValidation.VerifyFailureRetry(Check); Find<GameFlow>().ExitToMenu(); Wait(21); break;
+                case 21:
+                    RewardValidation.VerifyLobby(Check); Finish(true,"Assertions: "+assertions); break;
             }
         } catch (Exception e) { Finish(false,e.ToString()); }
     }
@@ -176,7 +202,9 @@ public static class PrototypeValidation {
         var catalog=PlayerSession.Catalog;
         PatchInvariantValidation.Run(catalog,Check);
         CardSkillValidation.Models(catalog,Check);
-        Check(catalog.Stages.Count==10 && catalog.Stages.Select(s=>s.DisplayName).SequenceEqual(Enumerable.Range(1,10).Select(i=>"1-"+i)),"Catalog contains stages 1-1 through 1-10 in order");
+        DeckPersistenceValidation.Models(catalog,Check);
+        RewardValidation.Models(Check);
+        Check(catalog.Stages.Count==11 && catalog.Stages.Take(10).Select(s=>s.DisplayName).SequenceEqual(Enumerable.Range(1,10).Select(i=>"1-"+i)),"Catalog preserves stages 1-1 through 1-10 and adds the Test Stage");
         Check(catalog.AvailableTowers.Count==15 && catalog.AvailableTowers.Distinct().Count()==15,"Catalog contains fifteen distinct test tower definitions");
         Check(catalog.AvailableTowers.All(t=>t.Prefab!=null && t.Targeting!=null && t.Damage>0 && t.AttackRange>0 && t.AttackCooldown>0 && t.Cost>0),"All test towers have valid combat settings and references");
         var progression=new StageProgressionState(4);
@@ -212,7 +240,7 @@ public static class PrototypeValidation {
         Check(Find<LobbyDeckPreview>()!=null && PlayerSession.Deck.Slots.Count==6,"Lobby displays shared six-slot deck");
         for (int i=0;i<20;i++) PlayerSession.Selection.Move(1);
         lobby.Carousel.Advance(1);
-        Check(PlayerSession.Selection.SelectedStageIndex==9 && lobby.Carousel.IsSettled,"Carousel reaches 1-10 and clamps at right edge");
+        Check(PlayerSession.Selection.SelectedStageIndex==10 && lobby.Carousel.IsSettled,"Carousel reaches the Test Stage and clamps at right edge");
         for (int i=0;i<20;i++) PlayerSession.Selection.Move(-1);
         lobby.Carousel.Advance(1);
         Check(PlayerSession.Selection.SelectedStageIndex==0 && lobby.Carousel.IsSettled,"Carousel returns to 1-1 and clamps at left edge");
@@ -272,6 +300,7 @@ public static class PrototypeValidation {
                 && visible.All(c=>!PlayerSession.Deck.Contains(c.Definition)),"Repeated drag/drop refresh keeps Available and Deck disjoint");
         }
         Check(UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None).Length==0,"Deck UI creates no combat objects");
+        DeckPersistenceValidation.EditorUI(Check);
         persistentSnapshot=PlayerSession.Deck.Slots.ToArray();
         Click("Settings"); Click("Back"); Check(Find<DeckEditorUI>()!=null && PlayerSession.Deck.Slots.SequenceEqual(persistentSnapshot),"Deck Settings returns without losing deck");
         Click("Back to Lobby");
@@ -280,6 +309,8 @@ public static class PrototypeValidation {
         Check(preview.text.Contains(persistentSnapshot[2].DisplayName),"Lobby preview observes edited T3");
         Click("Settings"); Click("Back");
         Check(PlayerSession.Selection.SelectedStageIndex==1 && Find<LobbyUI>()!=null,"Lobby Settings preserves selected stage");
+        DeckPersistenceValidation.LobbyUI(Check);
+        persistentSnapshot=PlayerSession.Deck.Slots.ToArray();
     }
     private static TowerPlacementSlot[] Slots() => UnityEngine.Object.FindObjectsByType<TowerPlacementSlot>(FindObjectsSortMode.None).OrderBy(s=>s.name).ToArray();
     private static void TestPlacementCycle() {
@@ -296,13 +327,13 @@ public static class PrototypeValidation {
         hand.CancelSelection();
         Check(!placement.TryPlace(Slots()[0]) && hand.Cycle.Hand.SequenceEqual(before) && hand.Cycle.UpcomingQueue.SequenceEqual(queue),"Selection cancellation does not cycle cards");
         wallet.Initialize(1000); Card(1);
-        var slot=Slots()[0]; var available=slot.GetComponent<SpriteRenderer>().color; slot.SetHovered(true);
-        Check(slot.GetComponent<SpriteRenderer>().color!=available,"Available slot hover highlights"); slot.SetHovered(false);
-        Check(slot.GetComponent<SpriteRenderer>().color==available,"Hover exit restores color");
+        var slot=Slots()[0]; var available=slot.GetComponentInChildren<PlacementSlotView>().CurrentColor; slot.SetHovered(true);
+        Check(slot.GetComponentInChildren<PlacementSlotView>().CurrentColor!=available,"Available slot hover highlights"); slot.SetHovered(false);
+        Check(slot.GetComponentInChildren<PlacementSlotView>().CurrentColor==available,"Hover exit restores color");
         Check(placement.TryPlace(slot) && wallet.Balance==1000-((TowerCardDefinition)before[1].Definition).Tower.Cost,"Actual placement spends selected card cost");
         Check(hand.Cycle.Hand.SequenceEqual(new[]{before[0],before[2],queue[0]}) && hand.Cycle.UpcomingQueue.SequenceEqual(new[]{queue[1],queue[2],before[1]}),"Success draws queue front and appends used card to queue back");
         Check(hand.SelectedCard==null && placement.Selected==null,"Success clears selection to avoid stale card reuse");
-        Check(slot.GetComponent<SpriteRenderer>().color!=available,"Occupied slot remains visually distinct");
+        Check(slot.GetComponentInChildren<PlacementSlotView>().CurrentColor!=available,"Occupied slot remains visually distinct");
         Card(0); before=hand.Cycle.Hand.ToArray(); queue=hand.Cycle.UpcomingQueue.ToArray(); int balance=wallet.Balance;
         Check(!placement.TryPlace(slot) && lastMessage=="A turret is already placed here." && wallet.Balance==balance && hand.Cycle.Hand.SequenceEqual(before) && hand.Cycle.UpcomingQueue.SequenceEqual(queue),"Occupied placement preserves cost and full cycle");
         Check(PlayerSession.Deck.Slots.SequenceEqual(persistentSnapshot),"Successful cycling never edits persistent deck");
@@ -348,6 +379,7 @@ public static class PrototypeValidation {
         combatEnemy.GetComponent<EnemyHealth>().Changed+=(hp,max)=> { if (hp>0) { hits.Add(Time.time); healths.Add(hp); } };
     }
     private static void PrepareRetry() {
+        DeckPersistenceValidation.SnapshotBeforeRetry();
         retryStage = PlayerSession.ActiveStage;
         retryStageIndex = PlayerSession.Selection.SelectedStageIndex;
         progressionBeforeRetry = Enumerable.Range(0,PlayerSession.Catalog.Stages.Count).Select(i=>PlayerSession.Progression.IsComplete(i)).ToArray();
@@ -357,6 +389,10 @@ public static class PrototypeValidation {
         Check(Find<TurretPlacementController>().TryPlace(slot),"Retry fixture includes an occupied slot");
         slot.Occupant.enabled = false;
         var enemy = Find<EnemySpawner>().Spawn(retryStage.Enemy); enemy.GetComponent<EnemyPathFollower>().Stop();
+        var slow = PlayerSession.Catalog.AvailableCards.OfType<SkillCardDefinition>().Single(c=>c.Skill.Effect is SlowAreaSkill).Skill;
+        slow.Effect.Apply(slow,new SkillCastContext(enemy.transform.position,Find<EnemyRegistry>(),Find<GameFlow>()));
+        failedAreas = UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None);
+        Check(failedAreas.Any(a=>a.IsActive) && enemy.Movement.Modifiers.SourceCount>0,"Retry fixture includes an active slow area affecting an enemy");
         failedEnemies = UnityEngine.Object.FindObjectsByType<Enemy>(FindObjectsSortMode.None);
         failedTurrets = UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None);
         failedRun = Find<GameplayHand>().Cycle;
@@ -365,9 +401,11 @@ public static class PrototypeValidation {
         Find<BaseHealth>().ReceiveDamage(10000);
     }
     private static void CheckRetry() {
+        DeckPersistenceValidation.VerifyBattle(Check,true);
         Check(PlayerSession.ActiveStage==retryStage && PlayerSession.Selection.SelectedStageIndex==retryStageIndex && SceneManager.GetActiveScene().name==retryStage.SceneName,"Retry preserves same stage and selected index");
         Check(Find<GameFlow>().IsPlaying && Time.timeScale==1 && Find<BaseHealth>().Current==retryStage.BaseHealth && Find<ResourceWallet>().Balance==retryStage.StartingResources,"Retry resets HP, resources, state and time scale");
         Check(failedEnemies.All(e=>e==null) && failedTurrets.All(t=>t==null) && Find<EnemyRegistry>().Enemies.Count==0 && UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None).Length==0 && Slots().All(s=>!s.IsOccupied),"Retry destroys old enemies/turrets and clears slots/registry");
+        Check(failedAreas.All(a=>a==null) && UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None).Length==0,"Retry destroys previous slow areas and their modifier sources with the old enemies");
         Check(Find<FixedIntervalSpawner>().enabled,"Retry restores spawn scheduler");
         Check(Find<ElixirSystem>().Current >= 3 && Find<ElixirSystem>().Current < 3.5f,"Retry restores starting Elixir with only elapsed regeneration");
         var hand = Find<GameplayHand>(); var cycle = hand.Cycle;
@@ -382,9 +420,12 @@ public static class PrototypeValidation {
         public override int Next(int maxValue) { Draws++; return base.Next(maxValue); }
     }
     private static void Finish(bool success,string detail) {
+        Environment.SetEnvironmentVariable(DeckPersistenceValidation.TestPathVariable,SessionState.GetString(Key+".PreviousSavePath", ""));
         SessionState.SetBool(Key,false); EditorApplication.update-=Tick; Application.logMessageReceived-=OnLog;
         string result=(success?"DEFENSE_VALIDATION_PASSED ":"DEFENSE_VALIDATION_FAILED ")+detail;
-        Debug.Log(result); System.IO.File.WriteAllText("Documentation/ValidationResult.txt",result+"\n");
+        Debug.Log(result);
+        System.IO.Directory.CreateDirectory("Documentation/Report");
+        System.IO.File.WriteAllText("Documentation/Report/ValidationResult.txt",result+"\n");
         if (Application.isBatchMode) EditorApplication.Exit(success?0:1); else EditorApplication.isPlaying=false;
     }
 }

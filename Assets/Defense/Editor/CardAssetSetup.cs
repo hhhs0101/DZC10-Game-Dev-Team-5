@@ -18,19 +18,20 @@ public static class CardAssetSetup {
             }
             cards.Add(card);
         }
-        var effect = Get<CircularDamageSkill>("CircularDamageSkill",out _);
+        var damageEffect = Get<CircularDamageSkill>("CircularDamageSkill",out _);
+        var slowEffect = Get<SlowAreaSkill>("SlowAreaEffect",out _);
         for (int i=0;i<2;i++) {
-            string name = i==0 ? "Fireball" : "ArrowRain";
+            string name = i==0 ? "ToyThrow" : "SlowArea";
             var skill = Get<SkillDefinition>(name+"Skill",out bool created);
             if (created) {
                 var so = new SerializedObject(skill);
-                so.FindProperty("damage").floatValue = i==0 ? 60 : 25;
+                so.FindProperty("damage").floatValue = i==0 ? 60 : 0;
                 so.FindProperty("radius").floatValue = i==0 ? 1.5f : 3;
-                so.FindProperty("effect").objectReferenceValue = effect; so.ApplyModifiedPropertiesWithoutUndo();
+                so.FindProperty("effect").objectReferenceValue = i==0 ? (Skill)damageEffect : slowEffect; so.ApplyModifiedPropertiesWithoutUndo();
             }
             var card = Get<SkillCardDefinition>(name+"Card",out created);
             if (created) {
-                var so = new SerializedObject(card); Common(so,"skill."+name.ToLowerInvariant(),i==0 ? "Fireball" : "Arrow Rain",i==0 ? 3 : 2);
+                var so = new SerializedObject(card); Common(so,i==0 ? "skill.fireball" : "skill.arrowrain",i==0 ? "Toy Throw" : "Slow Area",i==0 ? 3 : 2);
                 so.FindProperty("skill").objectReferenceValue = skill; so.ApplyModifiedPropertiesWithoutUndo();
             }
             cards.Add(card);

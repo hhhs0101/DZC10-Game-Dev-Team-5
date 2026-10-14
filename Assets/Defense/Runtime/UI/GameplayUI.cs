@@ -9,7 +9,8 @@ public sealed class GameplayUI : MonoBehaviour {
     [SerializeField] private ResourceWallet wallet;
     [SerializeField] private TurretPlacementController placement;
     private Text hpLabel, resourcesLabel, messageLabel;
-    private GameObject pause, confirmation, gameOver;
+    private GameObject pause, confirmation, gameOver, victory;
+    private Text victoryReward;
     private SettingsUI settings;
     private Button pauseButton;
     private FadingMessageUI feedback;
@@ -18,6 +19,8 @@ public sealed class GameplayUI : MonoBehaviour {
         Transform root = canvas.transform;
         hpLabel = UiFactory.Label(root,"",new Vector2(0,1),new Vector2(120,-35),new Vector2(220,50));
         resourcesLabel = UiFactory.Label(root,"",new Vector2(0,1),new Vector2(370,-35),new Vector2(260,50));
+        var currency = UiFactory.Rect("Player Currency",root,new Vector2(.5f,1),new Vector2(200,-35),new Vector2(430,50));
+        currency.gameObject.AddComponent<PlayerCurrencyUI>().Initialize(PlayerSession.Currency);
         pauseButton = UiFactory.Button(root,"Pause",new Vector2(-90,-35),flow.TogglePause,new Vector2(1,1),new Vector2(140,48));
         messageLabel = UiFactory.Label(root,"",new Vector2(.5f,0),new Vector2(0,163),new Vector2(950,50));
         feedback = messageLabel.gameObject.AddComponent<FadingMessageUI>();
@@ -38,6 +41,11 @@ public sealed class GameplayUI : MonoBehaviour {
         UiFactory.Label(gameOver.transform,"Game Over",new Vector2(.5f,.5f),new Vector2(0,90),new Vector2(600,70),42);
         UiFactory.Button(gameOver.transform,"Retry",new Vector2(0,0),flow.Retry);
         UiFactory.Button(gameOver.transform,"Lobby",new Vector2(0,-70),flow.ExitToMenu);
+        victory = Overlay("Victory",root);
+        UiFactory.Label(victory.transform,"Stage Clear",new Vector2(.5f,.5f),new Vector2(0,150),new Vector2(600,70),42);
+        victoryReward = UiFactory.Label(victory.transform,"",new Vector2(.5f,.5f),new Vector2(0,80),new Vector2(600,50),28);
+        UiFactory.Button(victory.transform,"Replay",new Vector2(0,0),flow.Retry);
+        UiFactory.Button(victory.transform,"Return to Lobby",new Vector2(0,-70),flow.ExitToMenu);
         settings = GetComponent<SettingsUI>(); settings.Initialize(root);
         baseHealth.Changed += UpdateHealth; wallet.Changed += UpdateResources;
         flow.Changed += UpdateState; placement.Message += ShowMessage;
@@ -55,7 +63,9 @@ public sealed class GameplayUI : MonoBehaviour {
         GetComponent<BuildMenuUI>().SetInteractionEnabled(state == GameplayState.Playing);
         settings.Hide(); confirmation.SetActive(false);
         pause.SetActive(state == GameplayState.Paused); gameOver.SetActive(state == GameplayState.GameOver);
-        pauseButton.interactable = state != GameplayState.GameOver;
+        victory.SetActive(state == GameplayState.Victory);
+        if (state == GameplayState.Victory) victoryReward.text = "Gold Earned: "+placement.GetComponent<StageVictoryController>().GoldEarned;
+        pauseButton.interactable = !flow.IsTerminal;
     }
     private void OnDestroy() {
         if (baseHealth != null) baseHealth.Changed -= UpdateHealth;

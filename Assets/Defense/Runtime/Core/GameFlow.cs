@@ -2,19 +2,24 @@ using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 namespace Defense {
-public enum GameplayState { Playing, Paused, GameOver }
+public enum GameplayState { Playing, Paused, GameOver, Victory }
 public sealed class GameFlow : MonoBehaviour {
     [SerializeField] private string mainMenuScene = "MainMenu";
     public GameplayState State { get; private set; } = GameplayState.Playing;
     private bool reloading;
+    public bool IsTerminal => State == GameplayState.GameOver || State == GameplayState.Victory;
     public bool IsPlaying => State == GameplayState.Playing;
     public event Action<GameplayState> Changed;
     private void Awake() { Time.timeScale = 1; }
     public void TogglePause() {
-        if (State == GameplayState.GameOver) return;
+        if (IsTerminal) return;
         SetState(IsPlaying ? GameplayState.Paused : GameplayState.Playing);
     }
-    public void GameOver() { SetState(GameplayState.GameOver); }
+    public void GameOver() { if (!IsTerminal) SetState(GameplayState.GameOver); }
+    internal bool TryVictory() {
+        if (!IsPlaying) return false;
+        SetState(GameplayState.Victory); return true;
+    }
     private void SetState(GameplayState state) {
         if (State == state) return;
         State = state;
@@ -22,7 +27,7 @@ public sealed class GameFlow : MonoBehaviour {
         Changed?.Invoke(State);
     }
     public void Retry() {
-        if (State != GameplayState.GameOver || reloading) return;
+        if (!IsTerminal || reloading) return;
         reloading = true;
         Time.timeScale = 1;
         // Reload only scene-owned runtime state. ActiveStage, Selection, Deck and Progression stay intact.
