@@ -43,10 +43,11 @@ public static class RewardValidation {
         } finally { Directory.Delete(folder,true); }
     }
     public static void Enter(Action<bool,string> check) {
-        stage=PlayerSession.Catalog.Stages.Last();
+        stage=PlayerSession.Catalog.Stages.Single(s=>s.DisplayName=="Test Stage");
         check(stage.DisplayName=="Test Stage" && stage.FiniteSpawning && stage.TotalEnemies==5 && stage.ClearGoldReward==50 && stage.Enemy.CandyDropChance==1,"Dedicated test stage defines five finite enemies, 50 Gold and guaranteed Candy");
-        for(int i=0;i<PlayerSession.Catalog.Stages.Count;i++) PlayerSession.Selection.Move(1);
-        check(PlayerSession.TrySelectStageForPlay(),"Test Stage can be selected through existing stage model without campaign unlocks");
+        while(PlayerSession.Selection.SelectedStageIndex>0) PlayerSession.Selection.MovePrevious();
+        for(int i=0;i<PlayerSession.Catalog.Stages.ToList().IndexOf(stage);i++) PlayerSession.Selection.MoveNext();
+        check(PlayerSession.TrySelectStageForPlay(useTopDown:false),"Test Stage can be selected through existing stage model without campaign unlocks");
         startGold=PlayerSession.Currency.Gold; startCandy=PlayerSession.Currency.Candy;
         deck=PlayerSession.Deck.Slots.ToArray();
         PlayerSession.Progression.Changed+=OnProgression;
@@ -97,7 +98,7 @@ public static class RewardValidation {
         check(Find<GameFlow>().State==GameplayState.Victory && Time.timeScale==0,"Actual LateUpdate enters terminal frozen Victory");
         check(PlayerSession.Currency.Gold==startGold+50*run && PlayerSession.Currency.Candy==startCandy+5*run,"Each clear grants 50 Gold and keeps five automatic Candy drops");
         check(Reload(PlayerSession.Currency.SavePath).Gold==PlayerSession.Currency.Gold && Reload(PlayerSession.Currency.SavePath).Candy==PlayerSession.Currency.Candy,"Victory balances are already saved to disk");
-        check(progressionChanges==1 && PlayerSession.Progression.IsComplete(PlayerSession.Catalog.Stages.Count-1),"First completion updates progression once; repeat is idempotent");
+        check(progressionChanges==1 && PlayerSession.Progression.IsComplete(PlayerSession.Catalog.Stages.ToList().IndexOf(stage)),"First completion updates progression once; repeat is idempotent");
         Find<StageVictoryController>().EvaluateClear(); Find<GameFlow>().GameOver(); Find<GameFlow>().TogglePause();
         check(PlayerSession.Currency.Gold==startGold+50*run && Find<GameFlow>().State==GameplayState.Victory,"Repeated evaluation, Game Over and pause cannot alter committed Victory");
         check(UnityEngine.Object.FindObjectsByType<Text>(FindObjectsSortMode.None).Any(t=>t.text=="Stage Clear") && UnityEngine.Object.FindObjectsByType<Text>(FindObjectsSortMode.None).Any(t=>t.text=="Gold Earned: 50"),"Victory UI presents Stage Clear and actual configured reward");

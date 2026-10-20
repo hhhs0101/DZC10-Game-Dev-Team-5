@@ -14,7 +14,7 @@ public abstract class Turret : MonoBehaviour {
         cooldown = Mathf.Max(0, cooldown - Time.deltaTime);
         if (cooldown > 0) return;
         // Re-evaluate every shot so Closest remains physical nearest, even if targets cross.
-        Enemy target = targeting.Select(transform.position, definition.AttackRange, registry.Enemies);
+        Enemy target = targeting.Select(transform.position, definition.AttackRange, registry.Enemies,registry.Plane);
         if (target == null) return;
         attack.Attack(target, definition.Damage);
         cooldown = definition.AttackCooldown;
@@ -24,8 +24,8 @@ public abstract class Turret : MonoBehaviour {
         Gizmos.color = Color.cyan;
         for (int i=0;i<48;i++) {
             float a=i*Mathf.PI*2/48, b=(i+1)*Mathf.PI*2/48;
-            Gizmos.DrawLine(transform.position+new Vector3(Mathf.Cos(a),0,Mathf.Sin(a))*definition.AttackRange,
-                transform.position+new Vector3(Mathf.Cos(b),0,Mathf.Sin(b))*definition.AttackRange);
+            Gizmos.DrawLine(transform.position+PlanarSpace.World(new Vector2(Mathf.Cos(a),Mathf.Sin(a)),0,registry.Plane)*definition.AttackRange,
+                transform.position+PlanarSpace.World(new Vector2(Mathf.Cos(b),Mathf.Sin(b)),0,registry.Plane)*definition.AttackRange);
         }
     }
 }

@@ -5,6 +5,9 @@ public sealed class SkillCastingController : MonoBehaviour {
     [SerializeField, Tooltip("Fallback bounds for programmatic planar casts; mouse input requires a Tabletop Surface.")] private Rect gameplayArea = new Rect(-9,-4.5f,18,9);
     [SerializeField] private TabletopSurface surface;
     [SerializeField, Tooltip("Optional future projectile launch point. Damage always uses the committed target.")] private Transform throwOrigin;
+    [SerializeField, Tooltip("Native 2D world input; leave empty for the legacy 3D route.")] private BattlefieldPointer2D pointer2D;
+    private WaypointPlane Plane => registry != null ? registry.Plane : WaypointPlane.XZ;
+    private float Depth => pointer2D != null ? pointer2D.Depth : surface != null ? surface.Height : 0;
     private GameplayHand hand;
     private GameFlow flow;
     private EnemyRegistry registry;
@@ -24,7 +27,7 @@ public sealed class SkillCastingController : MonoBehaviour {
     public float IndicatorRadius { get; private set; }
     public void Initialize(GameplayHand gameplayHand, GameFlow gameFlow, EnemyRegistry enemies, Camera camera) {
         hand = gameplayHand; flow = gameFlow; registry = enemies;
-        worldCamera = surface != null ? surface.WorldCamera : camera;
+        worldCamera = pointer2D != null ? pointer2D.Map.WorldCamera : surface != null ? surface.WorldCamera : camera;
         flow.Changed += OnStateChanged; hand.Changed += OnSelectionChanged;
         var circle = new GameObject("Skill Aim Indicator"); circle.transform.SetParent(transform,false);
         indicator = circle.AddComponent<SkillAreaVisual>();
@@ -37,7 +40,7 @@ public sealed class SkillCastingController : MonoBehaviour {
     public CardUseResult ProcessPointer(Vector2 screenPosition, bool pressed, bool released) {
         if (!flow.IsPlaying) { CancelAim(); return CardUseResult.Cancelled; }
         bool valid = TryGetTabletopPoint(screenPosition,out var world);
-        var position = PlanarSpace.Project(world);
+        var position = PlanarSpace.Project(world,Plane);
         if (pressed && valid) BeginAim(position,false);
         if (IsAiming) {
             if (valid) MoveAim(position); else indicator.Hide();
@@ -50,6 +53,7 @@ public sealed class SkillCastingController : MonoBehaviour {
     }
     public bool TryGetTabletopPoint(Vector2 screenPosition, out Vector3 position) {
         position = default;
+        if (pointer2D != null) return pointer2D.TryGetPoint(screenPosition,out position);
         if (surface == null || worldCamera == null || !worldCamera.pixelRect.Contains(screenPosition) ||
             GameplayPointer.IsOverUI(screenPosition)) return false;
         var ray = worldCamera.ScreenPointToRay(screenPosition);
@@ -59,7 +63,7 @@ public sealed class SkillCastingController : MonoBehaviour {
         position = PlanarSpace.World(PlanarSpace.Project(hit.point),surface.Height);
         return true;
     }
-    private bool IsValidPoint(Vector2 point) => surface != null ? surface.Contains(point) : gameplayArea.Contains(point);
+    private bool IsValidPoint(Vector2 point) => pointer2D != null ? pointer2D.Map.PlayableArea.Contains(point) : surface != null ? surface.Contains(point) : gameplayArea.Contains(point);
     public bool BeginAim(Vector2 position, bool overUi) {
         if (!flow.IsPlaying || overUi || !IsValidPoint(position) || !(hand.SelectedCard?.Definition is SkillCardDefinition card) || card.Skill == null || card.Skill.Effect == null) return false;
         aimingCard = hand.SelectedCard; IndicatorRadius = card.Skill.Radius;
@@ -69,7 +73,7 @@ public sealed class SkillCastingController : MonoBehaviour {
         if (!IsAiming) return;
         IndicatorRadius = ((SkillCardDefinition)aimingCard.Definition).Skill.Radius;
         AimPosition = position;
-        indicator.Show(PlanarSpace.World(position,surface != null ? surface.Height : 0),IndicatorRadius,new Color(1,.75f,.15f,.9f));
+        indicator.Show(PlanarSpace.World(position,Depth,Plane),IndicatorRadius,new Color(1,.75f,.15f,.9f),Plane);
     }
     public CardUseResult ReleaseAim(Vector2 position, bool overUi) {
         if (!IsAiming) return CardUseResult.Cancelled;
@@ -77,7 +81,7 @@ public sealed class SkillCastingController : MonoBehaviour {
         if (!flow.IsPlaying || overUi || !IsValidPoint(position) || card != hand.SelectedCard) return CardUseResult.Cancelled;
         if (!hand.CanUse(card)) return CardUseResult.Failure;
         var definition = ((SkillCardDefinition)card.Definition).Skill;
-        var context = new SkillCastContext(PlanarSpace.World(position,surface != null ? surface.Height : 0),registry,flow,throwOrigin);
+        var context = new SkillCastContext(PlanarSpace.World(position,Depth,Plane),registry,flow,throwOrigin);
         var result = hand.CompleteUse(card,CardUseResult.Success);
         if (result != CardUseResult.Success) return result;
         if (definition.CastingTime <= 0 && definition.TravelTime <= 0) definition.Effect.Apply(definition,context);

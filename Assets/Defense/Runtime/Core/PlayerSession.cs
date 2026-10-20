@@ -9,9 +9,12 @@ public static class PlayerSession {
     public static StageProgressionState Progression { get; private set; }
     public static StageSelection Selection { get; private set; }
     public static StageDefinition ActiveStage { get; private set; }
+    // Alternate presentation keeps the original StageDefinition/catalog identity and save data.
+    public const string TopDownSceneName = "TopDownStage3";
+    public static string ActiveBattleScene { get; private set; }
     public static bool ReturnToLobby { get; set; }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void Reset() { Presets?.Dispose(); Presets = null; Currency = null; Catalog = null; Progression = null; Selection = null; ActiveStage = null; ReturnToLobby = false; }
+    private static void Reset() { Presets?.Dispose(); Presets = null; Currency = null; Catalog = null; Progression = null; Selection = null; ActiveStage = null; ActiveBattleScene = null; ReturnToLobby = false; }
     public static void Ensure() {
         if (Catalog != null) return;
         Catalog = Resources.Load<GameCatalog>("GameCatalog");
@@ -21,13 +24,17 @@ public static class PlayerSession {
         Progression = new StageProgressionState(Catalog.Stages);
         Selection = new StageSelection(Catalog.Stages.Count);
     }
-    public static bool TrySelectStageForPlay() {
+    public static bool TrySelectStageForPlay(bool useTopDown = true) {
         Ensure(); int index = Selection.SelectedStageIndex;
         if (!Progression.IsUnlocked(index)) return false;
-        ActiveStage = Catalog.Stages[index]; ReturnToLobby = true; return true;
+        ActiveStage = Catalog.Stages[index];
+        ActiveBattleScene = useTopDown ? TopDownSceneName : ActiveStage.SceneName;
+        ReturnToLobby = true; return true;
     }
     // Scene entry also supports opening the configured TestStage scene directly in the Editor.
-    internal static void BindActiveStage(StageDefinition definition) { ActiveStage = definition; }
+    internal static void BindActiveStage(StageDefinition definition, string sceneName = null) {
+        ActiveStage = definition; ActiveBattleScene = sceneName ?? definition.SceneName;
+    }
     // Idempotent progression only. Victory reward policy is deliberately separate.
     public static bool CompleteActiveStage() {
         Ensure();

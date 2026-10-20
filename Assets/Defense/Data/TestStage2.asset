@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d16f3810864884c378b0a0ec8de87ccb, type: 3}
+  m_Name: TestStage2
+  m_EditorClassIdentifier: Assembly-CSharp::Defense.StageDefinition
+  displayName: Test Stage 2
+  sceneName: TopDownStage3
+  baseHealth: 10
+  startingResources: 300
+  enemy: {fileID: 11400000, guid: 0623951a5691f4020b5a1f0e6a28714d, type: 2}
+  spawnInterval: 1
+  spawnSequence:
+  - {fileID: 11400000, guid: 0623951a5691f4020b5a1f0e6a28714d, type: 2}
+  - {fileID: 11400000, guid: 7c697ff3e3cbe4b1ba5a11529868a8f4, type: 2}
+  - {fileID: 11400000, guid: 64cd25855aa164fe192e5930da016cb1, type: 2}
+  - {fileID: 11400000, guid: 4c45c354633604825b994c00d2411b5f, type: 2}
+  - {fileID: 11400000, guid: 3c3e218e3b2ab4e938d3750eb68c6cb5, type: 2}
+  - {fileID: 11400000, guid: 29782f080ec58479fa8796177359ab00, type: 2}
+  - {fileID: 11400000, guid: 28aec97b102e2497692a08c182e514a4, type: 2}
+  - {fileID: 11400000, guid: da9ac2bc7ce1f4ca3adb8059d17aea67, type: 2}
+  - {fileID: 11400000, guid: 68674d1b066ce45e0bc56f8020b8f66d, type: 2}
+  - {fileID: 11400000, guid: 76ca0626ddf9a4d9caccfcea52ad443c, type: 2}
+  finiteSpawning: 1
+  totalEnemies: 10
+  clearGoldReward: 50
+  alwaysUnlocked: 1
+  availableTurrets:
+  - {fileID: 11400000, guid: 04ae679be013433580c018e4b27e4bd9, type: 2}
+  - {fileID: 11400000, guid: 1e6ab288cd744598bff374d5eeffb51a, type: 2}
+  - {fileID: 11400000, guid: da7da4367609414b848cbffc6eeb6989, type: 2}

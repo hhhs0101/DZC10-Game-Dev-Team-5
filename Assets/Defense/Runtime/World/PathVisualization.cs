@@ -13,7 +13,7 @@ public sealed class PathVisualization : MonoBehaviour {
         if (path == null) return;
         if (line == null) line = GetComponent<LineRenderer>();
         line.positionCount = path.Count;
-        for(int i=0;i<path.Count;i++) line.SetPosition(i,path.GetPoint(i)+Vector3.up*surfaceOffset);
+        for(int i=0;i<path.Count;i++) line.SetPosition(i,path.GetPoint(i)+path.Normal*surfaceOffset);
     }
     private void OnDisable() { if(line != null) line.enabled = false; }
 }

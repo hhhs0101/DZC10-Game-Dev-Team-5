@@ -1,0 +1,3 @@
+# Stage 4 Continuation Authorization
+
+The user requested proceeding to Stage 4 after the Stage 3 report and explanation that Enter Stage still used the original 3D route. Implement 2D_TopDown_Stage4_Verification.md, including regression checks and the normal gameplay route switchover to the validated 2D battlefield. Preserve an explicit 3D fallback and prior scenes/assets. Keep stable save identifiers and file paths unchanged. Archive this authorization in English; write an English parity/verification report under the ignored Documentation/Report directory. Do not claim human input or built-Player testing that was not actually performed.

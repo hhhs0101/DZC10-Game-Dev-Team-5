@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace Defense {
 public sealed class EnemyRegistry : MonoBehaviour {
+    [SerializeField] private WaypointPlane plane;
+    public WaypointPlane Plane => plane;
     private readonly List<Enemy> enemies = new List<Enemy>();
     public IReadOnlyList<Enemy> Enemies => enemies;
     public int AliveEnemyCount => enemies.Count;

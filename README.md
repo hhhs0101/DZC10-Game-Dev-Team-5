@@ -1,10 +1,92 @@
-# Unity Defense — 3D Tabletop Prototype
+# Unity Defense — 2D Top-Down Prototype
 
 A Unity **6000.6.0f1** project that extends the existing combat prototype with a session-based Lobby, a six-slot Deck Editor, and a three-card gameplay Hand shared by towers and skills. Decks persist to disk as three independent presets; Gold and Candy also persist. Final graphics and progression saves are not implemented.
 
-## Current Migration Status
+## Wooden Plate Placement Slots
 
-The Test Stage now uses a fixed front-facing perspective camera, a 3D table, Sphere enemies, and Cuboid towers. Gameplay stays planar on **XZ**; height does not affect range, targeting, movement speed, or skill radius.
+The common `Assets/Defense/Prefabs/TopDown2D/PlacementSlot2D.prefab` uses `Assets/Defense/Art/TopDown2D/WoodenPlate.png` on its existing **SlotVisual** SpriteRenderer. The supplied 154×102 RGBA image is imported unchanged as a Point-filtered Single Sprite at 154 PPU, so its unscaled canvas is 1×0.662 world units. SlotVisual now uses a uniform 1.5× scale in X and Y, displaying approximately 1.5×0.994 world units while preserving its proportions. Its centered 1×1 BoxCollider2D and independent PlacementPoint remain unchanged.
+
+Available plates keep their original wood colors, hovered plates receive a warm gold tint, and occupied plates dim. Existing `PlacementSlotSpriteView` observes the same slot state; no placement rules were changed. Sorting remains 20, below Towers at 40. Change the SpriteRenderer's Sprite or the view's serialized colors in the prefab Inspector for future art replacement; keep gameplay collider/root scale separate. Local verification details are recorded in ignored `Documentation/Report/Wooden_Plate_Slot_Report.md`.
+
+## 2D Kitchen Map
+
+The default native 2D battlefield (`TopDownStage3`) now displays the supplied kitchen interior and transparent gingham track. Enemies spawn near the left refrigerator, follow the complete cloth route through both lower bends and the middle rise, and reach the upper-right Base. Stage content, the five-enemy Test Stage, Test Stage 2's ten-entry list and all combat/reward/persistence rules are unchanged.
+
+Original PNG copies are in `Assets/Defense/Art/Kitchen2D`. Both are 1672×941, imported as Single/Point Sprites at 80 pixels per unit, with original alpha, no mipmaps and no compression. Background order is 0; cloth order is 10. The current route uses the supplied larger replacement PNG. Background and route are both unscaled at (0,.5,0), aligning their original canvases; the cloth is already drawn in the floor region. The movement route has 48 editable waypoint references, and only three formerly overlapping slots were moved clear of the new fabric. Neither source artwork nor its aspect ratio was edited.
+
+In the scene, edit `MapRoot/KitchenBackgroundSprite`, `MapRoot/GinghamPathSprite`, `MapRoot/WaypointPath2D`, `EnemySpawnRoot (Refrigerator)`, `MapRoot/BaseVisualAnchor`, and `MapRoot/PlacementSlots2D`. The spawn and Base Transforms are also the first and last waypoint references, keeping their positions synchronized. Eight independent slots sit off the visible cloth. The floor's BoxCollider2D defines the permitted interaction area; kitchen furniture remains decorative. The previous placeholder tabletop and path debug line are retained but inactive. Enable `PathVisualization` to inspect the actual movement path.
+
+The existing orthographic camera frame now optionally uses a SpriteRenderer's bounds, allowing it to show the entire kitchen while the playable floor has its own smaller bounds. The default minimum half-height is 8.5; HUD/Hand/Elixir remain screen-space. **Defense > Maps > Apply Kitchen 2D Layout** explicitly reapplies the initial scene layout and replaces waypoint/slot positions; normal Play Mode never does so. Save or back up Inspector adjustments before using that authoring command. See local ignored `Documentation/Report/Kitchen_2D_Map_Report.md` for actual verification and remaining limits.
+
+## Test Stage 2 — Vegetable roster
+
+Select **Test Stage 2** in the Lobby carousel and choose **Enter Stage**. It is always unlocked and uses the existing native 2D battlefield. Exactly one Mushroom, Olive, Green Cabbage, Zucchini, Tomato, Kohlrabi, Turnip, Leek, Red Cabbage and Potato spawn in that order, at one-second intervals. Starting Base HP is 10 and resources are 300; clearing grants the inherited 50 Gold, while each vegetable retains its own existing Candy settings. Replay/Retry starts the same ten-entry list from the beginning. The original five-enemy Test Stage remains unchanged.
+
+`Assets/Defense/Data/TestStage2.asset` uses StageDefinition's optional **Spawn Sequence** Inspector list. Each entry represents one spawn; a nonempty list is finite and defines the total count. Empty lists retain the existing single-enemy finite/continuous behavior. The scheduler snapshots the list for each run. This is a simple ordered list, without a wave or JSON framework. **Defense > Enemies > Create Test Stage 2** can recreate the initial asset/catalog entry if missing; it preserves existing configured stage data when rerun. Vegetable artwork requires the local pack import described below.
+
+## Veggie Enemy Variants
+
+Ten independently editable definitions are available under `Assets/Defense/Data/Enemies/Veggies`: Mushroom, Olive, Green Cabbage, Zucchini, Tomato, Kohlrabi, Turnip, Leek, Red Cabbage and Potato. Assign one to an existing StageDefinition's **Enemy** field, or pass it to the existing EnemySpawner/FixedIntervalSpawner configuration. The original five-enemy Test Stage and campaign configurations are unchanged.
+
+All ten reuse **BasicEnemy2D**, Enemy/EnemyHealth/EnemyPathFollower and existing Tower/Skill/death/reward handling. EnemyDefinition now provides stable EnemyTypeId, DisplayName and optional Sprite data. The optional EnemySpriteView observes initialization and replaces only the Visual child's Sprite/tint; a definition without Sprite keeps the original placeholder. All initial combat/resource/Candy values copy BasicEnemy: HP 40, speed 1.5, Base damage 1, resource reward 10, Candy chance 10%, amount 1. Edit each definition independently for later balancing.
+
+Artwork is from **Helmet / Helm3t's 32x32 Fruit and Veggie Pack, free full edition (legacy)**. The supplied license allows game use and prohibits raw-asset redistribution. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for creator links, the terms checked, and the repository distribution policy. Individual PNGs and the original license are imported locally under the existing Git-ignored `Assets/Art/ThirdParty/Helm3tsVeggies` directory. Obtain the pack separately on another checkout; then use **Defense → Enemies → Import Veggies from Folder...**, select its `VEGGIES/VEGGIES_NL` folder, and the importer reconnects existing definition Sprite references. The Downloads shortcut uses the supplied pack folder name. Reimport preserves existing gameplay stats and enemy IDs rather than resetting them. Do not commit/publish the ignored raw artwork without separate permission from its author.
+
+Imports preserve the original 32×32 RGBA files: Single Sprite, Point filtering, 32 pixels/unit, Full Rect centered canvas, mipmaps off and no compression. The shared visual canvas is 1.2 units wide/high (twice its original .6-unit size); only the Visual child is enlarged. The .3-radius CircleCollider2D, root scale, HP bar, and combat radii remain unchanged; transparent margins do not redefine hitboxes. Custom artwork is white-tinted with Sprite sorting order 40; existing HP bars remain above it at 60.
+
+To inspect all ten without modifying a Stage asset or player save, use **Defense → Enemies → Open Veggie Sandbox** in Edit Mode. It opens the existing Stage 2 local sandbox and starts Play Mode with ten stationary real enemies in two rows; their Hierarchy names identify them. Its automatic diagnostic schedule is disabled for that Play session. Existing local Tower/Skill cards can interact with the enemies. Stop Play Mode to reset; this preview is not the five-enemy reward Test Stage.
+
+`Defense.Editor.VeggieEnemyValidation.Run` runs focused Play Mode checks with isolated temporary currency. The English implementation report and source/runtime previews are stored locally in ignored `Documentation/Report/`.
+
+## Native 2D Migration — Stage 4 Default Route
+
+**Enter Stage** and the Enter / Keypad Enter keys now open the native 2D battlefield in `Assets/Defense/Scenes/TopDownStage3.unity`. Choose **Play 3D Fallback** in the same Lobby to open the preserved 3D map. Both entries use the same stage selection, lock checks, saved active Deck and currency services. MainMenu remains the startup scene; stable StageDefinition/Card IDs and save files are unchanged.
+
+The existing 2D scene is promoted in place; no fourth map or replacement combat system is needed. The active route has XY paths, orthographic framing, sprite actors, explicit Collider2D map/slot queries, and the shared combat/Hand/Skill/state/reward systems. Its pointer references gate off the legacy 3D raycasts. The old scenes/prefabs and 3D-only helpers remain available for the fallback; none were deleted.
+
+Verification evidence, the parity matrix, save/restart results and remaining limits are recorded in the ignored `Documentation/Report/2D_TopDown_Stage4_Report.md`. Stage progression and selection remain session-only, as in the original implementation. Campaign test stages still spawn continuously and have no automatic Next Stage feature.
+
+## Native 2D Migration — Stage 3 Integrated Battlefield
+
+From **Main Menu → Start Game → Lobby**, select a centered, unlocked stage and click **Enter Stage**. The chosen StageDefinition and active saved Deck preset enter `Assets/Defense/Scenes/TopDownStage3.unity`. **Play 3D Fallback** explicitly retains the original map. The new scene is appended to Build Settings; MainMenu remains first. Opening it directly uses the existing repeatable Test Stage as its fallback configuration.
+
+The integrated scene replaces Stage 2's local fixture with the existing StageInitializer and GameplayUI. PlayerSession, three persistent Deck presets, shuffled runtime Hand/queue, Elixir, resources, Enemy rewards, Pause/Settings/exit confirmation, Victory/Game Over and Replay/Retry remain shared. There is no second profile, catalog or wallet. Stage 1/2 diagnostic scenes and original 3D assets remain available.
+
+Finite stages clear when spawning finishes and no active enemies remain, provided the run is still Playing. Base arrivals reduce HP; Game Over occurs when Base HP reaches zero. Surviving a finite schedule still clears if some enemies reached Base. Optional scheduled defeat statistics count only actual combat deaths and do not decide the result. Base arrivals and despawns grant no combat resources or Candy. Each successful repeat grants the configured 50 Gold, and Candy from legitimate deaths survives failure. The 2D and 3D routes share this clear policy.
+
+Replay reloads scene-owned state and creates a fresh runtime shuffle while retaining presets, Gold, Candy and **session** progression. Existing progression is not saved to disk; this pre-existing limitation is unchanged. Existing version-1 deck/currency files and Card IDs are unchanged. See the ignored local `Documentation/Report/2D_TopDown_Stage3_Report.md` for actual verification results and limitations.
+
+Integration validation: `Defense.Editor.TopDownStage3Validation.Run` and `ReadRestart` require `DEFENSE_TEST_DECK_SAVE_PATH` pointing to isolated test files. Run them in separate Unity batch Play Mode processes with `-nographics -noaudio`; the second process verifies restoration after the first exits. The runner exercises real UI callbacks and production world-input methods programmatically; it does not represent human mouse/keyboard testing.
+
+## Native 2D Migration — Stage 2 Interaction Sandbox
+
+Open `Assets/Defense/Scenes/TopDownStage2.unity` and enter Play Mode. Select a Tower Card and click an available slot. Select a Skill Card, press/hold on the tabletop to aim and release to cast; release over UI or off-table to cancel. Pause/Esc use the existing GameFlow. Stop Play Mode to reset this local sandbox; full result/navigation/Retry integration is available separately in Stage 3.
+
+This scene reuses actual BasicEnemy/BasicTurret, Hand, RuntimeCardCycle, Elixir, combat resources, direct-damage attacks and both Skill effects. `TopDownInteractionSandbox` uses an explicit temporary six-card test deck (four existing Tower Cards and both Skill Cards), reading Stage 1-1's unchanged starting HP/resources, Enemy and interval. It does not initialize PlayerSession, use/edit the persistent presets, grant Gold/Candy, or connect Victory/Lobby routing. The default route uses the integrated 2D scene; Play 3D Fallback retains the original map.
+
+`BattlefieldPointer2D` is the common camera-plane conversion and Physics2D slot-query boundary. It respects the logical Collider2D area, explicit slot layer, child colliders and uGUI interception. Gameplay rules stay in the existing placement/Hand components. Actor prefab overrides supply the two sprite prefabs while original definitions still supply cost and all combat stats. Do not clear those override references when editing the sandbox.
+
+`EnemyRegistry.Plane` chooses XY for this world; XZ remains the old default. The common PlanarSpace helpers, targeting interface and SkillCastContext propagate that plane to distance queries, aim visuals, AoE and source-owned slow areas. No global plane switch or duplicate combat hierarchy exists. HP bars reuse the original health observer with a configurable sorting order. Slow zones use authoritative geometric membership and registry/movement notifications, preserving overlap, exit, lifetime and fade rules.
+
+Focused validation: `Defense.Editor.TopDownStage2Validation.Run` in isolated Unity batch Play Mode, with `-noaudio`, verifies real Hand UI callbacks, screen-coordinate placement/Skill input, Physics2D/uGUI queries and combat over advancing frames. The live Editor can report different Game-view camera and Screen dimensions from Editor callbacks on this macOS setup; isolated batch Play Mode is the reproducible interaction-test environment. Manual input testing is separate. Latest focused result: 104 assertions passed. Legacy 3D suite: 588 assertions passed using its expected 40-degree camera in a temporary copy; the user's 20-degree camera remains unchanged.
+
+## Native 2D Migration — Stage 1 Prototype
+
+Stage 1 is available separately in `Assets/Defense/Scenes/TopDownStage1.unity`. Open it directly and enter Play Mode to see one diagnostic red Enemy sprite follow an editable right-to-left XY route. This scene intentionally has no card input, combat, stage rewards or PlayerSession bootstrap yet. The default Lobby route uses the integrated Stage 3 2D scene; the original 3D TestStage remains an explicit fallback. Stage 2 is available in its own interaction sandbox; the Stage 1 foundation scene is preserved.
+
+- `Battlefield2D/MapRoot` has BattlefieldMap2D references to the camera, logical playable area, path, slots and runtime mount points.
+- `PlayableArea2D` queries an explicitly assigned Collider2D. The initial BoxCollider2D is 20 by 10 units; a PolygonCollider2D can replace its shape independently of the table Sprite. Off-table points are rejected.
+- `WorldCamera/TopDownCameraFrame` uses an orthographic XY view and expands the view for the configured logical bounds, minimum size, padding and aspect ratio.
+- WaypointPath has a per-path Plane setting. Existing scenes retain XZ (serialized default zero); the new path uses XY. Edit its ordered point Transforms, starting on the right and ending on the left. EnemyPathFollower reuses the same distance-carry and movement-modifier rules.
+- Add/move/remove instances of `Prefabs/TopDown2D/PlacementSlot2D.prefab`, then update BattlefieldMap2D.PlacementSlots. Slot colliders and the separate PlacementPoint are editable. The detachable sprite view observes existing TowerPlacementSlot available/highlighted/occupied state; pointer selection comes in Stage 2.
+- `EnemySpritePlaceholder` and `TowerSpritePlaceholder` have detachable Visual children and independent HealthBarAnchor/ProjectileOrigin mount points. The blue Tower Visual Preview is a static illustration, not a placed or attacking Turret. The red movement sample reads BasicEnemy's existing speed but is not a combat Enemy and does not affect registry/rewards/Base HP.
+- Sorting uses the Default layer with orders: tabletop 0, path 10, slots 20, reserved ground effects 30, units 40, reserved world feedback 60, screen-space HUD 100. The reserved HUD is empty until later integration. Background/table uses no collider; the separate playable shape and slots use Physics2D colliders on existing GameplaySurface/PlacementSlot layers. There is no world-input query yet.
+
+Validation commands in Unity: **Defense → 2D Migration → Validate Stage 1 (Edit Mode)** with the new scene open, then **Validate Stage 1 (Play Mode)**. The Play Mode test runs the diagnostic route to its endpoint and exits Play Mode automatically. These do not initialize player save services. Original 3D scenes, prefab/data assets, stable IDs and save formats are preserved. Reports and previews are in the Git-ignored Documentation/Report folder; supplied specifications are archived in Documentation/Prompt.
+
+## Legacy 3D Fallback
+
+The preserved 3D TestStage scene uses a fixed front-facing perspective camera, a 3D table, Sphere enemies, and Cuboid towers. Gameplay stays planar on **XZ**; height does not affect range, targeting, movement speed, or skill radius.
 
 The gameplay scene uses the supplied kitchen illustration behind the 3D table. `KitchenBackground.png` and its unlit material are referenced by a camera-owned `Kitchen Background` quad. `CameraBackdrop` fills the viewport without stretching (cropping edges when needed). The background has no collider, casts no shadows and uses Ignore Raycast; it does not participate in combat or input. Replace the material texture to change the illustration.
 
@@ -16,7 +98,7 @@ Implementation reports and previews are stored locally in `Documentation/Report/
 
 1. Open the `GameDesign` folder in Unity Hub, open `Assets/Defense/Scenes/MainMenu.unity`, and enter Play Mode.
 2. Select **Start Game → Lobby**. Navigate with **A / D** or click the left or right stage card. Holding a key repeats navigation every 0.15 seconds after an initial 0.4-second delay.
-3. Once the selected stage is centered, press **Enter** or click **Enter Stage**. The list contains stages 1-1 through 1-10 and an always-unlocked **Test Stage** at the right end. Only campaign stage 1-1 is initially unlocked.
+3. Once the selected stage is centered, press **Enter** or click **Enter Stage** for the integrated native 2D scene, or **Play 3D Fallback** for the preserved original map. The list contains stages 1-1 through 1-10 and an always-unlocked **Test Stage** at the right end. Only campaign stage 1-1 is initially unlocked.
 4. Open **Deck** and drag a tower or skill card from the left page onto a T1–T6 slot on the right. Use **Preset 1 / Preset 2 / Preset 3** to switch decks in the Deck Editor. The Lobby only previews the selected deck. Valid edits and the active selection save immediately. Select **Back to Lobby** to return.
 5. Enter the stage to observe enemies moving from the right side of the tabletop toward the Base on the left. Select a Tower Card and click a green slot to place it. Successful placement pays costs and rotates the common Hand/Queue. For skills, hold LMB on the table to aim and release to cast; release over a card or any other UI to cancel.
 6. Use **Pause / Esc** to pause or resume. Your deck is preserved when returning through Pause → Exit → Yes or Game Over → Lobby. **Retry** on the Game Over screen starts a fresh run of the same stage. The finite Test Stage shows **Stage Clear → Replay / Return to Lobby** on success.
@@ -47,9 +129,9 @@ No Scene, Prefab or Inspector wiring is required. The existing UI builders creat
 
 ## Stage Clear, Gold, and Candy
 
-The dedicated **Test Stage** reuses the existing TestStage scene and is accessible at the right end of the Lobby carousel without campaign progression. It starts with 3 Base HP and 300 resources, spawns exactly five enemies at 0.75-second intervals, and awards 50 Gold on every clear. Its RewardTestEnemy definition uses 20 HP, speed 3, Base damage 1, resource reward 10, and a 100% chance of 1 Candy per combat kill. Let enemies through to test failure. BasicEnemy uses a 10% chance of 1 Candy. These are editable asset values, not hard-coded reward rules.
+The dedicated **Test Stage** uses the integrated 2D scene by default (and the original TestStage scene through Play 3D Fallback) and is accessible at the right end of the Lobby carousel without campaign progression. It starts with 3 Base HP and 300 resources, spawns exactly five enemies at 0.75-second intervals, and awards 50 Gold on every clear. Its RewardTestEnemy definition uses 20 HP, speed 3, Base damage 1, resource reward 10, and a 100% chance of 1 Candy per combat kill. Let enemies through to test failure. BasicEnemy uses a 10% chance of 1 Candy. These are editable asset values, not hard-coded reward rules.
 
-`FixedIntervalSpawner` counts successful spawns and exposes completion. `EnemyRegistry` owns the active population. `StageVictoryController` evaluates finished spawning plus zero active enemies in LateUpdate, after the final enemy's Base damage callback finishes. `GameFlow.Victory` is terminal, mutually exclusive with Game Over, and freezes gameplay. Progression completion is separate from the once-per-run Gold award. Replay uses the existing scene reload, resetting the runtime Hand, Elixir, towers, skills, enemies and schedule while retaining currency, presets and session progression.
+`FixedIntervalSpawner` counts successful spawns and exposes completion. `EnemyRegistry` owns the active population. `StageVictoryController` evaluates finished spawning plus zero active enemies in LateUpdate, after the final enemy's Base damage callback finishes. Base HP depletion triggers Game Over; a positive-HP Base arrival never triggers defeat. Optional scheduled combat-death statistics are independent of clear eligibility. `GameFlow.Victory` is terminal, mutually exclusive with Game Over, and freezes gameplay. Progression completion is separate from the once-per-run Gold award. Replay uses the existing scene reload, resetting the runtime Hand, Elixir, towers, skills, enemies and schedule while retaining currency, presets and session progression.
 
 `PlayerSession.Currency` owns one `PlayerCurrency`. Gold and Candy are separate from stage resources and Elixir. Controlled add/spend operations reject negative amounts, unaffordable spending and integer overflow. `CandyDropSystem` subscribes to the spawner's combat-death event and rolls once using that enemy's definition. Base arrival and arbitrary object removal do not award Candy. Successful drops save immediately and survive Game Over; no pickup input or visual is required. Lobby and gameplay counters subscribe to currency changes.
 

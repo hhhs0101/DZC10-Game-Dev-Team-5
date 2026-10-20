@@ -18,7 +18,7 @@ public sealed class EnemyPathFollower : MonoBehaviour {
     private void Update() { Advance(Time.deltaTime); }
     public void Advance(float deltaTime) {
         if (!following || deltaTime <= 0) return;
-        transform.position = new Vector3(transform.position.x,path.transform.position.y,transform.position.z);
+        transform.position = path.Constrain(transform.position);
         float remaining = EffectiveMovementSpeed * deltaTime;
         // Carry unused movement across corners, including coincident waypoints.
         while (following && next < path.Count) {

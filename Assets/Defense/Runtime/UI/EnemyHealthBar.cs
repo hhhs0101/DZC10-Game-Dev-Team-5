@@ -8,6 +8,7 @@ public sealed class EnemyHealthBar : MonoBehaviour {
     [SerializeField] private Vector2 size = new Vector2(.9f,.11f);
     [SerializeField] private Color fillColor = new Color(.25f,.9f,.3f);
     [SerializeField] private Color backgroundColor = new Color(.2f,.08f,.08f);
+    [SerializeField] private int sortingOrder = 20;
     private EnemyHealth health;
     private GameObject bar;
     private RectTransform fill;
@@ -18,7 +19,7 @@ public sealed class EnemyHealthBar : MonoBehaviour {
         health = GetComponent<EnemyHealth>();
         bar = new GameObject("Enemy HP",typeof(RectTransform),typeof(Canvas)); bar.transform.SetParent(transform,false);
         bar.transform.localPosition = offset;
-        var canvas = bar.GetComponent<Canvas>(); canvas.renderMode = RenderMode.WorldSpace; canvas.sortingOrder = 20;
+        var canvas = bar.GetComponent<Canvas>(); canvas.renderMode = RenderMode.WorldSpace; canvas.sortingOrder = sortingOrder;
         var rect = bar.GetComponent<RectTransform>(); rect.sizeDelta = size*100; rect.localScale = Vector3.one*.01f;
         CreateImage("Background",rect,backgroundColor);
         fill = CreateImage("Fill",rect,fillColor);

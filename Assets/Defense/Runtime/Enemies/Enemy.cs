@@ -15,6 +15,8 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     public EnemyDefinition Definition { get; private set; }
     public int ResourceReward { get; private set; }
     public EnemyPathFollower Movement => movement;
+    // Observers can bind presentation without introducing visual concerns into enemy behavior.
+    public event Action<EnemyDefinition> Initialized;
     public event Action<Enemy> Died;
     public void Initialize(EnemyDefinition data, WaypointPath path, IDamageable target, EnemyRegistry enemies) {
         health = GetComponent<EnemyHealth>(); movement = GetComponent<EnemyPathFollower>();
@@ -24,7 +26,7 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
         health.Depleted += Die; movement.ReachedEnd += ReachBase;
         movement.Initialize(path, data.MovementSpeed);
         movement.Moved += OnMoved;
-        active = true; registry.Register(this);
+        active = true; Initialized?.Invoke(data); registry.Register(this);
     }
     public void ReceiveDamage(float amount) { if (IsAlive) health.ReceiveDamage(amount); }
     protected virtual void Die() {

@@ -12,12 +12,13 @@ public sealed class PersistentSlowArea : MonoBehaviour {
     private bool subscribed;
     private readonly HashSet<Enemy> affected = new HashSet<Enemy>();
     public bool IsActive { get; private set; }
+    public WaypointPlane Plane { get; private set; }
     public float Radius => definition != null ? definition.Radius : 0;
     public float VisualOpacity { get; private set; }
     public int AffectedCount => affected.Count;
     public event Action Changed;
     public void Initialize(SkillDefinition data, SkillCastContext context) {
-        definition = data; registry = context.Registry; flow = context.Flow;
+        definition = data; registry = context.Registry; flow = context.Flow; Plane = context.Plane;
         transform.position = context.TargetPosition;
         elapsed = 0; VisualOpacity = 1; IsActive = data.ActiveDuration > 0;
         registry.Registered += RefreshEnemy; registry.Moved += RefreshEnemy; registry.Unregistered += RemoveEnemy;
@@ -44,7 +45,7 @@ public sealed class PersistentSlowArea : MonoBehaviour {
     private void RefreshEnemy(Enemy enemy) {
         if (enemy == null) return;
         bool inside = IsActive && enemy.IsAlive &&
-            PlanarSpace.SqrDistance(enemy.transform.position,transform.position) <= Radius*Radius;
+            PlanarSpace.SqrDistance(enemy.transform.position,transform.position,Plane) <= Radius*Radius;
         if (inside) {
             affected.Add(enemy); enemy.Movement.Modifiers.SetSlow(this,definition.SlowMultiplier);
         } else RemoveEnemy(enemy);

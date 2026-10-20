@@ -6,6 +6,7 @@ public sealed class EnemySpawner : MonoBehaviour {
     [SerializeField] private EnemyRegistry registry;
     [SerializeField] private GameFlow flow;
     [SerializeField] private Transform enemyRoot;
+    [SerializeField, Tooltip("Optional native 2D actor prefab. EnemyDefinition still owns stats/rewards.")] private Enemy spritePrefab;
     public bool CanSpawn => flow != null && flow.IsPlaying;
     // Lifecycle notification; resource policy belongs to EnemyKillRewards.
     public event System.Action<Enemy> EnemyDefeated;
@@ -18,7 +19,7 @@ public sealed class EnemySpawner : MonoBehaviour {
         if (definition == null || definition.Prefab == null || path == null || path.Count < 2) {
             Debug.LogError("EnemySpawner requires a prefab and at least two waypoints.", this); return null;
         }
-        Enemy enemy = Instantiate(definition.Prefab, path.GetPoint(0), Quaternion.identity, enemyRoot);
+        Enemy enemy = Instantiate(spritePrefab != null ? spritePrefab : definition.Prefab, path.GetPoint(0), Quaternion.identity, enemyRoot);
         enemy.Initialize(definition, path, baseHealth, registry);
         enemy.Died += OnEnemyDied;
         return enemy;

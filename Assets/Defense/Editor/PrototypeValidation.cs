@@ -78,7 +78,7 @@ public static class PrototypeValidation {
                     TestLobbyAndDeck();
                     Find<LobbyUI>().HandleNavigation(-1,200); Find<LobbyUI>().Carousel.Advance(1);
                     Check(PlayerSession.Selection.SelectedStageIndex==0,"A navigation moves backward to first stage");
-                    Click("Enter Stage"); Wait(1); break;
+                    Click("Play 3D Fallback"); Wait(1); break;
                 case 1:
                     if (Find<EnemyRegistry>()==null || Find<EnemyRegistry>().Enemies.Count==0) return;
                     Check(SceneManager.GetActiveScene().name=="TestStage","Unlocked centered stage loads");
@@ -118,7 +118,7 @@ public static class PrototypeValidation {
                     Check(Find<LobbyUI>()!=null && Time.timeScale==1,"Exit returns to Lobby");
                     Check(PlayerSession.Deck.Slots.SequenceEqual(persistentSnapshot),"Gameplay and scene exit preserve T1-T6");
                     Click("Deck"); Check(Find<DeckEditorUI>()!=null,"Deck editor reopens with session deck"); Click("Back to Lobby");
-                    Click("Enter Stage"); Wait(4); break;
+                    Click("Play 3D Fallback"); Wait(4); break;
                 case 4:
                     Check(Find<GameplayHand>().Cycle!=firstRun,"Stage reentry creates a fresh runtime cycle");
                     Check(Find<GameplayHand>().Cycle.InitialOrder.All(c=>!firstRun.InitialOrder.Contains(c)),"New run owns new card instances");
@@ -156,7 +156,7 @@ public static class PrototypeValidation {
                     Check(PlayerSession.CompleteActiveStage() && PlayerSession.Progression.IsUnlocked(1),"Explicit completion hook unlocks next stage");
                     var lobby=Find<LobbyUI>(); lobby.HandleNavigation(1,300); lobby.Carousel.Advance(1);
                     Check(PlayerSession.Selection.SelectedStageIndex==1 && PlayerSession.Progression.IsUnlocked(1),"Unlocked stage can be selected");
-                    Click("Enter Stage"); Wait(9); break;
+                    Click("Play 3D Fallback"); Wait(9); break;
                 case 9:
                     Check(PlayerSession.ActiveStage==PlayerSession.Catalog.Stages[1] && Find<GameplayHand>()!=null,"Next stage entry reuses playable scene with selected definition");
                     PrepareRetry(); Click("Retry"); Wait(12); break;
@@ -204,7 +204,7 @@ public static class PrototypeValidation {
         CardSkillValidation.Models(catalog,Check);
         DeckPersistenceValidation.Models(catalog,Check);
         RewardValidation.Models(Check);
-        Check(catalog.Stages.Count==11 && catalog.Stages.Take(10).Select(s=>s.DisplayName).SequenceEqual(Enumerable.Range(1,10).Select(i=>"1-"+i)),"Catalog preserves stages 1-1 through 1-10 and adds the Test Stage");
+        Check(catalog.Stages.Count==12 && catalog.Stages.Count(s=>s.DisplayName=="Test Stage")==1 && catalog.Stages.Count(s=>s.DisplayName=="Test Stage 2")==1 && catalog.Stages.Take(10).Select(s=>s.DisplayName).SequenceEqual(Enumerable.Range(1,10).Select(i=>"1-"+i)),"Catalog preserves stages 1-1 through 1-10 and both separate Test Stages");
         Check(catalog.AvailableTowers.Count==15 && catalog.AvailableTowers.Distinct().Count()==15,"Catalog contains fifteen distinct test tower definitions");
         Check(catalog.AvailableTowers.All(t=>t.Prefab!=null && t.Targeting!=null && t.Damage>0 && t.AttackRange>0 && t.AttackCooldown>0 && t.Cost>0),"All test towers have valid combat settings and references");
         var progression=new StageProgressionState(4);
@@ -240,7 +240,7 @@ public static class PrototypeValidation {
         Check(Find<LobbyDeckPreview>()!=null && PlayerSession.Deck.Slots.Count==6,"Lobby displays shared six-slot deck");
         for (int i=0;i<20;i++) PlayerSession.Selection.Move(1);
         lobby.Carousel.Advance(1);
-        Check(PlayerSession.Selection.SelectedStageIndex==10 && lobby.Carousel.IsSettled,"Carousel reaches the Test Stage and clamps at right edge");
+        Check(PlayerSession.Selection.SelectedStageIndex==PlayerSession.Catalog.Stages.Count-1 && lobby.Carousel.IsSettled,"Carousel reaches the final catalog stage and clamps at right edge");
         for (int i=0;i<20;i++) PlayerSession.Selection.Move(-1);
         lobby.Carousel.Advance(1);
         Check(PlayerSession.Selection.SelectedStageIndex==0 && lobby.Carousel.IsSettled,"Carousel returns to 1-1 and clamps at left edge");
