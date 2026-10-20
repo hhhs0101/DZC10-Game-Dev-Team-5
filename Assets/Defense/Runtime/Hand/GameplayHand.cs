@@ -16,6 +16,12 @@ public sealed class GameplayHand : MonoBehaviour {
         Cycle = new RuntimeCardCycle(deck); SelectedCard = null;
         placement.Select(null); Changed?.Invoke();
     }
+    // UI clicks toggle by runtime identity. Explicit programmatic Select remains idempotent.
+    public bool ToggleSelection(int handIndex) {
+        if (!flow.IsPlaying || handIndex < 0 || handIndex >= Cycle.Hand.Count) return false;
+        if (SelectedCard == Cycle.Hand[handIndex]) { CancelSelection(); return true; }
+        return Select(handIndex);
+    }
     public bool Select(int handIndex) {
         if (!flow.IsPlaying || handIndex < 0 || handIndex >= Cycle.Hand.Count) return false;
         SelectedCard = Cycle.Hand[handIndex];

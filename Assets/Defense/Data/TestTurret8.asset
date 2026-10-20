@@ -12,10 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ece03ce4e599d4ad1950bc8ec284347c, type: 3}
   m_Name: TestTurret8
   m_EditorClassIdentifier: Assembly-CSharp::Defense.TurretDefinition
-  displayName: Test Turret 8
+  displayName: Soy Sauce
   prefab: {fileID: 6737397371510853836, guid: e7b38fe6a66524824832eda1d386c41e, type: 3}
   cost: 150
   damage: 60
   attackRange: 6
   attackCooldown: 4
   targeting: {fileID: 11400000, guid: 352398aa511754b47a79b53950a3b3b4, type: 2}
+  sprite: {fileID: 21300000, guid: b5420ceecef434df789e8f37472ae86a, type: 3}
+  spriteScale: 1.6615385
+  spriteOffset: {x: 0, y: 0.66201925}

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TowerCard5
   m_EditorClassIdentifier: Assembly-CSharp::Defense.TowerCardDefinition
   cardId: tower.test.5
-  displayName: Test Turret 5
+  displayName: Paprika Powder
   elixirCost: 0
   color: {r: 0.18, g: 0.26, b: 0.34, a: 1}
   tower: {fileID: 11400000, guid: e4b1a8111c4443c7a7b257069f53c20c, type: 2}

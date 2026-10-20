@@ -9,6 +9,13 @@ public sealed class TurretDefinition : ScriptableObject {
     [SerializeField, Min(0.01f)] private float attackRange = 3;
     [SerializeField, Min(0.01f)] private float attackCooldown = 0.75f;
     [SerializeField] private TargetingStrategy targeting;
+    [Header("2D presentation (optional)")]
+    [SerializeField] private Sprite sprite;
+    [SerializeField, Min(.01f)] private float spriteScale = 1;
+    [SerializeField, Tooltip("Presentation-only offset from the unchanged placement point.")] private Vector2 spriteOffset;
+    public Sprite Sprite => sprite;
+    public float SpriteScale => spriteScale;
+    public Vector2 SpriteOffset => spriteOffset;
     public string DisplayName => displayName;
     public Turret Prefab => prefab;
     public int Cost => cost;

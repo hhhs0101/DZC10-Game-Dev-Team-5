@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TowerCard2
   m_EditorClassIdentifier: Assembly-CSharp::Defense.TowerCardDefinition
   cardId: tower.test.2
-  displayName: Test Turret 2
+  displayName: Olive Oil
   elixirCost: 0
   color: {r: 0.18, g: 0.26, b: 0.34, a: 1}
   tower: {fileID: 11400000, guid: 1e6ab288cd744598bff374d5eeffb51a, type: 2}

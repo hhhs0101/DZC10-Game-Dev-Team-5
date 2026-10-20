@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TowerCard4
   m_EditorClassIdentifier: Assembly-CSharp::Defense.TowerCardDefinition
   cardId: tower.test.4
-  displayName: Test Turret 4
+  displayName: Black Pepper
   elixirCost: 0
   color: {r: 0.18, g: 0.26, b: 0.34, a: 1}
   tower: {fileID: 11400000, guid: 77f87bbb556540338f374b28909c58ce, type: 2}

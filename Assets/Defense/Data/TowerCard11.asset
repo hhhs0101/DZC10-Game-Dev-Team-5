@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TowerCard11
   m_EditorClassIdentifier: Assembly-CSharp::Defense.TowerCardDefinition
   cardId: tower.test.11
-  displayName: Test Turret 11
+  displayName: Ketchup
   elixirCost: 0
   color: {r: 0.18, g: 0.26, b: 0.34, a: 1}
   tower: {fileID: 11400000, guid: e02725fae4ce49f08d0a8c5379af30e5, type: 2}

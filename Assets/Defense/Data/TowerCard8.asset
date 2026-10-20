@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TowerCard8
   m_EditorClassIdentifier: Assembly-CSharp::Defense.TowerCardDefinition
   cardId: tower.test.8
-  displayName: Test Turret 8
+  displayName: Soy Sauce
   elixirCost: 0
   color: {r: 0.18, g: 0.26, b: 0.34, a: 1}
   tower: {fileID: 11400000, guid: 9ad1b49f244c422d86ec7ddf656f4a82, type: 2}

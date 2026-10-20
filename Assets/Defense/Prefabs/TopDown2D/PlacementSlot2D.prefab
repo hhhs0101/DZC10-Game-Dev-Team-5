@@ -140,7 +140,7 @@ MonoBehaviour:
   appearance: {fileID: 2776997332963716468}
   available: {r: 1, g: 1, b: 1, a: 1}
   highlighted: {r: 1, g: 0.9, b: 0.55, a: 1}
-  occupied: {r: 0.45, g: 0.45, b: 0.45, a: 1}
+  occupied: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &9124981615732549281
 GameObject:
   m_ObjectHideFlags: 0

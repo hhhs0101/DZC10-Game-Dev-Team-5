@@ -32,7 +32,7 @@ public static class TopDownStage2Validation {
     private static TurretPlacementController Placement=>Find<TurretPlacementController>();
     private static SkillCastingController Casting=>Find<SkillCastingController>();
     private static Vector2 Screen(Vector3 p)=>Camera.main.WorldToScreenPoint(p);
-    private static void Select(CardDefinition card){for(int i=0;i<6 && !Hand.Cycle.Hand.Any(c=>c.Definition==card);i++)Hand.Cycle.Use(Hand.Cycle.Hand[0]);var index=Hand.Cycle.Hand.ToList().FindIndex(c=>c.Definition==card);var button=GameObject.Find("Hand Card "+(index+1)).GetComponent<UnityEngine.UI.Button>();button.onClick.Invoke();Check(button.interactable && Hand.SelectedCard?.Definition==card,"Select through actual Hand UI button: "+card.DisplayName);Canvas.ForceUpdateCanvases();}
+    private static void Select(CardDefinition card){for(int i=0;i<6 && !Hand.Cycle.Hand.Any(c=>c.Definition==card);i++)Hand.Cycle.Use(Hand.Cycle.Hand[0]);var index=Hand.Cycle.Hand.ToList().FindIndex(c=>c.Definition==card);var button=GameObject.Find("Hand Card "+(index+1)).GetComponent<UnityEngine.UI.Button>();if(Hand.SelectedCard!=Hand.Cycle.Hand[index])button.onClick.Invoke();Check(button.interactable && Hand.SelectedCard?.Definition==card,"Select through actual Hand UI button: "+card.DisplayName);Canvas.ForceUpdateCanvases();}
     private static Enemy Spawn(Vector3 p,EnemyDefinition data=null){var e=Spawner.Spawn(data??Find<TopDownInteractionSandbox>().TestStage.Enemy);e.Movement.Stop();e.transform.position=p;Registry.NotifyMoved(e);return e;}
     private static void ClearEnemies(){foreach(var e in Registry.Enemies.ToArray())e.ReceiveDamage(100000);}
     private static void ClearAreas(){foreach(var a in UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None))UnityEngine.Object.DestroyImmediate(a.gameObject);}
@@ -68,7 +68,7 @@ public static class TopDownStage2Validation {
     private static void TestPlacement(){
         var map=Find<BattlefieldMap2D>();var input=Find<BattlefieldPointer2D>();var wallet=Find<ResourceWallet>();var slot=map.PlacementSlots[0];
         var slotView=slot.GetComponentInChildren<PlacementSlotSpriteView>();var slotRenderer=slot.GetComponentInChildren<SpriteRenderer>();var availableColor=slotView.CurrentColor;
-        Check(map.PlacementSlots.All(s=>{var v=s.GetComponentInChildren<SpriteRenderer>();var hit=s.GetComponent<BoxCollider2D>();return AssetDatabase.GetAssetPath(v.sprite)=="Assets/Defense/Art/TopDown2D/WoodenPlate.png"&&v.sortingOrder==20&&hit.size==Vector2.one&&Mathf.Abs(v.bounds.size.x-1)<.001f&&Mathf.Abs(v.bounds.size.y-102f/154)<.001f;}),"All slots reuse original-proportion wooden plate with unchanged 1x1 click area and sorting order");
+        Check(map.PlacementSlots.All(s=>{var v=s.GetComponentInChildren<SpriteRenderer>();var hit=s.GetComponent<BoxCollider2D>();return AssetDatabase.GetAssetPath(v.sprite)=="Assets/Defense/Art/TopDown2D/WoodenPlate.png"&&v.sortingOrder==20&&hit.size==Vector2.one&&Mathf.Abs(v.bounds.size.x-1.5f)<.001f&&Mathf.Abs(v.bounds.size.y-1.5f*102/154)<.001f;}),"All slots reuse the 1.5x wooden plate with original proportions, unchanged 1x1 click area and sorting order");
         Check(availableColor==Color.white,"Available plate preserves original untinted wooden artwork");
         Check(input.TryGetPoint(Screen(new Vector3(1,2,0)),out var point)&&Vector3.Distance(point,new Vector3(1,2,0))<.001f,"Unified screen-to-XY conversion uses gameplay depth rather than camera near clip");
         Check(!input.TryGetPoint(Screen(new Vector3(11,0,0)),out _),"Off-table background rejects world input");
@@ -87,7 +87,7 @@ public static class TopDownStage2Validation {
         Check(slotView.CurrentColor!=availableColor&&slotRenderer.sprite.name=="WoodenPlate","Actual pointer hover highlights the same wooden Sprite");
         Placement.ProcessPointer(Screen(Vector3.zero),false);Check(!slot.IsHovered&&slotView.CurrentColor==availableColor,"Pointer exit restores available plate color without consuming a card");
         Check(Placement.ProcessPointer(screen,true)&&slot.IsOccupied&&slot.Occupant.GetComponentInChildren<SpriteRenderer>()!=null&&slot.Occupant.GetComponentInChildren<MeshRenderer>()==null,"Valid 2D slot click places common Turret with sprite presentation");
-        Check(slotView.CurrentColor!=availableColor&&slotRenderer.color==slotView.CurrentColor&&slot.Occupant.GetComponentInChildren<SpriteRenderer>().sortingOrder>slotRenderer.sortingOrder,"Occupied plate is dimmed and the Tower renders above it");
+        Check(slotView.CurrentColor==availableColor&&slotRenderer.color==Color.white&&slot.Occupant.GetComponentInChildren<SpriteRenderer>().sortingOrder>slotRenderer.sortingOrder,"Occupied plate retains original wooden colors and the Tower renders above it");
         slot.Occupant.enabled=false;combatTurret=slot.Occupant;combatData=card.Tower;
         Check(Vector3.Distance(slot.Occupant.transform.position,slot.PlacementPoint.position)<.001f,"2D placement uses configured independent PlacementPoint");
         Check(wallet.Balance==1000-card.Tower.Cost && Elixir.Current==0 && Hand.SelectedCard==null,"Zero-Elixir Tower commits at zero Elixir and pays its own resource cost");

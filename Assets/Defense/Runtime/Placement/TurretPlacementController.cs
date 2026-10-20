@@ -11,6 +11,7 @@ public sealed class TurretPlacementController : MonoBehaviour {
     [SerializeField] private TabletopSurface surface;
     [SerializeField, Tooltip("Native 2D input; leave empty for legacy 3D scenes.")] private BattlefieldPointer2D pointer2D;
     [SerializeField, Tooltip("Optional 2D actor prefab; selected definition still supplies all combat/cost data.")] private Turret spritePrefab;
+    [SerializeField, Tooltip("Optional read-only placed-Tower inspection for native 2D scenes.")] private PlacedTowerInspectionController inspection;
     private TurretDefinition selected;
     private TowerPlacementSlot hoveredSlot;
     public TurretDefinition Selected => selected;
@@ -19,11 +20,14 @@ public sealed class TurretPlacementController : MonoBehaviour {
     public event Action<TurretDefinition> SelectionChanged;
     public void Select(TurretDefinition definition) {
         if (!flow.IsPlaying) return;
-        selected = definition; SelectionChanged?.Invoke(selected);
+        selected = definition;
+        if (selected == null) SetHoveredSlot(null);
+        SelectionChanged?.Invoke(selected);
     }
     private void Update() => ProcessPointer(Input.mousePosition,Input.GetMouseButtonDown(0));
     // The live mouse and integration tests share the same screen-coordinate input path.
     public bool ProcessPointer(Vector2 screenPosition, bool pressed) {
+        if (inspection != null) inspection.ProcessPointer(screenPosition,pressed);
         if (!flow.IsPlaying || selected == null || worldCamera == null ||
             !worldCamera.pixelRect.Contains(screenPosition) || GameplayPointer.IsOverUI(screenPosition)) {
             SetHoveredSlot(null); return false;

@@ -12,6 +12,7 @@ public sealed class DeckEditorUI : MonoBehaviour {
     private RectTransform content;
     private readonly Dictionary<CardDefinition, RectTransform> availableViews = new Dictionary<CardDefinition, RectTransform>();
     private readonly Text[] labels = new Text[6];
+    private readonly CardIconView[] icons = new CardIconView[6];
     public void Initialize(RectTransform canvas, Action back, Action settings) {
         presets = PlayerSession.Presets;
         deck = presets.ActiveDeck;
@@ -35,7 +36,8 @@ public sealed class DeckEditorUI : MonoBehaviour {
             if (definition == null || availableViews.ContainsKey(definition)) continue;
             var card = UiFactory.Rect("Available "+definition.DisplayName,content,new Vector2(.5f,1),new Vector2((i%3-1)*175,-75-i/3*140),new Vector2(165,120));
             card.gameObject.AddComponent<Image>().color = new Color(.2f,.32f,.4f);
-            UiFactory.Label(card,definition.DisplayName+"\n"+definition.CostDescription,new Vector2(.5f,.5f),Vector2.zero,new Vector2(160,115),19);
+            bool artwork = CardIconView.Create(card,new Vector2(-57,0),new Vector2(42,78)).Bind(definition);
+            UiFactory.Label(card,definition.DisplayName+"\n"+definition.CostDescription,new Vector2(.5f,.5f),artwork ? new Vector2(23,0) : Vector2.zero,artwork ? new Vector2(112,115) : new Vector2(160,115),artwork ? 17 : 19);
             card.gameObject.AddComponent<DeckCardDrag>().Initialize(definition,canvas);
             availableViews.Add(definition,card);
         }
@@ -43,6 +45,7 @@ public sealed class DeckEditorUI : MonoBehaviour {
             var card = UiFactory.Rect("Deck Slot T"+(i+1),transform,new Vector2(.75f,1),new Vector2((i%2-.5f)*240,-235-i/2*155),new Vector2(220,135));
             card.gameObject.AddComponent<Image>().color = new Color(.2f,.28f,.25f);
             labels[i] = UiFactory.Label(card,"",new Vector2(.5f,.5f),Vector2.zero,new Vector2(215,130),23);
+            icons[i] = CardIconView.Create(card,new Vector2(-78,0),new Vector2(50,94));
             drops[i] = card.gameObject.AddComponent<DeckSlotDrop>(); drops[i].Initialize(editor,i);
         }
         UiFactory.Label(transform,"Drag an available card onto T1-T6. Changes save automatically.",new Vector2(.5f,0),new Vector2(0,35),new Vector2(1100,50),20);
@@ -62,7 +65,13 @@ public sealed class DeckEditorUI : MonoBehaviour {
         Refresh();
     }
     private void Refresh() {
-        for (int i=0;i<6;i++) labels[i].text = "T"+(i+1)+"\n"+deck.Slots[i].DisplayName;
+        for (int i=0;i<6;i++) {
+            bool artwork = icons[i].Bind(deck.Slots[i]);
+            labels[i].rectTransform.anchoredPosition = artwork ? new Vector2(27,0) : Vector2.zero;
+            labels[i].rectTransform.sizeDelta = artwork ? new Vector2(158,125) : new Vector2(215,130);
+            labels[i].fontSize = artwork ? 20 : 23;
+            labels[i].text = "T"+(i+1)+"\n"+deck.Slots[i].DisplayName;
+        }
         var available = editor.Available;
         var visible = new HashSet<CardDefinition>(available);
         // Reuse views. Hiding a consumed source safely cancels its drag ghost during OnDrop.

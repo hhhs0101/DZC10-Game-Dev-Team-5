@@ -59,7 +59,7 @@ public static class TopDownStage3Validation {
     private static void Click(string label){var button=UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Button>(FindObjectsSortMode.None).Single(b=>b.GetComponentInChildren<UnityEngine.UI.Text>().text==label);Check(button.interactable,"Actual UI callback available: "+label);button.onClick.Invoke();Canvas.ForceUpdateCanvases();}
     private static void Next(int phase,double wait=.12){step=phase;deadline=EditorApplication.timeSinceStartup+wait;}
     private static void OnProgression()=>progressionChanges++;
-    private static void SelectVisible(int index){var button=GameObject.Find("Hand Card "+(index+1)).GetComponent<UnityEngine.UI.Button>();Check(button.interactable,"Real Hand card button is enabled");button.onClick.Invoke();Check(Hand.SelectedCard==Hand.Cycle.Hand[index],"UI selects runtime card");}
+    private static void SelectVisible(int index){var button=GameObject.Find("Hand Card "+(index+1)).GetComponent<UnityEngine.UI.Button>();Check(button.interactable,"Real Hand card button is enabled");if(Hand.SelectedCard!=Hand.Cycle.Hand[index])button.onClick.Invoke();Check(Hand.SelectedCard==Hand.Cycle.Hand[index],"UI selects runtime card");}
     private static void AssertCycleUnchanged(RuntimeCard[] hand,RuntimeCard[] queue,string message)=>Check(Hand.Cycle.Hand.SequenceEqual(hand)&&Hand.Cycle.UpcomingQueue.SequenceEqual(queue),message);
     private static void UseVisible(int index,Vector2 skillPoint){
         Elixir.Advance(100);SelectVisible(index);

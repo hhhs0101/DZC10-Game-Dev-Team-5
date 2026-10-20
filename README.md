@@ -2,11 +2,37 @@
 
 A Unity **6000.6.0f1** project that extends the existing combat prototype with a session-based Lobby, a six-slot Deck Editor, and a three-card gameplay Hand shared by towers and skills. Decks persist to disk as three independent presets; Gold and Candy also persist. Final graphics and progression saves are not implemented.
 
+## Condiment Tower Artwork and Names
+
+The existing fifteen playable Towers and their cards retain all stable IDs and asset filenames. Towers 1–11 now use the following data-driven names and artwork. Towers 12–15 keep their existing numbered names and placeholders; no cards or combat types were added.
+
+| Tower | Display name | Supplied PNG | Imported Sprite |
+|---|---|---|---|
+| 1 | Vinegar | `Pixel Art Vinegar Bottle128nb.png` | `Assets/Defense/Art/Condiments/Vinegar.png` |
+| 2 | Olive Oil | `Pixel-Art Golden Oil Bottle128nb.png` | `Assets/Defense/Art/Condiments/OliveOil.png` |
+| 3 | Hot Sauce | `Pixel-Art Hot Sauce Bottle128nb.png` | `Assets/Defense/Art/Condiments/HotSauce.png` |
+| 4 | Black Pepper | `Pixel-Art Pepper Shaker128nb.png` | `Assets/Defense/Art/Condiments/BlackPepper.png` |
+| 5 | Paprika Powder | `Pixel-Art Red Spice Jar Icon128nb.png` | `Assets/Defense/Art/Condiments/PaprikaPowder.png` |
+| 6 | Salt | `Pixel-Art Salt Shaker Sprite128nb.png` | `Assets/Defense/Art/Condiments/Salt.png` |
+| 7 | Brown Sauce | `Pixel-Art Sauce Bottle Icon128nb.png` | `Assets/Defense/Art/Condiments/BrownSauce.png` |
+| 8 | Soy Sauce | `Pixel-Art Soy Sauce Bottle.png` | `Assets/Defense/Art/Condiments/SoySauce.png` |
+| 9 | Mustard | `Pixel-Art Yellow Mustard Bottle (1)128nb.png` | `Assets/Defense/Art/Condiments/Mustard.png` |
+| 10 | Mayonnaise | `Retro Pixel Art Mayonnaise Bottle128nb.png` | `Assets/Defense/Art/Condiments/Mayonnaise.png` |
+| 11 | Ketchup | `Retro Pixel-Art Ketchup Bottle128nb.png` | `Assets/Defense/Art/Condiments/Ketchup.png` |
+
+The supplied Soy Sauce file is `Pixel-Art Soy Sauce Bottle.png`; the prompt's `Pixel-Art Soy Sauce Bottle(1).png` was absent. It is the sole matching Soy Sauce image in the supplied folder. All eleven supplied images are assigned.
+
+Each TurretDefinition exposes optional Sprite, Sprite Scale and Sprite Offset fields. The shared BasicTurret2D prefab's TurretSpriteView observes initialization and updates only its Visual child. TowerCardDefinition.Icon resolves that same Sprite for the Deck Editor, Lobby deck preview and gameplay Hand; Skill cards keep their existing presentation. No runtime code reads Downloads or chooses behavior by Tower name/number.
+
+PNGs are copied byte-for-byte into Assets, imported as Single/Point/uncompressed Sprites at 128 PPU, with alpha, no mipmaps, no NPOT resizing and centered pivots. The non-negligible alpha silhouette (alpha >= 16) determines a uniform 1.35-unit visible height and presentation offset so the visible bottom center meets the unchanged placement point. Very faint export halos are retained in the PNG and ignored only for alignment. Sorting order remains 40, above the plate's 20; root transforms, slot colliders and ProjectileOrigin are unchanged.
+
+`CondimentTowerSetup.Apply(sourceFolder)` is an explicit Editor authoring operation for restoring the exact mapping; it does not run automatically. Reusing the original scratch prototype builder can reset authored placeholder data, so preserve custom Inspector edits before invoking full rebuild tools. Actual sprite references are ordinary project assets. Saved presets still resolve `tower.test.1` through `tower.test.15`; they are not migrated or regenerated from display names. Local verification and screenshots are recorded in ignored `Documentation/Report/Tower_Condiment_Migration/`.
+
 ## Wooden Plate Placement Slots
 
 The common `Assets/Defense/Prefabs/TopDown2D/PlacementSlot2D.prefab` uses `Assets/Defense/Art/TopDown2D/WoodenPlate.png` on its existing **SlotVisual** SpriteRenderer. The supplied 154×102 RGBA image is imported unchanged as a Point-filtered Single Sprite at 154 PPU, so its unscaled canvas is 1×0.662 world units. SlotVisual now uses a uniform 1.5× scale in X and Y, displaying approximately 1.5×0.994 world units while preserving its proportions. Its centered 1×1 BoxCollider2D and independent PlacementPoint remain unchanged.
 
-Available plates keep their original wood colors, hovered plates receive a warm gold tint, and occupied plates dim. Existing `PlacementSlotSpriteView` observes the same slot state; no placement rules were changed. Sorting remains 20, below Towers at 40. Change the SpriteRenderer's Sprite or the view's serialized colors in the prefab Inspector for future art replacement; keep gameplay collider/root scale separate. Local verification details are recorded in ignored `Documentation/Report/Wooden_Plate_Slot_Report.md`.
+Available plates keep their original wood colors, hovered plates receive a warm gold tint, and occupied plates retain their original wood colors. Existing `PlacementSlotSpriteView` observes the same slot state; no placement rules were changed. Sorting remains 20, below Towers at 40. Change the SpriteRenderer's Sprite or the view's serialized colors in the prefab Inspector for future art replacement; keep gameplay collider/root scale separate. Local verification details are recorded in ignored `Documentation/Report/Wooden_Plate_Slot_Report.md`.
 
 ## 2D Kitchen Map
 
@@ -143,13 +169,31 @@ No manual Scene/Prefab rewiring is required: StageInitializer adds and connects 
 
 | Tower | Damage | Range | Attacks per Second | Cost |
 |---|---:|---:|---:|---:|
-| Test Turret 1 | 10 | 3 | 1 | 50 |
-| Test Turret 2 | 30 | 5 | 0.4 | 75 |
-| Test Turret 3 | 5 | 2.5 | 3 | 100 |
+| Vinegar | 10 | 3 | 1 | 50 |
+| Olive Oil | 30 | 5 | 0.4 | 75 |
+| Hot Sauce | 5 | 2.5 | 3 | 100 |
 
 Stage 1-1 starts with 10 Base HP, 150 resources, and a 2-second enemy spawn interval. The basic enemy has 40 HP, a movement speed of 1.5, Base damage of 1, and a kill reward of 10 resources. Edit **Resource Reward** in `BasicEnemy.asset` to configure the reward for that enemy definition.
 
 Green placement slots have available, highlighted, and occupied presentation states. Available slots highlight when hovered with a Tower Card selected. HP bars appear above the red enemies. All 15 tower types share the existing BasicTurret prefab and combat code. Scroll the left page of the Deck Editor to view additional cards. All tower statistics are configurable in the corresponding definition assets.
+
+## Hand Card Selection Toggle
+
+Clicking a Hand card selects it; clicking that same runtime card again deselects it. Clicking another card switches directly. Both Tower and Skill cards use GameplayHand.ToggleSelection through the existing button listener. The explicit Select method remains available for idempotent programmatic selection.
+
+Deselecting clears the card tint/context label, pending placement selection and residual slot highlight; existing selection events cancel any active Skill aim. It does not spend resources/Elixir, cast, place or rotate the Hand. A Skill gesture pressed on the world and released over a card still cancels aiming while retaining the selected Skill; only a subsequent deliberate card click toggles it off. UI raycast blocking and normal successful-use/reset behavior are unchanged.
+
+## Placed Tower Range Inspection
+
+With no Hand card selected, click an installed Tower to show its attack-range ring. Click the same Tower again to hide it, or another Tower to switch directly. Clicking ground, path, an empty slot, an Enemy, other UI or outside the battlefield clears inspection. Selecting any Hand card clears the ring immediately; existing placement, Skill gestures and same-card deselection retain priority. Deselecting a card never automatically inspects a Tower.
+
+`PlacedTowerInspectionController` owns one optional runtime Tower reference. The existing placement pointer entry point forwards presses before processing Card actions; it reuses `BattlefieldPointer2D`'s UI blocking and XY conversion. The shared BasicTurret2D prefab has a separate trigger child, **Inspection Hit Area**, on the Default layer. Its 1×1.8-unit box is offset upward by 0.5 units to cover the placeholder and condiment silhouettes without changing the wooden plate's collider or combat targeting.
+
+`Turret.EffectiveAttackRange` supplies both target eligibility and the ring radius. There are currently no range modifiers; the accessor returns the configured range. Inspection refreshes the target's root position and effective range each LateUpdate. The existing `SkillAreaVisual` draws 96 world-space XY vertices, with diameter twice that range, independent of sprite size/PPU, at sorting order 30 (above path/plates, below Towers). It has no collider or UI raycast surface. Existing Skill visuals remain separate.
+
+Both TopDownStage2 and the integrated TopDownStage3 are wired. Pause, terminal states, Hand reset, target disable/destruction, scene exit and Retry clear inspection. The legacy 3D scene is unchanged. No package or manual Inspector wiring is required for the saved scenes. `PlacedTowerInspectionSetup.Run()` is an explicit additive Editor authoring operation to restore these dependencies after rebuilding the native 2D scenes; save scene edits and leave Play Mode before invoking it.
+
+`PlacedTowerInspectionValidation.Run` is an Editor integration runner for inspection input, effective XY geometry, UI priority, successful Tower/Skill actions and lifecycle cleanup. Use an isolated existing deck/currency profile through `DEFENSE_TEST_DECK_SAVE_PATH` when running this batch entry point. Local logs and a rendered Game View preview are kept in ignored `Documentation/Report/Placed_Tower_Range_Inspection/`.
 
 ## Cards, Elixir, and Skills
 

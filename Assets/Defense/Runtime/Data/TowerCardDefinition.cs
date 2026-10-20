@@ -4,6 +4,7 @@ namespace Defense {
 public sealed class TowerCardDefinition : CardDefinition {
     [SerializeField] private TurretDefinition tower;
     public TurretDefinition Tower => tower;
+    public override Sprite Icon => tower != null ? tower.Sprite : null;
     public override CardType Type => CardType.Tower;
 }
 }

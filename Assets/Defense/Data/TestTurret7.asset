@@ -12,10 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ece03ce4e599d4ad1950bc8ec284347c, type: 3}
   m_Name: TestTurret7
   m_EditorClassIdentifier: Assembly-CSharp::Defense.TurretDefinition
-  displayName: Test Turret 7
+  displayName: Brown Sauce
   prefab: {fileID: 6737397371510853836, guid: e7b38fe6a66524824832eda1d386c41e, type: 3}
   cost: 80
   damage: 18
   attackRange: 4
   attackCooldown: 1.2
   targeting: {fileID: 11400000, guid: 352398aa511754b47a79b53950a3b3b4, type: 2}
+  sprite: {fileID: 21300000, guid: 3cce507597f854e85bccb25a613d7c62, type: 3}
+  spriteScale: 1.5567567
+  spriteOffset: {x: 0, y: 0.65675676}

@@ -12,10 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ece03ce4e599d4ad1950bc8ec284347c, type: 3}
   m_Name: TestTurret2
   m_EditorClassIdentifier: Assembly-CSharp::Defense.TurretDefinition
-  displayName: Test Turret 2
+  displayName: Olive Oil
   prefab: {fileID: 6737397371510853836, guid: e7b38fe6a66524824832eda1d386c41e, type: 3}
   cost: 75
   damage: 30
   attackRange: 5
   attackCooldown: 2.5
   targeting: {fileID: 11400000, guid: 352398aa511754b47a79b53950a3b3b4, type: 2}
+  sprite: {fileID: 21300000, guid: 8af03f98491154335bcbbea5bad08639, type: 3}
+  spriteScale: 1.4896553
+  spriteOffset: {x: 0, y: 0.65172416}

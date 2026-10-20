@@ -10,6 +10,7 @@ public abstract class CardDefinition : ScriptableObject {
     public string DisplayName => displayName;
     public float ElixirCost => elixirCost;
     public Color Color => color;
+    public virtual Sprite Icon => null;
     public abstract CardType Type { get; }
     public string CostDescription => "Elixir: " + ElixirCost + (this is TowerCardDefinition tower ? " / Resources: " + tower.Tower.Cost : "");
 }
