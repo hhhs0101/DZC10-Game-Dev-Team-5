@@ -7,17 +7,20 @@ public abstract class Turret : MonoBehaviour {
     private ITargetingStrategy targeting;
     private float cooldown;
     public TurretDefinition Definition => definition;
+    public AttackDisableStatus AttackStatus { get; } = new AttackDisableStatus();
+    public bool AttackDisabled => AttackStatus.IsDisabled;
     // Shared runtime source for target eligibility, gizmos and read-only inspection.
     public float EffectiveAttackRange => definition != null ? definition.AttackRange : 0;
     public event System.Action<TurretDefinition> Initialized;
     public void Initialize(TurretDefinition data, EnemyRegistry enemies) {
-        definition = data; registry = enemies; targeting = data.Targeting; cooldown = 0;
+        definition = data; registry = enemies; targeting = data.Targeting; cooldown = 0; AttackStatus.Clear();
         Initialized?.Invoke(data);
     }
     private void Update() {
         if (definition == null || Time.deltaTime <= 0) return;
+        AttackStatus.Advance(Time.deltaTime);
         cooldown = Mathf.Max(0, cooldown - Time.deltaTime);
-        if (cooldown > 0) return;
+        if (cooldown > 0 || AttackDisabled) return;
         // Re-evaluate every shot so Closest remains physical nearest, even if targets cross.
         Enemy target = targeting.Select(transform.position, EffectiveAttackRange, registry.Enemies,registry.Plane);
         if (target == null) return;

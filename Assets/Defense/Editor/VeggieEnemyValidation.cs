@@ -51,7 +51,8 @@ public static class VeggieEnemyValidation {
             Check(importer.textureType==TextureImporterType.Sprite&&importer.spriteImportMode==SpriteImportMode.Single&&importer.filterMode==FilterMode.Point&&!importer.mipmapEnabled&&importer.textureCompression==TextureImporterCompression.Uncompressed&&importer.spritePixelsPerUnit==32&&importer.alphaIsTransparency&&importer.alphaSource==TextureImporterAlphaSource.FromInput,"Point/Single/32PPU/uncompressed/no-mipmap/alpha import: "+data.DisplayName);
             Check(data.Sprite.rect.size==new Vector2(32,32)&&Vector2.Distance(data.Sprite.bounds.size,Vector2.one)<.001f,"Original 32x32 canvas is preserved at consistent world scale: "+data.DisplayName);
             Check(AssetDatabase.GetAssetPath(data.Prefab)==VeggieEnemySetup.SharedPrefab,"Common native 2D prefab, no per-type Enemy subclass: "+data.DisplayName);
-            Check(data.Health==basic.Health&&data.MovementSpeed==basic.MovementSpeed&&data.BaseDamage==basic.BaseDamage&&data.ResourceReward==basic.ResourceReward&&data.CandyDropChance==basic.CandyDropChance&&data.CandyDropAmount==basic.CandyDropAmount,"Initial stats and Candy policy match existing BasicEnemy without invented balancing: "+data.DisplayName);
+            bool specified = data.EnemyTypeId == "enemy_tomato" || data.EnemyTypeId == "enemy_potato";
+            Check((specified ? (data.EnemyTypeId == "enemy_tomato" ? data.Health==85 && data.MovementSpeed==3 && data.BaseDamage==100 : data.Health==150 && data.MovementSpeed==1.8f && data.BaseDamage==20) : data.Health==basic.Health && data.MovementSpeed==basic.MovementSpeed && data.BaseDamage==basic.BaseDamage) && data.ResourceReward==basic.ResourceReward && data.CandyDropChance==basic.CandyDropChance && data.CandyDropAmount==basic.CandyDropAmount,"Explicit Tomato/Potato patch stats; unrelated variants and all reward policies unchanged: "+data.DisplayName);
         }
     }
     private static void BeginVariant(){
@@ -112,7 +113,7 @@ public static class VeggieEnemyValidation {
     private static void Tick(){if(!SessionState.GetBool(Key,false))return;try{
         if(EditorApplication.timeSinceStartup-started>60)throw new Exception("Veggie validation timeout at variant "+index+" phase "+step);
         if(!EditorApplication.isPlaying||EditorApplication.isCompiling||Find<TopDownInteractionSandbox>()==null||GameObject.Find("Hand Card 1")==null)return;
-        if(step==0){Find<FixedIntervalSpawner>().enabled=false;Find<BaseHealth>().Initialize(100);deck=Find<TopDownInteractionSandbox>().Deck.Slots.ToArray();InspectContent();
+        if(step==0){Find<FixedIntervalSpawner>().enabled=false;Find<BaseHealth>().Initialize(10000);deck=Find<TopDownInteractionSandbox>().Deck.Slots.ToArray();InspectContent();
             var folder=Path.Combine(Path.GetTempPath(),"defense-veggie-"+Guid.NewGuid().ToString("N"));currency=new PlayerCurrency(new JsonFileStore<PlayerCurrencySaveData>(Path.Combine(folder,"currency.json"),"Veggie test currency"));
             var drops=Registry.gameObject.AddComponent<CandyDropSystem>();drops.Initialize(Spawner,currency,()=>{rolls++;return sample;});Spawner.EnemyDefeated+=e=>deaths++;BeginVariant();step=1;
         }else if(step==1&&Time.time-sampleTime>=.2f){BeginTower();step=2;}

@@ -1,5 +1,7 @@
 using UnityEngine;
 namespace Defense {
+// Existing content is Basic (zero); stable string enemy IDs remain unchanged.
+public enum EnemyRole { Basic = 0, SpeedSupport = 1, ShieldSupport = 2, Disruptor = 3, Boss = 4 }
 [CreateAssetMenu(menuName="Defense/Enemy Definition")]
 public sealed class EnemyDefinition : ScriptableObject {
     [Header("Identity and presentation")]
@@ -16,7 +18,46 @@ public sealed class EnemyDefinition : ScriptableObject {
 
     [SerializeField, Min(1)] private float health = 40;
     [SerializeField, Min(0.01f)] private float movementSpeed = 1.5f;
-    [SerializeField, Min(1)] private int baseDamage = 1;
+    [SerializeField, Min(0)] private int baseDamage = 1;
+    [SerializeField, Tooltip("Explicit TBD endpoint behavior. Retires safely at Base without applying invented damage.")]
+    private bool baseDamageUnconfigured;
+    [Header("Role and optional abilities")]
+    [SerializeField] private EnemyRole role;
+    [SerializeField, Min(0), Tooltip("Support radius in XY world units. Zero means design tuning is not configured.")]
+    private float supportArea;
+    [SerializeField, Min(1), Tooltip("Garlic multiplier; strongest boost wins, then combines with strongest slow.")]
+    private float speedIncrease = 1.2f;
+    [SerializeField, Min(0), Tooltip("Finite shared shield per Broccoli instance; never replenishes except spawn/reset.")]
+    private float shieldValue = 100;
+    [SerializeField, Min(0), Tooltip("Potato XY reach. Zero means not configured.")]
+    private float disruptionRange;
+    [SerializeField, Min(0), Tooltip("Seconds between Potato attempts, including attempts with no Tower. Zero means not configured.")]
+    private float disruptionCooldown;
+    [SerializeField, Min(0), Tooltip("Attack-disable seconds; survives source death until expiry. Zero means not configured.")]
+    private float disruptionDuration;
+    public EnemyRole Role => role;
+    public bool HasConfiguredBaseDamage => !baseDamageUnconfigured;
+    public float SupportArea => supportArea;
+    public float SpeedIncrease => speedIncrease;
+    public float ShieldValue => shieldValue;
+    public float DisruptionRange => disruptionRange;
+    public float DisruptionCooldown => disruptionCooldown;
+    public float DisruptionDuration => disruptionDuration;
+    private static bool Positive(float value) => value > 0 && !float.IsInfinity(value) && !float.IsNaN(value);
+    public bool AbilityConfigured => string.IsNullOrEmpty(AbilityConfigurationIssue);
+    public string AbilityConfigurationIssue {
+        get {
+            switch (role) {
+                case EnemyRole.SpeedSupport:
+                    return Positive(supportArea) && Positive(speedIncrease) && speedIncrease >= 1 ? null : "Garlic supportArea (radius) or speed multiplier is not configured.";
+                case EnemyRole.ShieldSupport:
+                    return Positive(supportArea) && Positive(shieldValue) ? null : "Broccoli supportArea (radius) or finite shield pool is not configured.";
+                case EnemyRole.Disruptor:
+                    return Positive(disruptionRange) && Positive(disruptionCooldown) && Positive(disruptionDuration) ? null : "Potato disruption range, cooldown and duration must all be configured.";
+                default: return null;
+            }
+        }
+    }
     [SerializeField, Min(0), Tooltip("Resources awarded once when this enemy is killed. Reaching the Base grants nothing.")]
     private int resourceReward = 10;
     [SerializeField, Range(0,1)] private float candyDropChance;
@@ -27,6 +68,6 @@ public sealed class EnemyDefinition : ScriptableObject {
     public Enemy Prefab => prefab;
     public float Health => health;
     public float MovementSpeed => movementSpeed;
-    public int BaseDamage => baseDamage;
+    public int BaseDamage => HasConfiguredBaseDamage ? baseDamage : 0;
 }
 }

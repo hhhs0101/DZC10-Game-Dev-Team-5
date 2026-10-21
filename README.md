@@ -2,6 +2,34 @@
 
 A Unity **6000.6.0f1** project that extends the existing combat prototype with a session-based Lobby, a six-slot Deck Editor, and a three-card gameplay Hand shared by towers and skills. Decks persist to disk as three independent presets; Gold and Candy also persist. Final graphics and progression saves are not implemented.
 
+## Enemy Roles, Abilities and Specified Balance
+
+The existing shared `Enemy` / `BasicEnemy` actor, native XY path, health, Sprite observer, rewards and spawner remain in use. `EnemyDefinition.Role` selects composed abilities; it does not change persistent enemy IDs or require per-vegetable prefabs. Existing Tomato and Potato assets/GUIDs are reused. The other original eight vegetable variants retain their previous statistics.
+
+| Enemy | Role | HP | Base speed | Endpoint damage |
+|---|---|---:|---:|---:|
+| Carrot | Basic | 100 | 2.0 | 100 |
+| Tomato | Basic | 85 | 3.0 | 100 |
+| Eggplant | Basic | 150 | 1.7 | 100 |
+| Garlic | Speed Support | 30 | 2.0 | 20 |
+| Broccoli | Shield Support | 200 | 1.8 | 30 |
+| Potato | Disruptor | 150 | 1.8 | 20 |
+| Boss | Boss | 2500 | 1.2 | **Not configured** |
+
+Garlic uses a 1.2× speed multiplier on other living allies. Independent Garlic sources use the strongest boost; effective speed is base speed × strongest boost × strongest existing slow. Membership follows XY movement notifications, and leaving, disabling or removing a source removes only that source. Broccoli has one finite shared 100-HP pool per spawn/reset. It excludes itself, absorbs incoming damage before ally HP, and passes any remainder to that ally. Multiple shields process the remainder once each in activation order. Pool depletion, reenable and moving allies never replenish a shield. Inspect ShieldSupportAbility's Remaining Shield field during Play Mode for minimal debug feedback.
+
+Potato selects the nearest active, initialized, actually placed Tower in XY range. It applies a target-owned timed attack-disable token; cards, placement, visuals, range inspection and Tower stats are unchanged. The normal attack cooldown continues while disabled. The first ability attempt occurs on its first positive-time update, then attempts (including misses) follow its configured cooldown. Reapplying from the same source refreshes that source; separate sources expire independently. Applied disruption survives Potato death until expiry, while its token holds no reference back to the source. Pause freezes timers and attempts.
+
+**Required design tuning remains TBD:** Garlic/Broccoli Support Area radii and Potato Disruption Range, Cooldown and Duration have no supplied values. Zero is an explicit unconfigured sentinel, not a chosen balance value. These abilities warn at spawn and stay inactive until every required field is positive and finite. The current support balance is 1.2× and 100 HP, updated by the user after the original specification. Boss endpoint damage remains explicitly unconfigured (`Base Damage Unconfigured`); reaching Base retires it safely without applying invented damage or kill rewards. No Tower HP system or special Boss attack was added. Radish remains a documented alternative and has no playable definition or ability.
+
+The original five-enemy repeatable Test Stage, all authored spawn lists, path/slots and Base HP settings are unchanged. Test Stage 2 still references the same Tomato/Potato definitions, so it now uses their specified higher stats/damage; its existing 10 Base HP can be depleted by a single new Tomato arrival. New role definitions are not silently inserted into release stages.
+
+Correct Carrot, Eggplant, Garlic and Broccoli PNGs were found in the original licensed pack and imported locally with the existing Point/Single/32 PPU convention. Tomato/Potato keep their existing art. Boss identity/art is missing and uses the shared actor's clearly temporary placeholder in the local test harness. All pack PNGs/metas remain in Git-ignored `Assets/Art/ThirdParty/Helm3tsVeggies`. On another checkout, obtain the pack separately; the existing import menu restores the original ten variants, and **Defense > Enemies > Reimport Role Artwork from Folder...** binds the four new matching images without resetting statistics. Existing third-party notices apply.
+
+**Defense > Enemies > Start Role Sandbox (Test Tuning)** opens the existing local Stage2 fixture and creates seven runtime-only definition copies with explicit test settings: support radius 3, Potato range 6, cooldown 2 seconds and duration 1.5 seconds. These are test values, not approved balance. Enemies are stopped at points reached along the real path for Inspector/placement checks; use the existing Hand to place Towers. The fixture has 10000 test Base HP/resources and full Elixir; it never initializes PlayerSession persistence. Stop Play Mode to discard it. No scene or definition asset is saved by the harness. `EnemyRolesSetup.ApplyDefaults()` is an explicit patch authoring command, not a startup hook; it reapplies the supplied stats and preserves configured ability tuning/rewards/IDs.
+
+`EnemyRolesValidation.Run()` combines custom EditMode bookkeeping checks with PlayMode integration. The project has no NUnit/Test Framework package, so no extra package was added. Current verification results and the known legacy full-suite camera assertion are documented in ignored `Documentation/Report/Enemy_Roles_Abilities/Implementation_Report.md`.
+
 ## Condiment Tower Artwork and Names
 
 The existing fifteen playable Towers and their cards retain all stable IDs and asset filenames. Towers 1–11 now use the following data-driven names and artwork. Towers 12–15 keep their existing numbered names and placeholders; no cards or combat types were added.

@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c5dc96c0878b4aed8f25fdf900d7049, type: 3}
+  m_Name: CarrotEnemy
+  m_EditorClassIdentifier: Assembly-CSharp::Defense.EnemyDefinition
+  enemyTypeId: enemy_carrot
+  displayName: Carrot
+  sprite: {fileID: 21300000, guid: 58bbbdda9212d4fd2b594c971cd6ee34, type: 3}
+  prefab: {fileID: 7971707257215467551, guid: 33849ed52015f419b9db496e0d87d51c, type: 3}
+  health: 100
+  movementSpeed: 2
+  baseDamage: 100
+  baseDamageUnconfigured: 0
+  role: 0
+  supportArea: 0
+  speedIncrease: 1.5
+  shieldValue: 1000
+  disruptionRange: 0
+  disruptionCooldown: 0
+  disruptionDuration: 0
+  resourceReward: 10
+  candyDropChance: 0.1
+  candyDropAmount: 1
