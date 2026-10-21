@@ -19,8 +19,7 @@ public sealed class LobbyUI : MonoBehaviour {
         Carousel = viewport.gameObject.AddComponent<StageCarouselView>();
         Carousel.Initialize(PlayerSession.Catalog,PlayerSession.Selection,PlayerSession.Progression);
         feedback = UiFactory.Label(transform,"A / D or click side cards   |   Enter: play",new Vector2(.5f,1),new Vector2(0,-405),new Vector2(850,48),21);
-        UiFactory.Button(transform,"Enter Stage",new Vector2(-145,-460),()=>TryEnter(),new Vector2(.5f,1));
-        UiFactory.Button(transform,"Play 3D Fallback",new Vector2(145,-460),()=>TryEnterLegacy3D(),new Vector2(.5f,1));
+        UiFactory.Button(transform,"Enter Stage",new Vector2(0,-460),()=>TryEnter(),new Vector2(.5f,1));
         var preview = UiFactory.Rect("Deck Preview",transform,new Vector2(.5f,0),new Vector2(0,145),new Vector2(960,110));
         preview.gameObject.AddComponent<LobbyDeckPreview>().Initialize(PlayerSession.Presets);
         UiFactory.Button(transform,"Deck",new Vector2(0,50),()=>openDeck(),new Vector2(.5f,0));
@@ -35,11 +34,9 @@ public sealed class LobbyUI : MonoBehaviour {
         if (move < 0) PlayerSession.Selection.MovePrevious();
         else if (move > 0) PlayerSession.Selection.MoveNext();
     }
-    public bool TryEnter() => TryEnter(true);
-    public bool TryEnterLegacy3D() => TryEnter(false);
-    private bool TryEnter(bool useTopDown) {
+    public bool TryEnter() {
         if (!Carousel.IsSettled) { feedback.text = "Wait for the selected stage to center."; return false; }
-        if (!PlayerSession.TrySelectStageForPlay(useTopDown)) { feedback.text = "This stage is locked."; return false; }
+        if (!PlayerSession.TrySelectStageForPlay(out var issue)) { feedback.text = issue; return false; }
         SceneManager.LoadScene(PlayerSession.ActiveBattleScene); return true;
     }
     private void OnDisable() { repeat.Reset(); }

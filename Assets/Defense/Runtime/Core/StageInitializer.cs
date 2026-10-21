@@ -14,7 +14,7 @@ public sealed class StageInitializer : MonoBehaviour {
     private bool trackScheduledDefeats;
     private void Awake() {
         PlayerSession.Ensure();
-        if (PlayerSession.ActiveStage != null && PlayerSession.ActiveBattleScene == gameObject.scene.name)
+        if (PlayerSession.ActiveStage != null)
             definition = PlayerSession.ActiveStage;
         var placement = GetComponent<TurretPlacementController>();
         var hand = GetComponent<GameplayHand>();
@@ -24,10 +24,19 @@ public sealed class StageInitializer : MonoBehaviour {
         hand.Initialize(PlayerSession.Deck,placement,flow);
         var skills = GetComponent<SkillCastingController>() ?? gameObject.AddComponent<SkillCastingController>();
         skills.Initialize(hand, flow, GetComponent<EnemyRegistry>(), Camera.main);
+        if (definition == null) {
+            wallet.Initialize(0); baseHealth.Initialize(1);
+            const string missingDefinition = "This 2D battlefield requires a StageDefinition.";
+            Debug.LogError(missingDefinition,this); flow.FailConfiguration(missingDefinition); return;
+        }
         wallet.Initialize(definition.StartingResources);
         baseHealth.Initialize(definition.BaseHealth);
         baseHealth.Depleted += flow.GameOver;
-        PlayerSession.BindActiveStage(definition,gameObject.scene.name);
+        PlayerSession.BindActiveStage(definition);
+        if (!PlayerSession.TryValidateStageScene(definition,out var issue) || definition.SceneName != gameObject.scene.name) {
+            issue = issue ?? "Stage '"+definition.DisplayName+"' is configured for 2D scene '"+definition.SceneName+"', not '"+gameObject.scene.name+"'.";
+            Debug.LogError(issue,this); flow.FailConfiguration(issue); return;
+        }
         schedule.Configure(definition);
         var candy = GetComponent<CandyDropSystem>() ?? gameObject.AddComponent<CandyDropSystem>();
         candy.Initialize(GetComponent<EnemySpawner>(),PlayerSession.Currency);

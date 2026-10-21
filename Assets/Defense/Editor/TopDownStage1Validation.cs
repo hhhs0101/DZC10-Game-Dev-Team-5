@@ -60,10 +60,7 @@ public static class TopDownStage1Validation {
         Check(Find<StageInitializer>()==null && Find<TurretPlacementController>()==null && Find<SkillCastingController>()==null && Find<Collider>()==null,"Isolated scene has no session bootstrap or active 3D input/physics components");
         Check(Find<PathMovementSample2D>().transform.Find("HealthBarAnchor")!=null && map.TowerRuntimeRoot.GetChild(0).Find("ProjectileOrigin")!=null,"Portable feedback and future projectile anchors are independent from scaled visuals");
         Check(Find<Canvas>().renderMode==RenderMode.ScreenSpaceOverlay,"Reserved HUD uses screen space");
-        // Inspect old serialized scene without changing routing or starting its persistence bootstrap.
-        var old=EditorSceneManager.OpenScene("Assets/Defense/Scenes/TestStage.unity",OpenSceneMode.Additive);
-        try {Check(old.GetRootGameObjects().SelectMany(g=>g.GetComponentsInChildren<TabletopSurface>(true)).Any(),"Original 3D scene still loads with its TabletopSurface");}
-        finally {EditorSceneManager.CloseScene(old,true);}
+        Check(!EditorBuildSettings.scenes.Any(s=>s.path.EndsWith("/TestStage.unity")),"Retired scene is absent from Build Settings");
         Directory.CreateDirectory("Documentation/Report");File.WriteAllText("Documentation/Report/2D_Stage1_EditMode_Result.txt","PASS: "+assertions+" assertions");
         Debug.Log("TOPDOWN_STAGE1_EDIT_PASSED "+assertions);
     }
@@ -99,7 +96,7 @@ public static class TopDownStage1Validation {
             else if(step==1 && Time.time-sampledTime>=.7f) {
                 Check(Time.frameCount>sampledFrame && sample.transform.position.x<sampledPosition.x,"Actual Play Mode frames advance and sample moves right-to-left");
                 Check(Mathf.Abs(Vector3.Distance(sampledPosition,sample.transform.position)-follower.EffectiveMovementSpeed*(Time.time-sampledTime))<.05f,"Actual sample movement uses existing EnemyDefinition speed");
-                TabletopStageValidation.CapturePreview(Path.GetFullPath("Documentation/Report/2D_Stage1_Preview.png"));
+                BattlefieldPreview.Capture(Path.GetFullPath("Documentation/Report/2D_Stage1_Preview.png"));
                 Find<PathVisualization>().enabled=false;sample.transform.Find("Visual").GetComponent<SpriteRenderer>().enabled=false;
                 sampledPosition=sample.transform.position;sampledTime=Time.time;step=2;
             } else if(step==2 && Time.time-sampledTime>=.7f) {

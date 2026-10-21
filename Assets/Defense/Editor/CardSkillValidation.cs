@@ -65,8 +65,8 @@ public static class CardSkillValidation {
             check(!casting.BeginAim(Vector2.zero,true) && !casting.BeginAim(new Vector2(100,100),false),"Aiming cannot start over UI or outside gameplay");
             check(casting.BeginAim(Vector2.zero,false) && casting.IsAiming && casting.IndicatorRadius==card.Skill.Radius,"Aiming uses actual "+card.DisplayName+" radius");
             casting.MoveAim(Vector2.one); check(casting.AimPosition==Vector2.one,"Indicator follows aiming position");
-            var indicator=casting.GetComponentInChildren<LineRenderer>();
-            check(indicator.enabled && Mathf.Approximately(Vector2.Distance(PlanarSpace.Project(indicator.GetPosition(0)),Vector2.one),card.Skill.Radius),"Rendered indicator vertices use the configured gameplay radius");
+            var indicator=casting.GetComponentsInChildren<SkillAreaVisual>().Single(v=>v.name=="Skill Aim Indicator").GetComponent<LineRenderer>();
+            check(indicator.enabled && Mathf.Approximately(Vector2.Distance(PlanarSpace.Project(indicator.GetPosition(0),registry.Plane),Vector2.one),card.Skill.Radius),"Rendered indicator vertices use the configured gameplay radius");
             Canvas.ForceUpdateCanvases();
             var selectedButton=GameObject.Find("Hand Card "+(hand.Cycle.Hand.ToList().IndexOf(used)+1)).GetComponent<RectTransform>();
             bool cardUi=GameplayPointer.IsOverUI(RectTransformUtility.WorldToScreenPoint(null,selectedButton.position));
@@ -92,8 +92,9 @@ public static class CardSkillValidation {
             float spent=elixir.Current;
             check(casting.ReleaseAim(Vector2.zero,false)==CardUseResult.Cancelled && elixir.Current==spent,"Repeated release cannot double charge or recast");
             foreach(var enemy in targets) enemy.ReceiveDamage(10000); UnityEngine.Object.Destroy(enemyData);
-            Select(hand,card); casting.BeginAim(new Vector2(7,3),false);
-            check(casting.ReleaseAim(new Vector2(7,3),false)==CardUseResult.Success,"Empty-area skill cast still succeeds");
+            var emptyPoint = (Vector2)Find<BattlefieldMap2D>().PlayableArea.Bounds.center;
+            Select(hand,card); casting.BeginAim(emptyPoint,false);
+            check(casting.ReleaseAim(emptyPoint,false)==CardUseResult.Success,"Empty-area skill cast still succeeds");
             elixir.TrySpend(elixir.Current);
         }
         var lethalTargets=new[]{spawner.Spawn(catalog.Stages[0].Enemy),spawner.Spawn(catalog.Stages[0].Enemy)};

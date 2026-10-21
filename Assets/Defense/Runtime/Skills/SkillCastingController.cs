@@ -2,16 +2,14 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace Defense {
 public sealed class SkillCastingController : MonoBehaviour {
-    [SerializeField, Tooltip("Fallback bounds for programmatic planar casts; mouse input requires a Tabletop Surface.")] private Rect gameplayArea = new Rect(-9,-4.5f,18,9);
-    [SerializeField] private TabletopSurface surface;
+    [SerializeField, Tooltip("Bounds for isolated programmatic XY casts; mouse input requires a BattlefieldPointer2D.")] private Rect gameplayArea = new Rect(-9,-4.5f,18,9);
     [SerializeField, Tooltip("Optional future projectile launch point. Damage always uses the committed target.")] private Transform throwOrigin;
-    [SerializeField, Tooltip("Native 2D world input; leave empty for the legacy 3D route.")] private BattlefieldPointer2D pointer2D;
-    private WaypointPlane Plane => registry != null ? registry.Plane : WaypointPlane.XZ;
-    private float Depth => pointer2D != null ? pointer2D.Depth : surface != null ? surface.Height : 0;
+    [SerializeField, Tooltip("Required 2D world input.")] private BattlefieldPointer2D pointer2D;
+    private WaypointPlane Plane => registry != null ? registry.Plane : WaypointPlane.XY;
+    private float Depth => pointer2D != null ? pointer2D.Depth : 0;
     private GameplayHand hand;
     private GameFlow flow;
     private EnemyRegistry registry;
-    private Camera worldCamera;
     private RuntimeCard aimingCard;
     private SkillAreaVisual indicator;
     private readonly List<PendingCast> pending = new List<PendingCast>();
@@ -27,7 +25,6 @@ public sealed class SkillCastingController : MonoBehaviour {
     public float IndicatorRadius { get; private set; }
     public void Initialize(GameplayHand gameplayHand, GameFlow gameFlow, EnemyRegistry enemies, Camera camera) {
         hand = gameplayHand; flow = gameFlow; registry = enemies;
-        worldCamera = pointer2D != null ? pointer2D.Map.WorldCamera : surface != null ? surface.WorldCamera : camera;
         flow.Changed += OnStateChanged; hand.Changed += OnSelectionChanged;
         var circle = new GameObject("Skill Aim Indicator"); circle.transform.SetParent(transform,false);
         indicator = circle.AddComponent<SkillAreaVisual>();
@@ -53,17 +50,9 @@ public sealed class SkillCastingController : MonoBehaviour {
     }
     public bool TryGetTabletopPoint(Vector2 screenPosition, out Vector3 position) {
         position = default;
-        if (pointer2D != null) return pointer2D.TryGetPoint(screenPosition,out position);
-        if (surface == null || worldCamera == null || !worldCamera.pixelRect.Contains(screenPosition) ||
-            GameplayPointer.IsOverUI(screenPosition)) return false;
-        var ray = worldCamera.ScreenPointToRay(screenPosition);
-        if (!Physics.Raycast(ray,out var hit,worldCamera.farClipPlane,surface.SurfaceLayers,QueryTriggerInteraction.Ignore) ||
-            hit.collider.GetComponentInParent<TabletopSurface>() != surface || hit.normal.y < .9f ||
-            !surface.Contains(PlanarSpace.Project(hit.point))) return false;
-        position = PlanarSpace.World(PlanarSpace.Project(hit.point),surface.Height);
-        return true;
+        return pointer2D != null && pointer2D.TryGetPoint(screenPosition,out position);
     }
-    private bool IsValidPoint(Vector2 point) => pointer2D != null ? pointer2D.Map.PlayableArea.Contains(point) : surface != null ? surface.Contains(point) : gameplayArea.Contains(point);
+    private bool IsValidPoint(Vector2 point) => pointer2D != null ? pointer2D.Map.PlayableArea.Contains(point) : gameplayArea.Contains(point);
     public bool BeginAim(Vector2 position, bool overUi) {
         if (!flow.IsPlaying || overUi || !IsValidPoint(position) || !(hand.SelectedCard?.Definition is SkillCardDefinition card) || card.Skill == null || card.Skill.Effect == null) return false;
         aimingCard = hand.SelectedCard; IndicatorRadius = card.Skill.Radius;
@@ -103,7 +92,7 @@ public sealed class SkillCastingController : MonoBehaviour {
     }
     public void CancelAim() { aimingCard = null; if (indicator != null) indicator.Hide(); }
     private void OnSelectionChanged() { if (aimingCard != hand.SelectedCard) CancelAim(); }
-    private void OnStateChanged(GameplayState state) { if (state != GameplayState.Playing) CancelAim(); if (state == GameplayState.GameOver || state == GameplayState.Victory) pending.Clear(); }
+    private void OnStateChanged(GameplayState state) { if (state != GameplayState.Playing) CancelAim(); if (flow.IsTerminal) pending.Clear(); }
     private void OnApplicationFocus(bool focused) { if (!focused) CancelAim(); }
     private void OnDisable() => CancelAim();
     private void OnDestroy() {

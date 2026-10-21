@@ -35,7 +35,7 @@ public static class TopDownStage3Setup {
         Set(systems.GetComponent<EnemySpawner>(),"spritePrefab",AssetDatabase.LoadAssetAtPath<GameObject>(TopDownStage2Setup.Prefabs+"/BasicEnemy2D.prefab").GetComponent<Enemy>());
         Set(systems.GetComponent<TurretPlacementController>(),"spritePrefab",AssetDatabase.LoadAssetAtPath<GameObject>(TopDownStage2Setup.Prefabs+"/BasicTurret2D.prefab").GetComponent<Turret>());
         EditorSceneManager.MarkSceneDirty(scene);EditorSceneManager.SaveScene(scene);
-        // Preserve startup order and the original 3D entry; only append the preview scene.
+        // Preserve the existing 2D startup scenes; append this integrated battlefield if missing.
         if (!EditorBuildSettings.scenes.Any(s=>s.path==ScenePath))
             EditorBuildSettings.scenes=EditorBuildSettings.scenes.Concat(new[]{new EditorBuildSettingsScene(ScenePath,true)}).ToArray();
         AssetDatabase.SaveAssets();Debug.Log("TOPDOWN_STAGE3_AUTHORED");

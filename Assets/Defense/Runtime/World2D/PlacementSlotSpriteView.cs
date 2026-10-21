@@ -1,6 +1,6 @@
 using UnityEngine;
 namespace Defense {
-// Observes the same slot state as the 3D view. No placement, input or combat behavior.
+// Observes common slot state. No placement, input or combat behavior.
 [ExecuteAlways]
 public sealed class PlacementSlotSpriteView : MonoBehaviour {
     [SerializeField] private TowerPlacementSlot slot;

@@ -13,16 +13,18 @@ MonoBehaviour:
   m_Name: TestStage
   m_EditorClassIdentifier: Assembly-CSharp::Defense.StageDefinition
   displayName: Test Stage
-  sceneName: TestStage
+  sceneName: TopDownStage3
   baseHealth: 3
   startingResources: 300
   enemy: {fileID: 11400000, guid: 1cd19b3d71e543b281c63e5f62430a55, type: 2}
   spawnInterval: 0.75
-  availableTurrets:
-  - {fileID: 11400000, guid: 04ae679be013433580c018e4b27e4bd9, type: 2}
-  - {fileID: 11400000, guid: 1e6ab288cd744598bff374d5eeffb51a, type: 2}
-  - {fileID: 11400000, guid: da7da4367609414b848cbffc6eeb6989, type: 2}
+  spawnSequence: []
+  spawnPlanJson: {fileID: 0}
   finiteSpawning: 1
   totalEnemies: 5
   clearGoldReward: 50
   alwaysUnlocked: 1
+  availableTurrets:
+  - {fileID: 11400000, guid: 04ae679be013433580c018e4b27e4bd9, type: 2}
+  - {fileID: 11400000, guid: 1e6ab288cd744598bff374d5eeffb51a, type: 2}
+  - {fileID: 11400000, guid: da7da4367609414b848cbffc6eeb6989, type: 2}

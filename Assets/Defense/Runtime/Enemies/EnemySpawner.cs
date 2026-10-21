@@ -8,6 +8,17 @@ public sealed class EnemySpawner : MonoBehaviour {
     [SerializeField] private Transform enemyRoot;
     [SerializeField, Tooltip("Optional native 2D actor prefab. EnemyDefinition still owns stats/rewards.")] private Enemy spritePrefab;
     public bool CanSpawn => flow != null && flow.IsPlaying;
+    internal GameFlow Flow => flow;
+    internal bool TryValidateSpawnContext(out string issue) {
+        issue = null;
+        if(flow == null || baseHealth == null || registry == null || path == null || path.Count < 2) {
+            issue = "EnemySpawner requires GameFlow, BaseHealth, EnemyRegistry and a path with at least two waypoints.";return false;
+        }
+        if(spritePrefab != null && (spritePrefab.GetComponent<EnemyHealth>() == null || spritePrefab.GetComponent<EnemyPathFollower>() == null)) {
+            issue = "Native enemy override prefab requires health and movement components.";return false;
+        }
+        return true;
+    }
     // Lifecycle notification; resource policy belongs to EnemyKillRewards.
     public event System.Action<Enemy> EnemyDefeated;
     private void OnEnemyDied(Enemy enemy) {

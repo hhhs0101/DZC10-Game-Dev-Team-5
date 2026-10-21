@@ -12,10 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c5dc96c0878b4aed8f25fdf900d7049, type: 3}
   m_Name: BasicEnemy
   m_EditorClassIdentifier: Assembly-CSharp::Defense.EnemyDefinition
-  prefab: {fileID: 8330641047620493269, guid: 8e873a3e95c114aca8c6c66530a53377, type: 3}
+  enemyTypeId:
+  displayName:
+  sprite: {fileID: 0}
+  prefab: {fileID: 7971707257215467551, guid: 33849ed52015f419b9db496e0d87d51c, type: 3}
   health: 40
   movementSpeed: 1.5
   baseDamage: 1
+  baseDamageUnconfigured: 0
+  role: 0
+  supportArea: 0
+  speedIncrease: 1.2
+  shieldValue: 100
+  disruptionRange: 0
+  disruptionCooldown: 0
+  disruptionDuration: 0
   resourceReward: 10
   candyDropChance: 0.1
   candyDropAmount: 1

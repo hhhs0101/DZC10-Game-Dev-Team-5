@@ -9,7 +9,8 @@ public sealed class GameplayUI : MonoBehaviour {
     [SerializeField] private ResourceWallet wallet;
     [SerializeField] private TurretPlacementController placement;
     private Text hpLabel, resourcesLabel, messageLabel;
-    private GameObject pause, confirmation, gameOver, victory;
+    private GameObject pause, confirmation, gameOver, victory, configurationError;
+    private UnityEngine.UI.Text configurationDetails;
     private Text victoryReward;
     private SettingsUI settings;
     private Button pauseButton;
@@ -46,6 +47,11 @@ public sealed class GameplayUI : MonoBehaviour {
         victoryReward = UiFactory.Label(victory.transform,"",new Vector2(.5f,.5f),new Vector2(0,80),new Vector2(600,50),28);
         UiFactory.Button(victory.transform,"Replay",new Vector2(0,0),flow.Retry);
         UiFactory.Button(victory.transform,"Return to Lobby",new Vector2(0,-70),flow.ExitToMenu);
+        configurationError = Overlay("Stage Configuration Error",root);
+        UiFactory.Label(configurationError.transform,"Stage Configuration Error",new Vector2(.5f,.5f),new Vector2(0,160),new Vector2(850,65),36);
+        configurationDetails = UiFactory.Label(configurationError.transform,"",new Vector2(.5f,.5f),new Vector2(0,45),new Vector2(1000,150),20);
+        UiFactory.Button(configurationError.transform,"Retry",new Vector2(0,-85),flow.Retry);
+        UiFactory.Button(configurationError.transform,"Return to Lobby",new Vector2(0,-155),flow.ExitToMenu);
         settings = GetComponent<SettingsUI>(); settings.Initialize(root);
         baseHealth.Changed += UpdateHealth; wallet.Changed += UpdateResources;
         flow.Changed += UpdateState; placement.Message += ShowMessage;
@@ -64,6 +70,8 @@ public sealed class GameplayUI : MonoBehaviour {
         settings.Hide(); confirmation.SetActive(false);
         pause.SetActive(state == GameplayState.Paused); gameOver.SetActive(state == GameplayState.GameOver);
         victory.SetActive(state == GameplayState.Victory);
+        configurationError.SetActive(state == GameplayState.ConfigurationError);
+        if(state == GameplayState.ConfigurationError) configurationDetails.text = flow.ConfigurationErrorMessage;
         if (state == GameplayState.Victory) victoryReward.text = "Gold Earned: "+placement.GetComponent<StageVictoryController>().GoldEarned;
         pauseButton.interactable = !flow.IsTerminal;
     }

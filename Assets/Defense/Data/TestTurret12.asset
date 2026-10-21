@@ -13,9 +13,12 @@ MonoBehaviour:
   m_Name: TestTurret12
   m_EditorClassIdentifier: Assembly-CSharp::Defense.TurretDefinition
   displayName: Test Turret 12
-  prefab: {fileID: 6737397371510853836, guid: e7b38fe6a66524824832eda1d386c41e, type: 3}
+  prefab: {fileID: 2061435135399564034, guid: 03bbcf2016563478f886bb7d357e254f, type: 3}
   cost: 105
   damage: 35
   attackRange: 3.8
   attackCooldown: 2
   targeting: {fileID: 11400000, guid: 352398aa511754b47a79b53950a3b3b4, type: 2}
+  sprite: {fileID: 0}
+  spriteScale: 1
+  spriteOffset: {x: 0, y: 0}

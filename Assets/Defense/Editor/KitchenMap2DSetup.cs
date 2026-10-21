@@ -83,6 +83,10 @@ public static class KitchenMap2DSetup {
         if(destination == null) {destination = new GameObject("BaseVisualAnchor").transform;destination.SetParent(root,false);}
         var spawn = map.EnemySpawnRoot; spawn.name = "EnemySpawnRoot (Refrigerator)"; destination.name = "BaseVisualAnchor";
         PrototypeBuilder.Set(map,"baseDestination",destination);
+        // Keep the logical endpoint active; hide only its temporary blue marker.
+        foreach (var visual in destination.GetComponentsInChildren<SpriteRenderer>(true)) {
+            var color = visual.color; color.a = 0; visual.color = color;
+        }
         // Replace only authored path-point children; other gameplay/visual objects remain intact.
         for(int i=path.transform.childCount-1;i>=0;i--) UnityEngine.Object.DestroyImmediate(path.transform.GetChild(i).gameObject);
         var data = new SerializedObject(path); data.FindProperty("plane").enumValueIndex = (int)WaypointPlane.XY;

@@ -963,7 +963,6 @@ MonoBehaviour:
     y: -4.5
     width: 18
     height: 9
-  surface: {fileID: 0}
   throwOrigin: {fileID: 0}
   pointer2D: {fileID: 978773742}
 --- !u!114 &978773739
@@ -994,10 +993,6 @@ MonoBehaviour:
   flow: {fileID: 978773746}
   wallet: {fileID: 978773745}
   registry: {fileID: 978773743}
-  placementLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  surface: {fileID: 0}
   pointer2D: {fileID: 978773742}
   spritePrefab: {fileID: 2061435135399564034, guid: 03bbcf2016563478f886bb7d357e254f, type: 3}
   inspection: {fileID: 978773747}

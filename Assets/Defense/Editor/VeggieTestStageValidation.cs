@@ -37,6 +37,7 @@ public static class VeggieTestStageValidation {
         Check(PlayerSession.ActiveStage == stage && Find<GameFlow>().IsPlaying && schedule.SpawnedCount == 0 && !schedule.IsFinishedSpawning, "Same Test Stage 2 starts a fresh sequence");
         Check(Find<BaseHealth>().Current == 10 && Find<ResourceWallet>().Balance == 300 && Find<EnemyRegistry>().AliveEnemyCount == 0, "Scene reload resets Base, resources and enemies");
         Check(File.ReadAllText(DeckPersistence.DefaultPath) == deckBytes, "Persistent deck/preset data is unchanged");
+        Check(stage.SpawnPlanJson != null && schedule.UsesJsonPlan && schedule.PlannedSpawnCount == 10, "Test Stage 2 initializes the linked JSON while preserving its original ten-entry behavior");
         schedule.enabled = false;
     }
     private static void SpawnAndVerify() {
@@ -71,7 +72,7 @@ public static class VeggieTestStageValidation {
             else if (phase == 1) {
                 var lobby = Find<LobbyUI>(); if (lobby == null) return;
                 stage = PlayerSession.Catalog.Stages.Single(s => s.DisplayName == "Test Stage 2");
-                Check(PlayerSession.Catalog.Stages.Count == 12 && stage.AlwaysUnlocked && stage.FiniteSpawning && stage.TotalEnemies == 10 && stage.SpawnSequence.Distinct().Count() == 10, "Catalog exposes a separate unlocked ten-entry Test Stage 2");
+                Check(PlayerSession.Catalog.Stages.Count == 5 && stage.AlwaysUnlocked && stage.FiniteSpawning && stage.TotalEnemies == 10 && stage.SpawnSequence.Distinct().Count() == 10, "Catalog exposes a separate unlocked ten-entry Test Stage 2");
                 var old = PlayerSession.Catalog.Stages.Single(s => s.DisplayName == "Test Stage"); Check(old.TotalEnemies == 5 && old.SpawnSequence.Count == 0 && old.ClearGoldReward == 50, "Original five-enemy Test Stage unchanged");
                 while (PlayerSession.Selection.SelectedStageIndex < PlayerSession.Catalog.Stages.ToList().IndexOf(stage)) PlayerSession.Selection.MoveNext();
                 lobby.Carousel.Advance(1); Check(PlayerSession.Progression.IsUnlocked(PlayerSession.Selection.SelectedStageIndex), "New stage is selectable without campaign clears");

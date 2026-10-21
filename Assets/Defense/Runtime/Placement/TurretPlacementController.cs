@@ -7,9 +7,7 @@ public sealed class TurretPlacementController : MonoBehaviour {
     [SerializeField] private GameFlow flow;
     [SerializeField] private ResourceWallet wallet;
     [SerializeField] private EnemyRegistry registry;
-    [SerializeField] private LayerMask placementLayers;
-    [SerializeField] private TabletopSurface surface;
-    [SerializeField, Tooltip("Native 2D input; leave empty for legacy 3D scenes.")] private BattlefieldPointer2D pointer2D;
+    [SerializeField, Tooltip("Required 2D map and slot input.")] private BattlefieldPointer2D pointer2D;
     [SerializeField, Tooltip("Optional 2D actor prefab; selected definition still supplies all combat/cost data.")] private Turret spritePrefab;
     [SerializeField, Tooltip("Optional read-only placed-Tower inspection for native 2D scenes.")] private PlacedTowerInspectionController inspection;
     private TurretDefinition selected;
@@ -32,16 +30,7 @@ public sealed class TurretPlacementController : MonoBehaviour {
             !worldCamera.pixelRect.Contains(screenPosition) || GameplayPointer.IsOverUI(screenPosition)) {
             SetHoveredSlot(null); return false;
         }
-        if (pointer2D != null) {
-            TowerPlacementSlot slot2D = pointer2D.TryGetPoint(screenPosition,out var world) ? pointer2D.GetSlot(world) : null;
-            SetHoveredSlot(slot2D != null && !slot2D.IsOccupied ? slot2D : null);
-            return pressed && TryPlace(slot2D);
-        }
-        var ray = worldCamera.ScreenPointToRay(screenPosition);
-        TowerPlacementSlot slot = null;
-        // Only slot colliders participate: table/enemy colliders cannot mask a valid slot.
-        if (Physics.Raycast(ray,out var hit,worldCamera.farClipPlane,placementLayers,QueryTriggerInteraction.Ignore))
-            slot = hit.collider.GetComponentInParent<TowerPlacementSlot>();
+        TowerPlacementSlot slot = pointer2D != null && pointer2D.TryGetPoint(screenPosition,out var world) ? pointer2D.GetSlot(world) : null;
         SetHoveredSlot(slot != null && !slot.IsOccupied ? slot : null);
         return pressed && TryPlace(slot);
     }
@@ -53,7 +42,7 @@ public sealed class TurretPlacementController : MonoBehaviour {
     private void OnDisable() { SetHoveredSlot(null); }
     public bool TryPlace(TowerPlacementSlot slot) {
         if (!flow.IsPlaying || selected == null || !GetComponent<GameplayHand>().CanPlace(selected)) return false;
-        if (slot == null || (pointer2D != null && !pointer2D.Map.PlayableArea.Contains(slot.PlacementPoint.position)) || (surface != null && !surface.Contains(PlanarSpace.Project(slot.PlacementPoint.position)))) return Fail("You cannot place a turret here.");
+        if (slot == null || (pointer2D != null && !pointer2D.Map.PlayableArea.Contains(slot.PlacementPoint.position))) return Fail("You cannot place a turret here.");
         if (slot.IsOccupied) return Fail("A turret is already placed here.");
         if (!wallet.CanAfford(selected.Cost)) return Fail("Not enough resources.");
         if (selected.Prefab == null || selected.Targeting == null) {

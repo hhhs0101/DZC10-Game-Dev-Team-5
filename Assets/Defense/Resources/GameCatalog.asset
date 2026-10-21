@@ -16,13 +16,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8c326c6647134616bf0ae753d9ab9298, type: 2}
   - {fileID: 11400000, guid: 641526385d7a4d588f406a9805f47e5b, type: 2}
   - {fileID: 11400000, guid: 43786d6748bd4cc6b1ed6b0e56ebde6b, type: 2}
-  - {fileID: 11400000, guid: a16488d07d564e7a9a115baeb0182957, type: 2}
-  - {fileID: 11400000, guid: 40b9dc58a14b4c72ac13b0f3a239e7c3, type: 2}
-  - {fileID: 11400000, guid: 32ff033dba274a69baaa967a15b99d9a, type: 2}
-  - {fileID: 11400000, guid: b11a5dbc6afb4a878707d849bb8e79a0, type: 2}
-  - {fileID: 11400000, guid: 0b30a91b34944a97a51f114a662eff77, type: 2}
-  - {fileID: 11400000, guid: 4d350fd01a4c49a19bcd0fe02e5db334, type: 2}
-  - {fileID: 11400000, guid: 7e8b7810c28847e7a09eb5eb4bcc5799, type: 2}
   - {fileID: 11400000, guid: 9bbe8ca128f72427087c5025046a3089, type: 2}
   - {fileID: 11400000, guid: f519ed28373be4d25a8f12726379fb0b, type: 2}
   availableTowers:

@@ -2,7 +2,7 @@ using UnityEngine;
 namespace Defense {
 public enum WaypointPlane { XZ = 0, XY = 1 }
 public sealed class WaypointPath : MonoBehaviour {
-    [SerializeField, Tooltip("Existing maps default to XZ; native top-down maps use XY.")] private WaypointPlane plane;
+    [SerializeField, Tooltip("Projection plane; current battlefields use XY. Serialized enum values remain stable.")] private WaypointPlane plane;
     public WaypointPlane Plane => plane;
     public Vector3 Normal => plane == WaypointPlane.XY ? Vector3.forward : Vector3.up;
     public Vector3 Constrain(Vector3 point) => plane == WaypointPlane.XY

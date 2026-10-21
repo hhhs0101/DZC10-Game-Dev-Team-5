@@ -1,0 +1,15 @@
+{
+  "stageId": "test_stage_2",
+  "spawns": [
+    { "enemyId": "enemy_mushroom", "delay": 1.0 },
+    { "enemyId": "enemy_olive", "delay": 1.0 },
+    { "enemyId": "enemy_green_cabbage", "delay": 1.0 },
+    { "enemyId": "enemy_zucchini", "delay": 1.0 },
+    { "enemyId": "enemy_tomato", "delay": 1.0 },
+    { "enemyId": "enemy_kohlrabi", "delay": 1.0 },
+    { "enemyId": "enemy_turnip", "delay": 1.0 },
+    { "enemyId": "enemy_leek", "delay": 1.0 },
+    { "enemyId": "enemy_red_cabbage", "delay": 1.0 },
+    { "enemyId": "enemy_potato", "delay": 1.0 }
+  ]
+}

@@ -146,7 +146,7 @@ public static class TopDownStage3Validation {
                 if(restarting){VerifyRestart();ChooseTest();Click("Enter Stage");Next(80);break;}
                 PrepareDeck();ChooseTest();startGold=PlayerSession.Currency.Gold;startCandy=PlayerSession.Currency.Candy;
                 PlayerSession.Progression.Changed+=OnProgression;
-                Check(GameObject.Find("Enter Stage")!=null&&GameObject.Find("Play 3D Fallback")!=null,"Lobby exposes default 2D and explicit 3D fallback routes");
+                Check(GameObject.Find("Enter Stage")!=null&&GameObject.Find("Play 3D Fallback")==null,"Lobby exposes only the configured 2D stage entry");
                 Click("Enter Stage");Next(1,.02);break;
             case 1:
                 if(Find<GameplayUI>()==null||GameObject.Find("Hand Card 1")==null)return;
@@ -212,10 +212,10 @@ public static class TopDownStage3Validation {
             case 13:
                 if(Find<LobbyUI>()==null)return;
                 VerifyDeck();Check(UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Text>(FindObjectsSortMode.None).Any(t=>t.text=="Gold: "+PlayerSession.Currency.Gold+"   Candy: "+PlayerSession.Currency.Candy),"Return to Lobby reads authoritative earned currency");
-                Click("Play 3D Fallback");Next(14,.02);break;
+                Click("Enter Stage");Next(14,.02);break;
             case 14:
                 if(Find<GameplayUI>()==null||GameObject.Find("Hand Card 1")==null)return;
-                Check(SceneManager.GetActiveScene().name=="TestStage"&&PlayerSession.ActiveStage==stage&&Registry.Plane==WaypointPlane.XZ,"Explicit 3D fallback opens the original map with the same selected stage");
+                Check(SceneManager.GetActiveScene().name==stage.SceneName&&PlayerSession.ActiveStage==stage&&Registry.Plane==WaypointPlane.XY,"Lobby reentry opens the configured 2D scene with the same selected stage");
                 Schedule.enabled=false;Click("Pause");Click("Exit");Click("Yes");Next(15);break;
             case 15:
                 if(Find<LobbyUI>()==null)return;for(int i=0;i<PlayerSession.Catalog.Stages.Count;i++)PlayerSession.Selection.MovePrevious();Find<LobbyUI>().Carousel.Advance(1);Click("Enter Stage");Next(16,.02);break;

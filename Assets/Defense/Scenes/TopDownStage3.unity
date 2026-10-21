@@ -1427,7 +1427,6 @@ MonoBehaviour:
     y: -4.5
     width: 18
     height: 9
-  surface: {fileID: 0}
   throwOrigin: {fileID: 0}
   pointer2D: {fileID: 978773742}
 --- !u!114 &978773739
@@ -1458,10 +1457,6 @@ MonoBehaviour:
   flow: {fileID: 978773746}
   wallet: {fileID: 978773745}
   registry: {fileID: 978773743}
-  placementLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  surface: {fileID: 0}
   pointer2D: {fileID: 978773742}
   spritePrefab: {fileID: 2061435135399564034, guid: 03bbcf2016563478f886bb7d357e254f, type: 3}
   inspection: {fileID: 978773750}
@@ -1720,7 +1715,7 @@ SpriteRenderer:
   m_SortingOrder: 40
   m_MaskInteraction: 0
   m_Sprite: {fileID: 6008755849024553855, guid: b3ead6c81a6804348a13e98d1ad709ce, type: 3}
-  m_Color: {r: 0.35, g: 0.7, b: 0.9, a: 1}
+  m_Color: {r: 0.35, g: 0.7, b: 0.9, a: 0}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

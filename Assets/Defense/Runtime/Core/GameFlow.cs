@@ -2,12 +2,13 @@ using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 namespace Defense {
-public enum GameplayState { Playing, Paused, GameOver, Victory }
+public enum GameplayState { Playing, Paused, GameOver, Victory, ConfigurationError }
 public sealed class GameFlow : MonoBehaviour {
     [SerializeField] private string mainMenuScene = "MainMenu";
     public GameplayState State { get; private set; } = GameplayState.Playing;
     private bool reloading;
-    public bool IsTerminal => State == GameplayState.GameOver || State == GameplayState.Victory;
+    public string ConfigurationErrorMessage { get; private set; }
+    public bool IsTerminal => State == GameplayState.GameOver || State == GameplayState.Victory || State == GameplayState.ConfigurationError;
     public bool IsPlaying => State == GameplayState.Playing;
     public event Action<GameplayState> Changed;
     private void Awake() { Time.timeScale = 1; }
@@ -16,6 +17,11 @@ public sealed class GameFlow : MonoBehaviour {
         SetState(IsPlaying ? GameplayState.Paused : GameplayState.Playing);
     }
     public void GameOver() { if (!IsTerminal) SetState(GameplayState.GameOver); }
+    public void FailConfiguration(string message) {
+        if(IsTerminal) return;
+        ConfigurationErrorMessage = message;
+        SetState(GameplayState.ConfigurationError);
+    }
     internal bool TryVictory() {
         if (!IsPlaying) return false;
         SetState(GameplayState.Victory); return true;

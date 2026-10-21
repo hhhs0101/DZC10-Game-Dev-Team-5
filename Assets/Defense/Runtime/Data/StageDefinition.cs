@@ -3,13 +3,16 @@ namespace Defense {
 [CreateAssetMenu(menuName="Defense/Stage Definition")]
 public sealed class StageDefinition : ScriptableObject {
     [SerializeField] private string displayName = "Test Stage";
-    [SerializeField, Tooltip("Scene name included in Build Settings.")] private string sceneName = "TestStage";
+    [SerializeField, Tooltip("Configured 2D gameplay scene name included in Build Settings.")] private string sceneName = "TopDownStage3";
     [SerializeField, Min(1)] private int baseHealth = 10;
     [SerializeField, Min(0)] private int startingResources = 150;
     [SerializeField] private EnemyDefinition enemy;
     [SerializeField, Min(0.1f)] private float spawnInterval = 2;
     [SerializeField, Tooltip("Optional finite spawn list, one entry per enemy, in order. Empty uses Enemy and the existing count/continuous settings.")]
     private EnemyDefinition[] spawnSequence = System.Array.Empty<EnemyDefinition>();
+    [SerializeField, Tooltip("Optional finite JSON plan. When assigned, it exclusively controls spawn order/count/relative delays; legacy fields are preserved.")]
+    private TextAsset spawnPlanJson;
+    public TextAsset SpawnPlanJson => spawnPlanJson;
     [Header("Finite stage and rewards")]
     [SerializeField] private bool finiteSpawning;
     [SerializeField, Min(1)] private int totalEnemies = 5;

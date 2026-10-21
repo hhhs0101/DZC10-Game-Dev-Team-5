@@ -47,7 +47,7 @@ public static class RewardValidation {
         check(stage.DisplayName=="Test Stage" && stage.FiniteSpawning && stage.TotalEnemies==5 && stage.ClearGoldReward==50 && stage.Enemy.CandyDropChance==1,"Dedicated test stage defines five finite enemies, 50 Gold and guaranteed Candy");
         while(PlayerSession.Selection.SelectedStageIndex>0) PlayerSession.Selection.MovePrevious();
         for(int i=0;i<PlayerSession.Catalog.Stages.ToList().IndexOf(stage);i++) PlayerSession.Selection.MoveNext();
-        check(PlayerSession.TrySelectStageForPlay(useTopDown:false),"Test Stage can be selected through existing stage model without campaign unlocks");
+        check(PlayerSession.TrySelectStageForPlay(),"Test Stage can be selected through existing stage model without campaign unlocks");
         startGold=PlayerSession.Currency.Gold; startCandy=PlayerSession.Currency.Candy;
         deck=PlayerSession.Deck.Slots.ToArray();
         PlayerSession.Progression.Changed+=OnProgression;

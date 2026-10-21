@@ -78,21 +78,17 @@ public static class PrototypeValidation {
                     TestLobbyAndDeck();
                     Find<LobbyUI>().HandleNavigation(-1,200); Find<LobbyUI>().Carousel.Advance(1);
                     Check(PlayerSession.Selection.SelectedStageIndex==0,"A navigation moves backward to first stage");
-                    Click("Play 3D Fallback"); Wait(1); break;
+                    Click("Enter Stage"); Wait(1); break;
                 case 1:
                     if (Find<EnemyRegistry>()==null || Find<EnemyRegistry>().Enemies.Count==0) return;
-                    Check(SceneManager.GetActiveScene().name=="TestStage","Unlocked centered stage loads");
+                    Check(SceneManager.GetActiveScene().name==PlayerSession.ActiveStage.SceneName,"Unlocked centered stage loads");
                     Check(Find<BaseHealth>().Current==10 && Find<ResourceWallet>().Balance==150,"Stage starts with HP and resources");
                     Check(Find<EnemyRegistry>().Enemies.Count>0,"Fixed interval spawns enemies");
-                    TabletopStageValidation.Run(Check);
-                    PlacementCameraValidation.Run(Check);
-                    TabletopStageValidation.CapturePreview();
                     Find<FixedIntervalSpawner>().enabled=false;
                     foreach (var enemy in Find<EnemyRegistry>().Enemies.ToArray()) enemy.ReceiveDamage(10000);
                     TestPlacementCycle(); TestRewardsAndHealth();
                     DeckPersistenceValidation.VerifyBattle(Check,false);
                     CardSkillValidation.Gameplay(Check);
-                    SkillInteractionValidation.Run(Check);
                     foreach (var turret in UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None)) turret.enabled=false;
                     pausedEnemy=Find<EnemySpawner>().Spawn(PlayerSession.Catalog.Stages[0].Enemy);
                     Click("Pause");
@@ -103,8 +99,6 @@ public static class PrototypeValidation {
                     Click("Settings"); Click("Back");
                     Check(Find<GameFlow>().State==GameplayState.Paused,"Settings Back stays paused"); Wait(2,.5); break;
                 case 2:
-                    SkillInteractionValidation.VerifyNextFrame(Check);
-                    TabletopStageValidation.VerifyFixedCamera(Check);
                     Check(pausedEnemy.transform.position==pausedPosition && pausedEnemy.CurrentHealth==pausedHP && Find<EnemyRegistry>().Enemies.Count==pausedCount,"Paused movement, combat and spawning stay frozen");
                     Click("Resume"); Check(Time.timeScale==1,"Resume restores time");
                     balanceBeforeBase=Find<ResourceWallet>().Balance;
@@ -118,7 +112,7 @@ public static class PrototypeValidation {
                     Check(Find<LobbyUI>()!=null && Time.timeScale==1,"Exit returns to Lobby");
                     Check(PlayerSession.Deck.Slots.SequenceEqual(persistentSnapshot),"Gameplay and scene exit preserve T1-T6");
                     Click("Deck"); Check(Find<DeckEditorUI>()!=null,"Deck editor reopens with session deck"); Click("Back to Lobby");
-                    Click("Play 3D Fallback"); Wait(4); break;
+                    Click("Enter Stage"); Wait(4); break;
                 case 4:
                     Check(Find<GameplayHand>().Cycle!=firstRun,"Stage reentry creates a fresh runtime cycle");
                     Check(Find<GameplayHand>().Cycle.InitialOrder.All(c=>!firstRun.InitialOrder.Contains(c)),"New run owns new card instances");
@@ -156,7 +150,7 @@ public static class PrototypeValidation {
                     Check(PlayerSession.CompleteActiveStage() && PlayerSession.Progression.IsUnlocked(1),"Explicit completion hook unlocks next stage");
                     var lobby=Find<LobbyUI>(); lobby.HandleNavigation(1,300); lobby.Carousel.Advance(1);
                     Check(PlayerSession.Selection.SelectedStageIndex==1 && PlayerSession.Progression.IsUnlocked(1),"Unlocked stage can be selected");
-                    Click("Play 3D Fallback"); Wait(9); break;
+                    Click("Enter Stage"); Wait(9); break;
                 case 9:
                     Check(PlayerSession.ActiveStage==PlayerSession.Catalog.Stages[1] && Find<GameplayHand>()!=null,"Next stage entry reuses playable scene with selected definition");
                     PrepareRetry(); Click("Retry"); Wait(12); break;
@@ -204,7 +198,7 @@ public static class PrototypeValidation {
         CardSkillValidation.Models(catalog,Check);
         DeckPersistenceValidation.Models(catalog,Check);
         RewardValidation.Models(Check);
-        Check(catalog.Stages.Count==12 && catalog.Stages.Count(s=>s.DisplayName=="Test Stage")==1 && catalog.Stages.Count(s=>s.DisplayName=="Test Stage 2")==1 && catalog.Stages.Take(10).Select(s=>s.DisplayName).SequenceEqual(Enumerable.Range(1,10).Select(i=>"1-"+i)),"Catalog preserves stages 1-1 through 1-10 and both separate Test Stages");
+        Check(catalog.Stages.Select(s=>s.DisplayName).SequenceEqual(new[]{"1-1","1-2","1-3","Test Stage","Test Stage 2"}),"Catalog contains only stages 1-1 through 1-3 and both separate Test Stages");
         Check(catalog.AvailableTowers.Count==15 && catalog.AvailableTowers.Distinct().Count()==15,"Catalog contains fifteen distinct test tower definitions");
         Check(catalog.AvailableTowers.All(t=>t.Prefab!=null && t.Targeting!=null && t.Damage>0 && t.AttackRange>0 && t.AttackCooldown>0 && t.Cost>0),"All test towers have valid combat settings and references");
         var progression=new StageProgressionState(4);
@@ -327,13 +321,13 @@ public static class PrototypeValidation {
         hand.CancelSelection();
         Check(!placement.TryPlace(Slots()[0]) && hand.Cycle.Hand.SequenceEqual(before) && hand.Cycle.UpcomingQueue.SequenceEqual(queue),"Selection cancellation does not cycle cards");
         wallet.Initialize(1000); Card(1);
-        var slot=Slots()[0]; var available=slot.GetComponentInChildren<PlacementSlotView>().CurrentColor; slot.SetHovered(true);
-        Check(slot.GetComponentInChildren<PlacementSlotView>().CurrentColor!=available,"Available slot hover highlights"); slot.SetHovered(false);
-        Check(slot.GetComponentInChildren<PlacementSlotView>().CurrentColor==available,"Hover exit restores color");
+        var slot=Slots()[0]; var available=slot.GetComponentInChildren<PlacementSlotSpriteView>().CurrentColor; slot.SetHovered(true);
+        Check(slot.GetComponentInChildren<PlacementSlotSpriteView>().CurrentColor!=available,"Available slot hover highlights"); slot.SetHovered(false);
+        Check(slot.GetComponentInChildren<PlacementSlotSpriteView>().CurrentColor==available,"Hover exit restores color");
         Check(placement.TryPlace(slot) && wallet.Balance==1000-((TowerCardDefinition)before[1].Definition).Tower.Cost,"Actual placement spends selected card cost");
         Check(hand.Cycle.Hand.SequenceEqual(new[]{before[0],before[2],queue[0]}) && hand.Cycle.UpcomingQueue.SequenceEqual(new[]{queue[1],queue[2],before[1]}),"Success draws queue front and appends used card to queue back");
         Check(hand.SelectedCard==null && placement.Selected==null,"Success clears selection to avoid stale card reuse");
-        Check(slot.GetComponentInChildren<PlacementSlotView>().CurrentColor!=available,"Occupied slot remains visually distinct");
+        Check(slot.GetComponentInChildren<PlacementSlotSpriteView>().CurrentColor==available,"Occupied wooden plate retains its original colors");
         Card(0); before=hand.Cycle.Hand.ToArray(); queue=hand.Cycle.UpcomingQueue.ToArray(); int balance=wallet.Balance;
         Check(!placement.TryPlace(slot) && lastMessage=="A turret is already placed here." && wallet.Balance==balance && hand.Cycle.Hand.SequenceEqual(before) && hand.Cycle.UpcomingQueue.SequenceEqual(queue),"Occupied placement preserves cost and full cycle");
         Check(PlayerSession.Deck.Slots.SequenceEqual(persistentSnapshot),"Successful cycling never edits persistent deck");

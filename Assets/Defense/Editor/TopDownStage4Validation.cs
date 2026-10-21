@@ -67,9 +67,9 @@ public static class TopDownStage4Validation {
     }
     private static void CheckCleanWorld(){
         Check(Map.WorldCamera.orthographic&&Map.Path.Plane==WaypointPlane.XY&&Registry.Plane==WaypointPlane.XY&&Map.Path.GetPoint(0).x<Map.Path.GetPoint(Map.Path.Count-1).x,"Default kitchen world is native orthographic XY with left-to-right route");
-        Check(Find<Collider>()==null&&Find<Rigidbody>()==null&&Find<TabletopSurface>()==null&&Find<CameraBackdrop>()==null,"Active 2D route contains no 3D colliders, bodies, surface or backdrop");
+        Check(Find<Collider>()==null&&Find<Rigidbody>()==null,"Active 2D route contains no 3D colliders or bodies");
         foreach(var c in new UnityEngine.Object[]{Find<TurretPlacementController>(),Find<SkillCastingController>()}){
-            var data=new SerializedObject(c);Check(data.FindProperty("pointer2D").objectReferenceValue!=null&&data.FindProperty("surface").objectReferenceValue==null,"2D input dependency gates legacy 3D raycast branch: "+c.GetType().Name);
+            var data=new SerializedObject(c);Check(data.FindProperty("pointer2D").objectReferenceValue!=null&&data.FindProperty("surface")==null,"2D input dependency exists and retired surface field is removed: "+c.GetType().Name);
         }
         Check(UnityEngine.Object.FindObjectsByType<UnityEngine.EventSystems.EventSystem>(FindObjectsSortMode.None).Length==1&&UnityEngine.Object.FindObjectsByType<StageInitializer>(FindObjectsSortMode.None).Length==1,"Single EventSystem and authoritative session bootstrap");
         foreach(var root in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())foreach(var t in root.GetComponentsInChildren<Transform>(true))Check(GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(t.gameObject)==0,"No missing script: "+t.name);
