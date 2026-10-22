@@ -2,6 +2,18 @@
 
 A Unity **6000.6.0f1** project that extends the existing combat prototype with a session-based Lobby, a six-slot Deck Editor, and a three-card gameplay Hand shared by towers and skills. Decks persist to disk as three independent presets; Gold and Candy also persist. Final graphics and progression saves are not implemented.
 
+## Elliptical Skill Range and Glow Marker
+
+Toy Throw and Slow Area use the supplied transparent glow Sprite and a shared `SkillRangeProfile` at `Assets/Defense/Data/SkillRangeProfile.asset`. Their existing Radius is the horizontal semi-axis; the vertical semi-axis is Radius × 400/1518 (approximately 0.2635046). The two current radii remain 1.5 and 3, producing bright-rim diameters of approximately 3 × 0.7905 and 6 × 1.5810 world units. Damage, costs, durations, stable IDs and save formats are unchanged.
+
+The original texture is 1774 × 887. Its alpha ≥128 bright-rim calibration is `(128,176,1518,400)` in bottom-left texture coordinates. Uniform default Sprite scaling uses that rim, not the full texture. `SkillAreaVisual` offsets only the artwork from its imported center pivot to align the rim center with the exact gameplay target. The outside glow is decorative; transparent interior points still count as inside.
+
+`EllipseFootprint.Contains` supplies the final test for Toy Throw and persistent slow membership, using Enemy root positions in XY and ignoring Sprite sorting depth. The existing EnemyRegistry is the candidate collection; multiple colliders cannot cause duplicate hits. Delayed casts retain their committed impact center and test current Enemy positions on arrival. Slows keep independent sources and remove only their own modifier on exit, expiry or destruction. Terminal game states immediately hide transient glow and remove slow sources; Pause freezes lifetime/fade as before.
+
+The shared visual component's circle API remains dedicated to Tower attack-range inspection. Only Skills use the Sprite path; their old circle renderer stays disabled. Each Sprite presentation has an owner-managed world transform so inherited nonuniform scale/rotation cannot distort it independently from gameplay geometry. Scene teardown and owner destruction remove the marker.
+
+Fine-tune the aspect and measured rim in the shared profile; visual scaling and collision use the same settings. Future area SkillDefinitions must reference a range profile. No Sprite Editor package, runtime file loading, new collider or external rendering package is required. `SkillEllipseValidation.Run` covers geometry, calibrated rendering, transformed parents, actual damage/slow behavior, delayed impacts and cleanup. Native regression tests also retain card cancellation, Hand/Elixir and the circular Tower inspection checks.
+
 ## Enemy Roles, Abilities and Specified Balance
 
 The existing shared `Enemy` / `BasicEnemy` actor, native XY path, health, Sprite observer, rewards and spawner remain in use. `EnemyDefinition.Role` selects composed abilities; it does not change persistent enemy IDs or require per-vegetable prefabs. Existing Tomato and Potato assets/GUIDs are reused. The other original eight vegetable variants retain their previous statistics.
@@ -162,7 +174,7 @@ Validation commands in Unity: **Defense → 2D Migration → Validate Stage 1 (E
 3. Once the selected stage is centered, press **Enter** or click **Enter Stage** for the configured 2D scene. The list contains stages **1-1**, **1-2**, **1-3**, **Test Stage**, and **Test Stage 2**. Both Test Stages are always unlocked. Only campaign stage 1-1 is initially unlocked.
 4. Open **Deck** and drag a tower or skill card from the left page onto a T1–T6 slot on the right. Use **Preset 1 / Preset 2 / Preset 3** to switch decks in the Deck Editor. The Lobby only previews the selected deck. Valid edits and the active selection save immediately. Select **Back to Lobby** to return.
 5. Enter the stage to observe enemies moving from the right side of the tabletop toward the Base on the left. Select a Tower Card and click a green slot to place it. Successful placement pays costs and rotates the common Hand/Queue. For skills, hold LMB on the table to aim and release to cast; release over a card or any other UI to cancel.
-6. Use **Pause / Esc** to pause or resume. Your deck is preserved when returning through Pause → Exit → Yes or Game Over → Lobby. **Retry** on the Game Over screen starts a fresh run of the same stage. The finite Test Stage shows **Stage Clear → Replay / Return to Lobby** on success.
+6. Use **Pause / Esc** to pause or resume. Your deck is preserved when returning through Pause → Exit or Game Over → Lobby. **Retry** on the Game Over screen starts a fresh run of the same stage. The finite Test Stage shows **Stage Clear → Replay / Return to Lobby** on success.
 
 Settings is a placeholder screen. Closing it returns to the screen that opened it: Main Menu, Lobby, Deck Editor, or Pause.
 
@@ -241,11 +253,11 @@ Every run starts with **3 Elixir**, regenerates **0.36 per second** while Playin
 | Toy Throw | 60 | 1.5 | 0 s | 0 s | 3 |
 | Slow Area | 0 | 3 | 0 s | 0 s | 2 |
 
-Toy Throw reuses the circular damage strategy and Enemy damage/reward API. Slow Area creates an 8-second zone with a 0.5 movement multiplier, followed by a separate 0.5-second visual fade. Leaving a zone removes its slow immediately; overlapping zones retain independent sources and use the strongest slow once, without multiplication. Enemy base speed is unchanged.
+Toy Throw reuses the existing area-damage asset (its stable script/asset identity remains CircularDamageSkill) and Enemy damage/reward API, filtering through the shared ellipse. Slow Area creates an 8-second zone with a 0.5 movement multiplier, followed by a separate 0.5-second visual fade. Leaving a zone removes its slow immediately; overlapping zones retain independent sources and use the strongest slow once, without multiplication. Enemy base speed is unchanged.
 
-`BattlefieldPointer2D` converts the pointer through the configured camera to the XY map and rejects UI or off-map positions. One SkillDefinition.Radius drives the current indicator and gameplay hit boundary. Slow membership uses XY geometry and movement/registry notifications, independent of visual sorting depth.
+`BattlefieldPointer2D` converts the pointer through the configured camera to the XY map and rejects UI or off-map positions. One SkillDefinition.Radius and shared profile drive the same elliptical indicator and gameplay hit boundary. Slow membership uses XY geometry and movement/registry notifications, independent of visual sorting depth.
 
-Both skills share the existing Hand/Elixir commitment pipeline. Empty-area casts still pay and cycle. Cancellation, invalid placement, or insufficient funds never spend Elixir or advance the cycle. CastingTime (before launch) and TravelTime (after launch) are separate delays; no projectile is rendered. The optional ThrowOrigin is captured separately from the target. Pause freezes both delays and area/fade timers; Game Over and Victory discard pending casts and freezes the scene until Retry/exit destroys its runtime objects.
+Both skills share the existing Hand/Elixir commitment pipeline. Empty-area casts still pay and cycle. Cancellation, invalid placement, or insufficient funds never spend Elixir or advance the cycle. CastingTime (before launch) and TravelTime (after launch) are separate delays; no projectile is rendered. The optional ThrowOrigin is captured separately from the target. Pause freezes both delays and area/fade timers; Game Over and Victory discard pending casts, clear transient skill markers/slow sources and freeze the remaining scene until Retry/exit.
 
 Tower Cards currently cost **0 Elixir** and retain their existing resource costs. Their Elixir cost can be changed independently in the card asset. The default deck remains the original six towers; add Toy Throw and Slow Area through the Deck Editor.
 
@@ -269,3 +281,38 @@ The project uses Unity's built-in uGUI and modules. No additional external packa
 ## Automated Validation
 
 Use **Defense → Run Prototype Validation (Play Mode)** outside Play Mode. The native 2D TopDownStage2/3/4 validators exercise camera/Physics2D/uGUI pointer queries, cancellation, Elixir and Hand cycling, AoE boundaries, delayed casts, and slow enter/exit, overlap, lifetime, fade and cleanup. TwoDOnlyValidation covers the scene/build/prefab cleanup contract and every retained stage entry/Retry route. DeckPersistenceValidation additionally covers preset independence, autosave/recovery/failure handling, actual UI switch/drop events, and active-preset stage/Retry integration. RewardValidation covers finite spawning, deferred Victory, duplicate protection, two clears, real Replay/Retry scene reloads, final lethal Base arrival, deterministic drop probabilities, currency notifications, disk recovery and write failures. The regression runner redirects deck and currency storage to a unique temporary path to protect player saves. Separate `RewardValidation.WriteRestartFixture` and `ReadRestartFixture` batch entry points validate currency restore across two Unity processes; set `DEFENSE_TEST_DECK_SAVE_PATH` to an isolated file in the same temporary directory for both runs. Reports are written to the ignored Documentation/Report directory. Automated pointer-coordinate tests are not manual mouse testing.
+
+
+## Main menu artwork
+
+The `MainMenu` scene uses `MainMenuUI` and the Inspector-assigned `Assets/Defense/Data/MainMenuSkin.asset` for the start-screen logo and Start Game / Settings / Exit button artwork. The stage carousel Lobby and Deck Editor retain their existing presentation and callbacks.
+
+The original transparent source sheet is kept at `Assets/Defense/Art/UI/MainMenu/MenuSheet.png`. Ten standalone Single Sprites under `Sprites/` preserve its original RGBA pixels: Logo plus Normal / Highlighted / Pressed for each button. Button states map to source columns 1 / 2 / 3; keyboard Selected uses Highlighted, and Disabled uses the dimmed third-column art. Text labels remain available to existing UI tooling but their Text components are disabled so the baked lettering is not drawn twice.
+
+Imports use Point filtering, no mipmaps and no compression. UI Images preserve aspect ratio. Proportional anchors keep the centered logo and vertical button stack inside the existing 1280 x 720 reference Canvas without changing its CanvasScaler or EventSystem. No extra Inspector setup is needed in the saved scene. `Defense.Editor.LobbySkinValidation.Run` checks the native uGUI state, click and navigation paths with isolated deck/currency test paths.
+
+
+The Main Menu and stage-selection Lobby share the original `Assets/Defense/Art/UI/MainMenu/HarvestTabletop.png` background through `MainMenuSkin.Background`. `MainMenuUI` creates one non-raycasting Image as the first child of the existing Canvas. Its built-in AspectRatioFitter uses Envelope Parent to cover the screen at the source 1672:941 ratio, cropping the edges when needed without stretching. The existing start-screen and Lobby panels supply 8% and 20% black readability shades respectively; logo/button layout, event bindings and SpriteSwap states remain unchanged. The opaque Deck Editor and Settings panels retain their existing presentation.
+
+
+The Lobby's top-left Back and top-right Settings buttons reuse `MainMenuSkin.LobbyBack` and `LobbySettings`. Six exact 536 x 192 RGBA crops under `Assets/Defense/Art/UI/LobbyCorners/` map source columns to Normal / Hover / Pressed; the full original sheet is archived alongside them. Selected uses Hover, while the third column is not assigned to Disabled. These two existing buttons retain their original anchors, positions, dimensions, callbacks and navigation. Their baked icon/label art uses Image.preserveAspect, Point filtering and no compression/mipmaps; redundant legacy Text rendering is disabled only on these controls. Settings-panel Back remains unchanged. The Deck Editor now reuses the same Back and Settings sprites through UiFactory.ApplyButtonSkin; its original Back to Lobby action, button names, positions, hitboxes and preset/card workflows are retained.
+
+
+Lobby Enter Stage and Deck use `MainMenuSkin.LobbyEnterStage` / `LobbyDeck` and the same `UiFactory.ApplyButtonSkin` presentation helper. Six 720 x 240 Single Sprites under `Assets/Defense/Art/UI/LobbyActions/` preserve the supplied native 2172 x 724 source pixels; the narrower middle column has transparent padding. Normal / Hover / Pressed map to source columns 1 / 2 / 3, Selected uses Hover, and Pressed is not assigned as Disabled. The Enter Stage and Deck click targets are 420 x 78 (1.5 times their earlier 280 x 52 size); anchors and callbacks remain unchanged. Locked/unsettled stages are still rejected by the existing TryEnter logic; this UI does not newly disable the Enter Stage control.
+
+
+The first three catalog entries in the Lobby carousel use `MainMenuSkin.stageBoards`: ordered 1-1 → Stage 1 art, 1-2 → Stage 2 art, 1-3 → Stage 3 art. These baked-in numbers are art ordinals, not replacement stage IDs. Actual stage names, Locked/Unlocked and Selected Stage remain in small metadata below the boards. StageCarouselView selects the bright center or muted side Sprite directly from the existing selected index; hover/press/lock never select the artwork column. Original movement, scale, hitboxes and input logic remain. Test Stage and Test Stage 2 retain the original cards until matching artwork exists.
+
+`Assets/Defense/Art/UI/StageBoards/StageBoardSheet.png` is a native-resolution 1402 x 1122 Multiple sheet with six 624 x 288 Sprite sub-assets, Point filtering, no mipmaps/compression, transparent padding and centered pivots. The official built-in `com.unity.2d.sprite@1.0.0` package supplies the required Sprite Editor/data-provider authoring APIs. Import uses capability-checked providers and name/file-ID pairs; do not hand-edit its metadata.
+
+
+### Pause menu artwork
+
+The integrated `TopDownStage3` gameplay UI uses the Inspector-assigned `Assets/Defense/Data/PauseMenuSkin.asset`. Resume, Settings and Exit reuse `UiFactory.ApplyButtonSkin` with nine aligned 488 x 180 Single Sprites in `Assets/Defense/Art/UI/PauseMenu/`; the original 1448 x 1086 sheet is archived alongside them. Source columns 1 / 2 / 3 map to Normal / Hover (also keyboard Selected) / Pressed. Point filtering, no mipmaps/compression and Image.preserveAspect retain the artwork. Redundant Text components are hidden, while button names and callbacks remain intact. Centered 360 x 120 click targets sit at y=80, -50, -180; the title moves to y=210. The existing dark overlay, top-right Pause, Settings, Esc and timeScale logic remain unchanged. `TopDownStage3Setup` restores the skin binding when regenerating the scene. `Defense.Editor.PauseMenuSkinValidation.Run` verifies button states, native UI clicks, simulation pause/resume and exit navigation with isolated deck/currency paths.
+
+
+### Result menu artwork and direct Pause Exit
+
+Game Over uses Retry (source row 2) and Lobby (row 3); Victory uses Replay (row 1) and the same Lobby sprites. `Assets/Defense/Data/ResultMenuSkin.asset` supplies nine padded 488 x 180 Single Sprites from `Assets/Defense/Art/UI/ResultMenu/`. The shared button helper maps Normal / Hover and Selected / Pressed to columns 1 / 2 / 3, preserves aspect and hides duplicate Text rendering. Each result button retains its original name and callback, with a 360 x 120 click target centered at y=20 or -115. Titles and the Gold reward label are spaced above the buttons. The saved TopDownStage3 scene and setup script include this binding.
+
+Pause Exit now calls the existing `GameFlow.ExitToMenu` directly, returning to Lobby without a confirmation dialog. Result replay/retry, rewards, progress and persistent data logic are unchanged. Related validation scripts reflect the direct-exit flow. `Defense.Editor.ResultMenuSkinValidation.Run` provides a short isolated Play Mode check of result states, native button clicks, restart/return routing, timeScale, reward idempotence and direct Pause Exit.

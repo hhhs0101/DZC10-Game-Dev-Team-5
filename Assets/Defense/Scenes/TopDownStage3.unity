@@ -1551,6 +1551,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Defense.GameplayUI
   canvas: {fileID: 786642760}
+  pauseSkin: {fileID: 11400000, guid: da2fc4251c27a4d289529cf207bf777b, type: 2}
+  resultSkin: {fileID: 11400000, guid: 255b9f30cd87f458ea487cdd3f54cb58, type: 2}
   flow: {fileID: 978773746}
   baseHealth: {fileID: 978773744}
   wallet: {fileID: 978773745}

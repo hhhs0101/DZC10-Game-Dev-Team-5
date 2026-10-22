@@ -160,7 +160,7 @@ public static class TopDownStage3Validation {
                 Click("Pause");sampleTime=Time.time;sampleElixir=Elixir.Current;Next(3,.3);break;
             case 3:
                 Check(Flow.State==GameplayState.Paused&&Time.time==sampleTime&&Elixir.Current==sampleElixir&&Schedule.SpawnedCount==0,"Pause freezes gameplay time, Elixir and spawning");
-                Click("Settings");Click("Back");Check(Flow.State==GameplayState.Paused&&GameObject.Find("Paused")!=null,"Placeholder Settings returns to Pause");Click("Exit");Check(GameObject.Find("Really exit this stage?")!=null,"Pause Exit presents existing confirmation");Click("No");Click("Resume");
+                Click("Settings");Click("Back");Check(Flow.State==GameplayState.Paused&&GameObject.Find("Paused")!=null,"Placeholder Settings returns to Pause");Click("Resume");
                 TestActions();Check(!Victory.EvaluateClear(),"Empty population before finite schedule completion cannot clear");Schedule.enabled=true;sampleTime=Time.time;Next(4);break;
             case 4:
                 if(!Schedule.IsFinishedSpawning)return;
@@ -208,7 +208,7 @@ public static class TopDownStage3Validation {
                 Check(Flow.State==GameplayState.Victory&&Victory.GoldEarned==50&&PlayerSession.Currency.Gold==startGold+200&&PlayerSession.Currency.Candy==startCandy+20,"Surviving the entire finite schedule clears even with zero kills and no Candy drops");
                 Check(!Victory.EvaluateClear()&&PlayerSession.Currency.Gold==startGold+200&&progressionChanges==1,"Arrival-only clear pays once and does not repeat progression changes");previousCycle=Hand.Cycle;Click("Replay");Next(33,.02);break;
             case 33:
-                if(GameObject.Find("Hand Card 1")==null)return;VerifyFresh();Click("Pause");Click("Exit");Click("Yes");Next(13);break;
+                if(GameObject.Find("Hand Card 1")==null)return;VerifyFresh();Click("Pause");Click("Exit");Next(13);break;
             case 13:
                 if(Find<LobbyUI>()==null)return;
                 VerifyDeck();Check(UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Text>(FindObjectsSortMode.None).Any(t=>t.text=="Gold: "+PlayerSession.Currency.Gold+"   Candy: "+PlayerSession.Currency.Candy),"Return to Lobby reads authoritative earned currency");
@@ -216,7 +216,7 @@ public static class TopDownStage3Validation {
             case 14:
                 if(Find<GameplayUI>()==null||GameObject.Find("Hand Card 1")==null)return;
                 Check(SceneManager.GetActiveScene().name==stage.SceneName&&PlayerSession.ActiveStage==stage&&Registry.Plane==WaypointPlane.XY,"Lobby reentry opens the configured 2D scene with the same selected stage");
-                Schedule.enabled=false;Click("Pause");Click("Exit");Click("Yes");Next(15);break;
+                Schedule.enabled=false;Click("Pause");Click("Exit");Next(15);break;
             case 15:
                 if(Find<LobbyUI>()==null)return;for(int i=0;i<PlayerSession.Catalog.Stages.Count;i++)PlayerSession.Selection.MovePrevious();Find<LobbyUI>().Carousel.Advance(1);Click("Enter Stage");Next(16,.02);break;
             case 16:

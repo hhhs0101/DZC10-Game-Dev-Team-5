@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eec021bcb642d4752b7fb60f975a0211, type: 3}
+  m_Name: PauseMenuSkin
+  m_EditorClassIdentifier: Assembly-CSharp::Defense.PauseMenuSkin
+  resume:
+    normal: {fileID: 21300000, guid: d95098e6b20924c5a9daa5c824570396, type: 3}
+    highlighted: {fileID: 21300000, guid: fdf04d7ecdbbc425a8dea19a293cb9e0, type: 3}
+    pressed: {fileID: 21300000, guid: 1b6ec576f268648668eb526338e99b53, type: 3}
+  settings:
+    normal: {fileID: 21300000, guid: 81d7a185e492d413e9bbbeebe815d4fb, type: 3}
+    highlighted: {fileID: 21300000, guid: e8c69b5ad0f8646989499bdc34c1942a, type: 3}
+    pressed: {fileID: 21300000, guid: 5e6c3ee70199d475080854140aacb074, type: 3}
+  exit:
+    normal: {fileID: 21300000, guid: 270adeac56ee34026ac5245b8c355bee, type: 3}
+    highlighted: {fileID: 21300000, guid: 7bd5a158c775c44bf9e6ae27988763bf, type: 3}
+    pressed: {fileID: 21300000, guid: e49f3806be83f465ab02a06077974597, type: 3}

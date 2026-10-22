@@ -20,3 +20,4 @@ MonoBehaviour:
   fadeDuration: 0.5
   slowMultiplier: 0.5
   effect: {fileID: 11400000, guid: e2b8dd86fe1f41fb8b9873ae3041ee5b, type: 2}
+  rangeProfile: {fileID: 11400000, guid: e95ad6d5f9ed64d0fa89c22fb7020747, type: 2}

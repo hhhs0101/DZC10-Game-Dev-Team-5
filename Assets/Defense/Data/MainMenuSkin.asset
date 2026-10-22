@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e955cdcfd9407482e8541b47a791e1d3, type: 3}
+  m_Name: MainMenuSkin
+  m_EditorClassIdentifier: Assembly-CSharp::Defense.MainMenuSkin
+  stageBoards:
+  - selectedCenter: {fileID: 586668206, guid: a2fc2af76225f4b74982ac513221de9d, type: 3}
+    unselectedSide: {fileID: -2064047483, guid: a2fc2af76225f4b74982ac513221de9d, type: 3}
+  - selectedCenter: {fileID: -1492237425, guid: a2fc2af76225f4b74982ac513221de9d, type: 3}
+    unselectedSide: {fileID: 1427080789, guid: a2fc2af76225f4b74982ac513221de9d, type: 3}
+  - selectedCenter: {fileID: -1630454793, guid: a2fc2af76225f4b74982ac513221de9d, type: 3}
+    unselectedSide: {fileID: 110063429, guid: a2fc2af76225f4b74982ac513221de9d, type: 3}
+  background: {fileID: 21300000, guid: 36cb5b7cefb0b4b25a2feaae5819fe34, type: 3}
+  logo: {fileID: 21300000, guid: 3db54bce03b19469ca103581800fd5a5, type: 3}
+  startGame:
+    normal: {fileID: 21300000, guid: 1cd826b0cfd724a899a9138cc03941db, type: 3}
+    highlighted: {fileID: 21300000, guid: e9ab646f00aff4acc918c73eb62d99ba, type: 3}
+    pressed: {fileID: 21300000, guid: 4b516683f4d8947f393a11a19b1e6703, type: 3}
+  settings:
+    normal: {fileID: 21300000, guid: 104f3f9d123aa4c6e8b7a93a63832717, type: 3}
+    highlighted: {fileID: 21300000, guid: 989985ce9da214f9cb91ade07bea626b, type: 3}
+    pressed: {fileID: 21300000, guid: dca406e7dff6747078e182af9fdd3d4f, type: 3}
+  exit:
+    normal: {fileID: 21300000, guid: 60720255793c645a4ad4fd6efa27c06e, type: 3}
+    highlighted: {fileID: 21300000, guid: c3c3841c53ed04d71be5db2e5f0fbede, type: 3}
+    pressed: {fileID: 21300000, guid: 5439546ff6e5547f4956a5fb3649f85a, type: 3}
+  lobbyBack:
+    normal: {fileID: 21300000, guid: edaa94e1bfd354498beaf71160f5d6be, type: 3}
+    highlighted: {fileID: 21300000, guid: 566a06ead4ab64f6a9e0995b6eedfc5c, type: 3}
+    pressed: {fileID: 21300000, guid: 442b07224c57b4ad9b4965cec1d97c18, type: 3}
+  lobbySettings:
+    normal: {fileID: 21300000, guid: 3147a43a75de3456ea919d8510ec3f9b, type: 3}
+    highlighted: {fileID: 21300000, guid: 6ed055fc5247d477584e6215859f61aa, type: 3}
+    pressed: {fileID: 21300000, guid: 7c78dac59c34e48c180449cbc585c909, type: 3}
+  lobbyEnterStage:
+    normal: {fileID: 21300000, guid: 0f6fe14efda7f46b680d57428d15a229, type: 3}
+    highlighted: {fileID: 21300000, guid: cc1f3de45599642f581a873266078c91, type: 3}
+    pressed: {fileID: 21300000, guid: 17593dcf45ac94a2880f5aa257b57bf3, type: 3}
+  lobbyDeck:
+    normal: {fileID: 21300000, guid: b641bba5935ea42dc801bb341ccc14c3, type: 3}
+    highlighted: {fileID: 21300000, guid: 9c6bc7c2a5e184822becac12181abe66, type: 3}
+    pressed: {fileID: 21300000, guid: 7417e2c8bbf174f29bd6777b095e0b23, type: 3}

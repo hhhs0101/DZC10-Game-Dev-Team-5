@@ -1,0 +1,12 @@
+Implement the attached `Pause_Menu_Button_Sprite_Replacement_Combined_Prompt.md` in the current Unity project.
+
+Use the provided sprite sheet to replace the in-game Pause menu buttons: Resume, Settings, and Exit.
+
+Interpret the three columns as:
+- column 1 = Normal
+- column 2 = Hover / Highlighted
+- column 3 = Pressed / Clicked
+
+Preserve all existing Pause menu behavior, including Resume, Settings, Exit, Esc pause logic, overlay behavior, and any existing exit confirmation flow.
+
+Inspect the current Pause menu UI first, integrate the new button sprites cleanly, verify the results, and report the modified files and test results.

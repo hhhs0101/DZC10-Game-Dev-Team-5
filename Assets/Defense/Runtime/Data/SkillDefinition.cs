@@ -11,6 +11,12 @@ public sealed class SkillDefinition : ScriptableObject {
     [SerializeField, Min(0), Tooltip("Presentation only; slowing ends before fading starts.")] private float fadeDuration = .5f;
     [SerializeField, Range(0,1), Tooltip("0.5 means half normal speed. Overlapping slows use the strongest source once.")] private float slowMultiplier = .5f;
     [SerializeField] private Skill effect;
+    [SerializeField, Tooltip("Shared geometry and bright-rim artwork calibration used by preview, damage and slowing.")] private SkillRangeProfile rangeProfile;
+    public SkillRangeProfile RangeProfile => rangeProfile;
+    public EllipseFootprint CreateFootprint(Vector2 center) {
+        if(rangeProfile==null)throw new System.InvalidOperationException(name+": assign a Skill Range Profile.");
+        return rangeProfile.CreateFootprint(center,Radius);
+    }
     public float Damage => damage;
     public float Radius => radius;
     public float CastingTime => castingTime;

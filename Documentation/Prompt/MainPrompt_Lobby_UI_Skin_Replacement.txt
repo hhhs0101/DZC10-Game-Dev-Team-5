@@ -1,0 +1,14 @@
+Implement the attached `Lobby_UI_Skin_Replacement_Prompt.md` in the current Unity project.
+
+Use the provided menu asset sheet to replace the Lobby / Main Menu logo and the three main buttons: Start Game, Settings, and Exit.
+
+Use the top logo as-is.
+
+Treat the three button columns as:
+- column 1 = default
+- column 2 = hover
+- column 3 = pressed / clicked
+
+Preserve all existing menu functionality and callbacks. Reuse the current UI architecture where practical, and update only the visuals/layout needed to integrate the asset cleanly.
+
+After implementation, verify the button states and report the modified files, integration details, and test results.

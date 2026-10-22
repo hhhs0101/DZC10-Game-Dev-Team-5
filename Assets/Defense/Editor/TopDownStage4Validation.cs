@@ -12,7 +12,6 @@ public static class TopDownStage4Validation {
     private const string Key="Defense.TopDownStage4.Validation";
     private static int step,checks,zoomIndex,clears,startGold,startCandy;
     private static double started,deadline;
-    private static float frozenOpacity;
     private static string deckBytes,loadedDeck,loadedCurrency;
     private static UnityEngine.Object[] oldObjects;
     private static readonly float[] zooms={7,9,12};
@@ -85,7 +84,11 @@ public static class TopDownStage4Validation {
     }
     private static Enemy Spawn(Vector3 position,EnemyDefinition data){var e=Find<EnemySpawner>().Spawn(data);e.Movement.Stop();e.transform.position=position;Registry.NotifyMoved(e);return e;}
     private static PersistentSlowArea Area(SkillDefinition data,Vector3 position){var before=UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None);data.Effect.Apply(data,new SkillCastContext(position,Registry,Flow));return UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None).Except(before).Single();}
-    private static void Radius(SkillAreaVisual visual,Vector3 center,float radius){var line=visual.GetComponent<LineRenderer>();Check(Enumerable.Range(0,line.positionCount).All(i=>Mathf.Abs(PlanarSpace.SqrDistance(center,line.GetPosition(i),WaypointPlane.XY)-radius*radius)<.002f),"Indicator uses same XY world-unit radius as damage/slow detection");float pixels=radius*Map.WorldCamera.pixelHeight/(2*Map.WorldCamera.orthographicSize);Check(Mathf.Abs(Vector2.Distance(Map.WorldCamera.WorldToScreenPoint(center),Map.WorldCamera.WorldToScreenPoint(center+Vector3.right*radius))-pixels)<.05f&&Mathf.Abs(Vector2.Distance(Map.WorldCamera.WorldToScreenPoint(center),Map.WorldCamera.WorldToScreenPoint(center+Vector3.up*radius))-pixels)<.05f,"World-radius projection stays circular in screen pixels across zoom/aspect");}
+    private static void Radius(SkillAreaVisual visual,Vector3 center,float radius){
+        SkillEllipseValidation.AssertMarker(visual,center,radius,Check);
+        float pixels=radius*Map.WorldCamera.pixelHeight/(2*Map.WorldCamera.orthographicSize),aspect=AssetDatabase.LoadAssetAtPath<SkillDefinition>("Assets/Defense/Data/ToyThrowSkill.asset").RangeProfile.AspectRatio;
+        Check(Mathf.Abs(Vector2.Distance(Map.WorldCamera.WorldToScreenPoint(center),Map.WorldCamera.WorldToScreenPoint(center+Vector3.right*radius))-pixels)<.05f&&Mathf.Abs(Vector2.Distance(Map.WorldCamera.WorldToScreenPoint(center),Map.WorldCamera.WorldToScreenPoint(center+Vector3.up*radius*aspect))-pixels*aspect)<.05f,"Both ellipse semi-axes project proportionally across camera zoom/aspect without becoming circular");
+    }
     private static void Spatial(){
         Canvas.ForceUpdateCanvases();Physics2D.SyncTransforms();var camera=Map.WorldCamera;var pointer=Find<BattlefieldPointer2D>();var casting=Find<SkillCastingController>();
         Check(camera.pixelWidth==Screen.width&&camera.pixelHeight==Screen.height,"Actual Screen, Camera and Game View resolution agree: "+Screen.width+"x"+Screen.height);
@@ -110,7 +113,7 @@ public static class TopDownStage4Validation {
         foreach(var enemy in new[]{a,b,c})Registry.NotifyMoved(enemy);
         var area=Area(slow,Vector3.zero);var other=Area(slow,Vector3.right);Radius(area.GetComponentInChildren<SkillAreaVisual>(),Vector3.zero,slow.Radius);
         Check(slow.ActiveDuration==8&&a.Movement.Modifiers.SourceCount==2&&a.Movement.EffectiveMovementSpeed==a.Movement.BaseMovementSpeed*.5f,"Eight-second Slow Areas retain independent sources without multiplying slowdown");
-        Check(a.GetComponentInChildren<SpriteRenderer>().sortingOrder>area.GetComponentInChildren<LineRenderer>().sortingOrder&&a.GetComponentInChildren<Canvas>().sortingOrder>a.GetComponentInChildren<SpriteRenderer>().sortingOrder&&root.sortingOrder>a.GetComponentInChildren<Canvas>().sortingOrder,"Sorting puts units above zones, HP above units, and HUD above HP");
+        Check(a.GetComponentInChildren<SpriteRenderer>().sortingOrder>area.GetComponentInChildren<SkillAreaVisual>().MarkerRenderer.sortingOrder&&a.GetComponentInChildren<Canvas>().sortingOrder>a.GetComponentInChildren<SpriteRenderer>().sortingOrder&&root.sortingOrder>a.GetComponentInChildren<Canvas>().sortingOrder,"Sorting puts units above zones, HP above units, and HUD above HP");
         a.ReceiveDamage(100000);Check(a.Movement.Modifiers.SourceCount==0,"Death while inside overlapping zones releases all slow sources");UnityEngine.Object.DestroyImmediate(b.gameObject);Check(area.AffectedCount==0,"Despawn inside overlapping zones removes membership");
         UnityEngine.Object.DestroyImmediate(other.gameObject);Check(c.Movement.Modifiers.SourceCount==0,"Removing final zone releases remaining source");area.Advance(slow.ActiveDuration+.01f);float opacity=area.VisualOpacity;Flow.TogglePause();area.Advance(100);Check(!area.IsActive&&area.VisualOpacity==opacity&&opacity>0,"Pause freezes post-expiry visual fade");Flow.TogglePause();area.Advance(slow.FadeDuration+1);
         foreach(var effect in UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None))UnityEngine.Object.DestroyImmediate(effect.gameObject);
@@ -134,7 +137,7 @@ public static class TopDownStage4Validation {
                 var frame=Map.WorldCamera.GetComponent<TopDownCameraFrame>();var config=new SerializedObject(frame);config.FindProperty("minimumSize").floatValue=zooms[zoomIndex];config.ApplyModifiedPropertiesWithoutUndo();frame.Refresh();Spatial();
                 if(++zoomIndex<zooms.Length){Next(2);break;}
                 var slow=PlayerSession.Deck.Slots.OfType<SkillCardDefinition>().First(c=>c.Skill.Effect is SlowAreaSkill).Skill;
-                var fade=Area(slow,Vector3.zero);fade.Advance(slow.ActiveDuration+.01f);Area(slow,Vector3.right);oldObjects=UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None).Cast<UnityEngine.Object>().Concat(UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None)).ToArray();frozenOpacity=fade.VisualOpacity;Flow.GameOver();fade.Advance(100);Check(fade.VisualOpacity==frozenOpacity,"Terminal state freezes active/fading slow presentation before Retry");Click("Retry");Next(3,.02);break;
+                var fade=Area(slow,Vector3.zero);fade.Advance(slow.ActiveDuration+.01f);Area(slow,Vector3.right);oldObjects=UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None).Cast<UnityEngine.Object>().Concat(UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None)).ToArray();Flow.GameOver();fade.Advance(100);Check(fade.VisualOpacity==0&&!fade.GetComponentInChildren<SkillAreaVisual>().IsVisible&&oldObjects.OfType<PersistentSlowArea>().All(a=>!a.IsActive&&a.AffectedCount==0),"Terminal state clears active/fading skill markers and slow sources before Retry");Click("Retry");Next(3,.02);break;
             case 3:
                 if(GameObject.Find("Hand Card 1")==null)return;Fresh();startGold=PlayerSession.Currency.Gold;startCandy=PlayerSession.Currency.Candy;Fill();Registry.Enemies.First().ReceiveDamage(100000);
                 Check(PlayerSession.Currency.Candy==startCandy+1,"Required restart sequence earns Candy automatically from a legitimate death");
@@ -152,7 +155,7 @@ public static class TopDownStage4Validation {
                 Check(PlayerSession.Progression.Complete(0)&&PlayerSession.Progression.IsUnlocked(1)&&!PlayerSession.Progression.Complete(0),"Existing first-clear progression model unlocks next stage idempotently");for(int i=0;i<PlayerSession.Catalog.Stages.Count;i++)PlayerSession.Selection.MovePrevious();PlayerSession.Selection.MoveNext();Find<LobbyUI>().Carousel.Advance(1);Click("Enter Stage");Next(8,.02);break;
             case 8:
                 if(GameObject.Find("Hand Card 1")==null)return;Schedule.enabled=false;
-                Check(PlayerSession.ActiveStage==PlayerSession.Catalog.Stages[1]&&Find<BaseHealth>().Current==PlayerSession.ActiveStage.BaseHealth&&Find<ResourceWallet>().Balance==PlayerSession.ActiveStage.StartingResources&&Registry.Plane==WaypointPlane.XY,"Unlocked next stage selection loads matching configuration through default 2D route");VerifyProfile();Click("Pause");Click("Exit");Click("Yes");Next(9);break;
+                Check(PlayerSession.ActiveStage==PlayerSession.Catalog.Stages[1]&&Find<BaseHealth>().Current==PlayerSession.ActiveStage.BaseHealth&&Find<ResourceWallet>().Balance==PlayerSession.ActiveStage.StartingResources&&Registry.Plane==WaypointPlane.XY,"Unlocked next stage selection loads matching configuration through default 2D route");VerifyProfile();Click("Pause");Click("Exit");Next(9);break;
             case 9:
                 if(Find<LobbyUI>()==null)return;WriteSnapshot();Finish(true,checks+" Stage 4 assertions; 3 orthographic camera sizes at native test resolution; lose-before-clear then 3 clears");break;
             case 80:

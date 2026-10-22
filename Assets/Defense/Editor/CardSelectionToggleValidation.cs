@@ -21,8 +21,8 @@ public static class CardSelectionToggleValidation {
     private static SkillCastingController Casting=>Find<SkillCastingController>();
     private static ElixirSystem Elixir=>Find<ElixirSystem>();
     private static ResourceWallet Wallet=>Find<ResourceWallet>();
-    private static LineRenderer Aim=>GameObject.Find("Skill Aim Indicator").GetComponent<LineRenderer>();
-    private static bool AimVisible=>Aim.enabled&&Aim.positionCount>=3;
+    private static SkillAreaVisual Aim=>GameObject.Find("Skill Aim Indicator").GetComponent<SkillAreaVisual>();
+    private static bool AimVisible=>Aim.IsVisible;
     static CardSelectionToggleValidation(){if(SessionState.GetBool(Key,false))Attach();}
     public static void Run(){
         if(EditorApplication.isPlaying)throw new InvalidOperationException("Exit Play Mode first.");

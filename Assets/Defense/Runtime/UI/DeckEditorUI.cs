@@ -13,12 +13,16 @@ public sealed class DeckEditorUI : MonoBehaviour {
     private readonly Dictionary<CardDefinition, RectTransform> availableViews = new Dictionary<CardDefinition, RectTransform>();
     private readonly Text[] labels = new Text[6];
     private readonly CardIconView[] icons = new CardIconView[6];
-    public void Initialize(RectTransform canvas, Action back, Action settings) {
+    public void Initialize(RectTransform canvas, Action back, Action settings, MainMenuSkin skin = null) {
         presets = PlayerSession.Presets;
         deck = presets.ActiveDeck;
         editor = new DeckEditorController(deck,PlayerSession.Catalog.AvailableCards);
-        UiFactory.Button(transform,"Back to Lobby",new Vector2(140,-40),()=>back(),new Vector2(0,1),new Vector2(250,48));
-        UiFactory.Button(transform,"Settings",new Vector2(-100,-40),()=>settings(),new Vector2(1,1),new Vector2(180,48));
+        var backButton = UiFactory.Button(transform,"Back to Lobby",new Vector2(140,-40),()=>back(),new Vector2(0,1),new Vector2(250,48));
+        var settingsButton = UiFactory.Button(transform,"Settings",new Vector2(-100,-40),()=>settings(),new Vector2(1,1),new Vector2(180,48));
+        if (skin != null) {
+            UiFactory.ApplyButtonSkin(backButton,skin.LobbyBack);
+            UiFactory.ApplyButtonSkin(settingsButton,skin.LobbySettings);
+        }
         var presetRow = UiFactory.Rect("Deck Presets",transform,new Vector2(.5f,1),new Vector2(0,-40),new Vector2(465,42));
         presetRow.gameObject.AddComponent<DeckPresetButtons>().Initialize(presets);
         UiFactory.Label(transform,"Available Cards",new Vector2(.25f,1),new Vector2(0,-105),new Vector2(500,55),30);

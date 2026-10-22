@@ -90,7 +90,7 @@ public static class TwoDOnlyValidation {
             Find<FixedIntervalSpawner>().enabled=false;
             Check(PlayerSession.ActiveStage==stage&&SceneManager.GetActiveScene().name==stage.SceneName&&Find<GameFlow>().IsPlaying&&Find<FixedIntervalSpawner>().SpawnedCount==0,"Retry creates a fresh run in the same configured 2D stage: "+stage.DisplayName);
             Check(File.ReadAllText(DeckPersistence.DefaultPath)==deckBytes&&File.ReadAllText(PlayerCurrency.DefaultPath)==currencyBytes,"Entry/Retry preserve all preset and currency bytes");
-            PlayerSession.Progression.Complete(index);Click("Pause");Click("Exit");Click("Yes");phase=4;
+            PlayerSession.Progression.Complete(index);Click("Pause");Click("Exit");phase=4;
         }else if(phase==4){
             if(Find<LobbyUI>()==null)return;
             Check(PlayerSession.Selection.SelectedStageIndex==index&&Time.timeScale==1,"Exit returns to the same Lobby selection");

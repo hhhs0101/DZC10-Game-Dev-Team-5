@@ -62,7 +62,7 @@ public sealed class SkillCastingController : MonoBehaviour {
         if (!IsAiming) return;
         IndicatorRadius = ((SkillCardDefinition)aimingCard.Definition).Skill.Radius;
         AimPosition = position;
-        indicator.Show(PlanarSpace.World(position,Depth,Plane),IndicatorRadius,new Color(1,.75f,.15f,.9f),Plane);
+        indicator.ShowSkill(PlanarSpace.World(position,Depth,Plane),((SkillCardDefinition)aimingCard.Definition).Skill,new Color(1,1,1,.9f));
     }
     public CardUseResult ReleaseAim(Vector2 position, bool overUi) {
         if (!IsAiming) return CardUseResult.Cancelled;

@@ -64,7 +64,7 @@ public static class KitchenMap2DValidation {
         var enemy=Find<EnemySpawner>().Spawn(probe.Definition);enemy.Movement.Stop();enemy.transform.position=Map.Path.GetPoint(20);Find<EnemyRegistry>().NotifyMoved(enemy);
         var context=new SkillCastContext(enemy.transform.position,Find<EnemyRegistry>(),Find<GameFlow>());slow.Effect.Apply(slow,context);var area=Find<PersistentSlowArea>();
         Check(area!=null&&enemy.Movement.EffectiveMovementSpeed==enemy.Movement.BaseMovementSpeed*.5f,"Existing Slow affects an actor on the kitchen cloth");
-        var line=area.GetComponentInChildren<SkillAreaVisual>().GetComponent<LineRenderer>();Check(Enumerable.Range(0,line.positionCount).All(i=>Mathf.Abs(PlanarSpace.SqrDistance(area.transform.position,line.GetPosition(i),WaypointPlane.XY)-slow.Radius*slow.Radius)<.002f),"Slow display and gameplay radius share XY world units");
+        SkillEllipseValidation.AssertMarker(area.GetComponentInChildren<SkillAreaVisual>(),area.transform.position,slow.Radius,Check);
         area.Advance(slow.ActiveDuration+.01f);Check(enemy.Movement.Modifiers.SourceCount==0,"Expiry cleans slow source on this map");
         toy.Effect.Apply(toy,context);Check(!enemy.IsAlive&&Find<EnemyRegistry>().AliveEnemyCount==0,"Existing Toy Throw kills and unregisters cloth actor");
     }

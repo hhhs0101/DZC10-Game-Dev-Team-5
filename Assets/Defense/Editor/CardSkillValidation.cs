@@ -65,8 +65,8 @@ public static class CardSkillValidation {
             check(!casting.BeginAim(Vector2.zero,true) && !casting.BeginAim(new Vector2(100,100),false),"Aiming cannot start over UI or outside gameplay");
             check(casting.BeginAim(Vector2.zero,false) && casting.IsAiming && casting.IndicatorRadius==card.Skill.Radius,"Aiming uses actual "+card.DisplayName+" radius");
             casting.MoveAim(Vector2.one); check(casting.AimPosition==Vector2.one,"Indicator follows aiming position");
-            var indicator=casting.GetComponentsInChildren<SkillAreaVisual>().Single(v=>v.name=="Skill Aim Indicator").GetComponent<LineRenderer>();
-            check(indicator.enabled && Mathf.Approximately(Vector2.Distance(PlanarSpace.Project(indicator.GetPosition(0),registry.Plane),Vector2.one),card.Skill.Radius),"Rendered indicator vertices use the configured gameplay radius");
+            var indicator=casting.GetComponentsInChildren<SkillAreaVisual>().Single(v=>v.name=="Skill Aim Indicator");
+            SkillEllipseValidation.AssertMarker(indicator,Vector2.one,card.Skill.Radius,check);
             Canvas.ForceUpdateCanvases();
             var selectedButton=GameObject.Find("Hand Card "+(hand.Cycle.Hand.ToList().IndexOf(used)+1)).GetComponent<RectTransform>();
             bool cardUi=GameplayPointer.IsOverUI(RectTransformUtility.WorldToScreenPoint(null,selectedButton.position));

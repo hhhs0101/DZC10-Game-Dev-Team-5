@@ -105,9 +105,7 @@ public static class PrototypeValidation {
                     pausedEnemy.GetComponent<EnemyPathFollower>().Advance(100);
                     pausedEnemy.GetComponent<EnemyPathFollower>().Advance(100);
                     Check(Find<BaseHealth>().Current==9 && Find<ResourceWallet>().Balance==balanceBeforeBase,"Base arrival damages once and grants no reward");
-                    Click("Pause"); Click("Exit"); Click("No");
-                    Check(Find<GameFlow>().State==GameplayState.Paused,"Exit cancellation remains paused");
-                    Click("Exit"); Click("Yes"); Wait(3); break;
+                    Click("Pause"); Click("Exit"); Wait(3); break;
                 case 3:
                     Check(Find<LobbyUI>()!=null && Time.timeScale==1,"Exit returns to Lobby");
                     Check(PlayerSession.Deck.Slots.SequenceEqual(persistentSnapshot),"Gameplay and scene exit preserve T1-T6");

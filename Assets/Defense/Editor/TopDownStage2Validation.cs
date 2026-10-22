@@ -107,7 +107,7 @@ public static class TopDownStage2Validation {
         float previous=combatEnemy.CurrentHealth;combatEnemy.GetComponent<EnemyHealth>().Changed+=(current,max)=>{if(current<previous)hits.Add(Time.time);previous=current;};combatTurret.enabled=true;
         UnityEngine.Object.Destroy(data);
     }
-    private static void AssertRadius(SkillAreaVisual view,Vector3 center,float radius){var line=view.GetComponent<LineRenderer>();Check(line.enabled&&Enumerable.Range(0,line.positionCount).All(i=>Mathf.Abs(PlanarSpace.SqrDistance(center,line.GetPosition(i),WaypointPlane.XY)-radius*radius)<.002f),"Every visible circle point matches configured XY world radius "+radius);}
+    private static void AssertRadius(SkillAreaVisual view,Vector3 center,float radius)=>SkillEllipseValidation.AssertMarker(view,center,radius,Check);
     private static void TestSkills(){
         var toy=deck.OfType<SkillCardDefinition>().First(c=>c.Skill.Effect is CircularDamageSkill);
         foreach(float radius in new[]{1.5f,3f,4f}){
@@ -141,7 +141,7 @@ public static class TopDownStage2Validation {
         var a=UnityEngine.Object.FindFirstObjectByType<PersistentSlowArea>();var visual=a.GetComponentInChildren<SkillAreaVisual>();AssertRadius(visual,Vector3.zero,skill.Radius);
         Check(a.Plane==WaypointPlane.XY&&a.AffectedCount==1&&enemy.Movement.Modifiers.SourceCount==1&&enemy.Movement.EffectiveMovementSpeed==speed*.5f,"Active zone applies a single half-speed source on XY membership");
         Move(enemy,new Vector3(skill.Radius+.01f,0,50));Check(a.AffectedCount==0&&enemy.Movement.Modifiers.SourceCount==0,"XY exit synchronously removes area source regardless of visual depth");
-        Move(enemy,new Vector3(0,skill.Radius,20));Check(a.AffectedCount==1,"Inclusive XY boundary ignores render Z");
+        Move(enemy,new Vector3(0,skill.Radius*skill.RangeProfile.AspectRatio,20));Check(a.AffectedCount==1,"Inclusive XY boundary ignores render Z");
         Move(enemy,Vector3.zero);var b=Area(skill,Vector3.right);
         Check(enemy.Movement.Modifiers.SourceCount==2&&enemy.Movement.EffectiveMovementSpeed==speed*.5f,"Overlapping areas retain independent sources without multiplication");
         Move(enemy,Vector3.right*(skill.Radius+.5f));Check(a.AffectedCount==0&&b.AffectedCount==1&&enemy.Movement.Modifiers.SourceCount==1,"Leaving A while inside B preserves B source");
@@ -150,16 +150,16 @@ public static class TopDownStage2Validation {
         a.Advance(skill.ActiveDuration-.01f);Check(a.IsActive,"Zone stays active until configured deadline");a.Advance(.02f);
         Check(!a.IsActive&&a.AffectedCount==0&&enemy.Movement.Modifiers.SourceCount==1&&a.VisualOpacity>0,"Expiry removes gameplay source immediately before visual fade completes");
         UnityEngine.Object.DestroyImmediate(b.gameObject);Check(enemy.Movement.Modifiers.SourceCount==0&&enemy.Movement.EffectiveMovementSpeed==speed,"Destroying other zone restores effective speed without changing base speed");
-        float alpha=a.VisualOpacity;Flow.TogglePause();a.Advance(1);Check(a.VisualOpacity==alpha,"Pause also freezes post-expiry fade");Flow.TogglePause();a.Advance(skill.FadeDuration/2);Check(a.VisualOpacity>0&&a.VisualOpacity<alpha,"Visual fade progresses only after gameplay expiration");a.Advance(skill.FadeDuration);Check(a.VisualOpacity==0&&!visual.GetComponent<LineRenderer>().enabled,"Fade completion hides line and retires visual");ClearAreas();
+        float alpha=a.VisualOpacity;Flow.TogglePause();a.Advance(1);Check(a.VisualOpacity==alpha,"Pause also freezes post-expiry fade");Flow.TogglePause();a.Advance(skill.FadeDuration/2);Check(a.VisualOpacity>0&&a.VisualOpacity<alpha,"Visual fade progresses only after gameplay expiration");a.Advance(skill.FadeDuration);Check(a.VisualOpacity==0&&!visual.IsVisible,"Fade completion hides ellipse and retires visual");ClearAreas();
         var c=Area(skill,Vector3.zero);Move(enemy,new Vector3(0,0,0));enemy.gameObject.SetActive(false);Check(c.AffectedCount==0&&enemy.Movement.Modifiers.SourceCount==0,"Enemy disable/despawn immediately clears source references");UnityEngine.Object.DestroyImmediate(enemy.gameObject);ClearAreas();
         enemy=Spawn(Vector3.zero);c=Area(skill,Vector3.zero);enemy.ReceiveDamage(10000);Check(c.AffectedCount==0&&enemy.Movement.Modifiers.SourceCount==0,"Combat death releases source ownership immediately");ClearAreas();
         enemy=Spawn(Vector3.zero);c=Area(skill,Vector3.zero);enemy.transform.position=Vector3.right*(skill.Radius+1);c.RefreshMembership();Check(c.AffectedCount==0&&enemy.Movement.Modifiers.SourceCount==0,"Membership reconciliation clears teleported enemies without trigger-exit dependence");ClearAreas();ClearEnemies();
         foreach(float radius in new[]{1.25f,4.25f}) {
             var configured=UnityEngine.Object.Instantiate(skill);Value(configured,"radius",radius);
-            enemy=Spawn(new Vector3(0,radius-.01f,5));c=Area(configured,Vector3.zero);
+            enemy=Spawn(new Vector3(0,radius*configured.RangeProfile.AspectRatio-.01f,5));c=Area(configured,Vector3.zero);
             AssertRadius(c.GetComponentInChildren<SkillAreaVisual>(),Vector3.zero,radius);
             Check(c.AffectedCount==1 && enemy.Movement.Modifiers.SourceCount==1,"Configured Slow radius includes inside XY point: "+radius);
-            Move(enemy,new Vector3(0,radius+.01f,-5));Check(c.AffectedCount==0 && enemy.Movement.Modifiers.SourceCount==0,"Configured Slow radius excludes outside XY point: "+radius);
+            Move(enemy,new Vector3(0,radius*configured.RangeProfile.AspectRatio+.01f,-5));Check(c.AffectedCount==0 && enemy.Movement.Modifiers.SourceCount==0,"Configured Slow radius excludes outside XY point: "+radius);
             ClearAreas();ClearEnemies();UnityEngine.Object.Destroy(configured);
         }
         // Real path-driven movement must notify membership before Advance returns.

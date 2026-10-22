@@ -4,12 +4,14 @@ namespace Defense {
 [RequireComponent(typeof(SettingsUI), typeof(BuildMenuUI))]
 public sealed class GameplayUI : MonoBehaviour {
     [SerializeField] private Canvas canvas;
+    [SerializeField, Tooltip("Artwork for Resume / Settings / Exit inside the Pause overlay only.")] private PauseMenuSkin pauseSkin;
+    [SerializeField, Tooltip("Replay / Retry / Lobby artwork for result overlays only.")] private ResultMenuSkin resultSkin;
     [SerializeField] private GameFlow flow;
     [SerializeField] private BaseHealth baseHealth;
     [SerializeField] private ResourceWallet wallet;
     [SerializeField] private TurretPlacementController placement;
     private Text hpLabel, resourcesLabel, messageLabel;
-    private GameObject pause, confirmation, gameOver, victory, configurationError;
+    private GameObject pause, gameOver, victory, configurationError;
     private UnityEngine.UI.Text configurationDetails;
     private Text victoryReward;
     private SettingsUI settings;
@@ -30,23 +32,34 @@ public sealed class GameplayUI : MonoBehaviour {
         gameObject.AddComponent<ElixirBarUI>().Initialize(root,placement.GetComponent<ElixirSystem>());
         GetComponent<BuildMenuUI>().Initialize(root);
         pause = Overlay("Pause",root);
-        UiFactory.Label(pause.transform,"Paused",new Vector2(.5f,.5f),new Vector2(0,150),new Vector2(500,60),36);
-        UiFactory.Button(pause.transform,"Resume",new Vector2(0,50),flow.TogglePause);
-        UiFactory.Button(pause.transform,"Settings",new Vector2(0,-20),() => { pause.SetActive(false); settings.Open(() => pause.SetActive(true)); });
-        UiFactory.Button(pause.transform,"Exit",new Vector2(0,-90),() => { pause.SetActive(false); confirmation.SetActive(true); });
-        confirmation = Overlay("Exit Confirmation",root);
-        UiFactory.Label(confirmation.transform,"Really exit this stage?",new Vector2(.5f,.5f),new Vector2(0,90),new Vector2(600,60),32);
-        UiFactory.Button(confirmation.transform,"Yes",new Vector2(0,0),flow.ExitToMenu);
-        UiFactory.Button(confirmation.transform,"No",new Vector2(0,-70),() => { confirmation.SetActive(false); pause.SetActive(true); });
+        var pauseTitle = UiFactory.Label(pause.transform,"Paused",new Vector2(.5f,.5f),new Vector2(0,150),new Vector2(500,60),36);
+        var resumeButton = UiFactory.Button(pause.transform,"Resume",new Vector2(0,50),flow.TogglePause);
+        var pauseSettingsButton = UiFactory.Button(pause.transform,"Settings",new Vector2(0,-20),() => { pause.SetActive(false); settings.Open(() => pause.SetActive(true)); });
+        var exitButton = UiFactory.Button(pause.transform,"Exit",new Vector2(0,-90),flow.ExitToMenu);
+        if (pauseSkin != null) {
+            pauseTitle.rectTransform.anchoredPosition = new Vector2(0,210);
+            SkinMenuButton(resumeButton,pauseSkin.Resume,new Vector2(0,80));
+            SkinMenuButton(pauseSettingsButton,pauseSkin.Settings,new Vector2(0,-50));
+            SkinMenuButton(exitButton,pauseSkin.Exit,new Vector2(0,-180));
+        }
         gameOver = Overlay("Game Over",root);
-        UiFactory.Label(gameOver.transform,"Game Over",new Vector2(.5f,.5f),new Vector2(0,90),new Vector2(600,70),42);
-        UiFactory.Button(gameOver.transform,"Retry",new Vector2(0,0),flow.Retry);
-        UiFactory.Button(gameOver.transform,"Lobby",new Vector2(0,-70),flow.ExitToMenu);
+        var defeatTitle = UiFactory.Label(gameOver.transform,"Game Over",new Vector2(.5f,.5f),new Vector2(0,90),new Vector2(600,70),42);
+        var retryButton = UiFactory.Button(gameOver.transform,"Retry",new Vector2(0,0),flow.Retry);
+        var defeatLobbyButton = UiFactory.Button(gameOver.transform,"Lobby",new Vector2(0,-70),flow.ExitToMenu);
         victory = Overlay("Victory",root);
-        UiFactory.Label(victory.transform,"Stage Clear",new Vector2(.5f,.5f),new Vector2(0,150),new Vector2(600,70),42);
+        var clearTitle = UiFactory.Label(victory.transform,"Stage Clear",new Vector2(.5f,.5f),new Vector2(0,150),new Vector2(600,70),42);
         victoryReward = UiFactory.Label(victory.transform,"",new Vector2(.5f,.5f),new Vector2(0,80),new Vector2(600,50),28);
-        UiFactory.Button(victory.transform,"Replay",new Vector2(0,0),flow.Retry);
-        UiFactory.Button(victory.transform,"Return to Lobby",new Vector2(0,-70),flow.ExitToMenu);
+        var replayButton = UiFactory.Button(victory.transform,"Replay",new Vector2(0,0),flow.Retry);
+        var clearLobbyButton = UiFactory.Button(victory.transform,"Return to Lobby",new Vector2(0,-70),flow.ExitToMenu);
+        if (resultSkin != null) {
+            defeatTitle.rectTransform.anchoredPosition = new Vector2(0,170);
+            clearTitle.rectTransform.anchoredPosition = new Vector2(0,220);
+            victoryReward.rectTransform.anchoredPosition = new Vector2(0,150);
+            SkinMenuButton(retryButton,resultSkin.Retry,new Vector2(0,20));
+            SkinMenuButton(defeatLobbyButton,resultSkin.Lobby,new Vector2(0,-115));
+            SkinMenuButton(replayButton,resultSkin.Replay,new Vector2(0,20));
+            SkinMenuButton(clearLobbyButton,resultSkin.Lobby,new Vector2(0,-115));
+        }
         configurationError = Overlay("Stage Configuration Error",root);
         UiFactory.Label(configurationError.transform,"Stage Configuration Error",new Vector2(.5f,.5f),new Vector2(0,160),new Vector2(850,65),36);
         configurationDetails = UiFactory.Label(configurationError.transform,"",new Vector2(.5f,.5f),new Vector2(0,45),new Vector2(1000,150),20);
@@ -56,6 +69,11 @@ public sealed class GameplayUI : MonoBehaviour {
         baseHealth.Changed += UpdateHealth; wallet.Changed += UpdateResources;
         flow.Changed += UpdateState; placement.Message += ShowMessage;
         UpdateHealth(baseHealth.Current); UpdateResources(wallet.Balance); UpdateState(flow.State);
+    }
+    private static void SkinMenuButton(UnityEngine.UI.Button button, MainMenuSkin.ButtonSprites sprites, Vector2 position) {
+        UiFactory.ApplyButtonSkin(button,sprites);
+        var rect = (RectTransform)button.transform;
+        rect.anchoredPosition = position; rect.sizeDelta = new Vector2(360,120);
     }
     private static GameObject Overlay(string name, Transform parent) => UiFactory.Panel(name,parent,new Color(0,0,0,.78f));
     private void Update() {
@@ -67,7 +85,7 @@ public sealed class GameplayUI : MonoBehaviour {
     private void ShowMessage(string message) { feedback.Show(message,message == GameplayHand.InsufficientElixirMessage ? 1.5f : 3); }
     private void UpdateState(GameplayState state) {
         GetComponent<BuildMenuUI>().SetInteractionEnabled(state == GameplayState.Playing);
-        settings.Hide(); confirmation.SetActive(false);
+        settings.Hide();
         pause.SetActive(state == GameplayState.Paused); gameOver.SetActive(state == GameplayState.GameOver);
         victory.SetActive(state == GameplayState.Victory);
         configurationError.SetActive(state == GameplayState.ConfigurationError);

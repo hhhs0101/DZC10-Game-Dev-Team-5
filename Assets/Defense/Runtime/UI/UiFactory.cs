@@ -26,6 +26,16 @@ public static class UiFactory {
         label.raycastTarget = false;
         return label;
     }
+    public static void ApplyButtonSkin(UnityEngine.UI.Button button, MainMenuSkin.ButtonSprites sprites) {
+        button.image.sprite = sprites.Normal; button.image.color = Color.white; button.image.preserveAspect = true;
+        button.transition = UnityEngine.UI.Selectable.Transition.SpriteSwap;
+        button.spriteState = new UnityEngine.UI.SpriteState {
+            highlightedSprite = sprites.Highlighted, selectedSprite = sprites.Highlighted,
+            pressedSprite = sprites.Pressed
+        };
+        // The sheet contains both the icon and lettering. Retain labels for existing tooling only.
+        foreach (var label in button.GetComponentsInChildren<UnityEngine.UI.Text>()) label.enabled = false;
+    }
     public static Button Button(Transform parent, string text, Vector2 position, UnityAction action, Vector2? anchor = null, Vector2? size = null) {
         var rect = Rect(text, parent, anchor ?? new Vector2(.5f,.5f), position, size ?? new Vector2(280, 52));
         rect.gameObject.AddComponent<Image>().color = new Color(.18f,.26f,.34f);

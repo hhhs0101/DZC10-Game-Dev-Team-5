@@ -13,6 +13,8 @@ public sealed class PersistentSlowArea : MonoBehaviour {
     private readonly HashSet<Enemy> affected = new HashSet<Enemy>();
     public bool IsActive { get; private set; }
     public WaypointPlane Plane { get; private set; }
+    public SkillDefinition Definition => definition;
+    public EllipseFootprint Footprint => definition.CreateFootprint(PlanarSpace.Project(transform.position,Plane));
     public float Radius => definition != null ? definition.Radius : 0;
     public float VisualOpacity { get; private set; }
     public int AffectedCount => affected.Count;
@@ -22,7 +24,7 @@ public sealed class PersistentSlowArea : MonoBehaviour {
         transform.position = context.TargetPosition;
         elapsed = 0; VisualOpacity = 1; IsActive = data.ActiveDuration > 0;
         registry.Registered += RefreshEnemy; registry.Moved += RefreshEnemy; registry.Unregistered += RemoveEnemy;
-        subscribed = true;
+        subscribed = true; flow.Changed += OnStateChanged;
         if (IsActive) RefreshMembership(); else EndEffect();
     }
     private void Update() => Advance(Time.deltaTime);
@@ -45,7 +47,7 @@ public sealed class PersistentSlowArea : MonoBehaviour {
     private void RefreshEnemy(Enemy enemy) {
         if (enemy == null) return;
         bool inside = IsActive && enemy.IsAlive &&
-            PlanarSpace.SqrDistance(enemy.transform.position,transform.position,Plane) <= Radius*Radius;
+            Footprint.Contains(PlanarSpace.Project(enemy.transform.position,Plane));
         if (inside) {
             affected.Add(enemy); enemy.Movement.Modifiers.SetSlow(this,definition.SlowMultiplier);
         } else RemoveEnemy(enemy);
@@ -63,7 +65,11 @@ public sealed class PersistentSlowArea : MonoBehaviour {
         }
         subscribed = false;
     }
-    private void OnDisable() { EndEffect(); VisualOpacity = 0; Changed?.Invoke(); }
-    private void OnDestroy() => EndEffect();
+    private void OnStateChanged(GameplayState state) {
+        if(flow==null || !flow.IsTerminal)return;
+        EndEffect();VisualOpacity=0;Changed?.Invoke();Destroy(gameObject);
+    }
+    private void OnDisable() { if(flow!=null)flow.Changed-=OnStateChanged;EndEffect();VisualOpacity=0;Changed?.Invoke(); }
+    private void OnDestroy() {if(flow!=null)flow.Changed-=OnStateChanged;EndEffect();}
 }
 }

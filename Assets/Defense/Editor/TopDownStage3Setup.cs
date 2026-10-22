@@ -31,6 +31,8 @@ public static class TopDownStage3Setup {
         Set(ui,"wallet",systems.GetComponent<ResourceWallet>());
         Set(ui,"baseHealth",systems.GetComponent<BaseHealth>());
         Set(ui,"placement",systems.GetComponent<TurretPlacementController>());
+        Set(ui,"pauseSkin",AssetDatabase.LoadAssetAtPath<PauseMenuSkin>("Assets/Defense/Data/PauseMenuSkin.asset"));
+        Set(ui,"resultSkin",AssetDatabase.LoadAssetAtPath<ResultMenuSkin>("Assets/Defense/Data/ResultMenuSkin.asset"));
         // Resolve prefabs after opening the copied scene so references survive scene asset unloading.
         Set(systems.GetComponent<EnemySpawner>(),"spritePrefab",AssetDatabase.LoadAssetAtPath<GameObject>(TopDownStage2Setup.Prefabs+"/BasicEnemy2D.prefab").GetComponent<Enemy>());
         Set(systems.GetComponent<TurretPlacementController>(),"spritePrefab",AssetDatabase.LoadAssetAtPath<GameObject>(TopDownStage2Setup.Prefabs+"/BasicTurret2D.prefab").GetComponent<Turret>());
