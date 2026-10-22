@@ -9,13 +9,15 @@ public static class LobbyAssetSetup {
         if (!AssetDatabase.IsValidFolder("Assets/Defense/Resources")) AssetDatabase.CreateFolder("Assets/Defense","Resources");
         var first = AssetDatabase.LoadAssetAtPath<StageDefinition>("Assets/Defense/Data/TestStage.asset");
         var stages = new System.Collections.Generic.List<Object>();
+        int[] stageEnemyCounts = { 30, 40, 45 };
         for (int i=0;i<3;i++) {
             string stagePath = "Assets/Defense/Data/Stage1_"+(i+1)+".asset";
             var stage = AssetDatabase.LoadAssetAtPath<StageDefinition>(stagePath);
             if (stage == null) {
                 stage = Object.Instantiate(first); stage.name = "Stage1_"+(i+1);
                 var serialized = new SerializedObject(stage); serialized.FindProperty("displayName").stringValue = "1-"+(i+1);
-                serialized.FindProperty("finiteSpawning").boolValue = false;
+                serialized.FindProperty("finiteSpawning").boolValue = true;
+                serialized.FindProperty("totalEnemies").intValue = stageEnemyCounts[i];
                 serialized.FindProperty("alwaysUnlocked").boolValue = false;
                 serialized.FindProperty("baseHealth").intValue = 10;
                 serialized.FindProperty("enemy").objectReferenceValue = AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/Defense/Data/BasicEnemy.asset");

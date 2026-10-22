@@ -29,11 +29,13 @@ public static class TwoDOnlyValidation {
     }
     private static void Audit(){
         var build=EditorBuildSettings.scenes.Where(s=>s.enabled).Select(s=>s.path).ToArray();
-        Check(build.SequenceEqual(new[]{"Assets/Defense/Scenes/MainMenu.unity",TopDownStage3Setup.ScenePath}),"Build starts at MainMenu and contains only the integrated 2D gameplay scene");
+        Check(build.Contains("Assets/Defense/Scenes/MainMenu.unity")&&build.Contains(TopDownStage3Setup.ScenePath)&&build.Contains(Stage2MapSetup.ScenePath),"Build starts at MainMenu and contains the integrated 2D gameplay scenes");
         var catalog=Resources.Load<GameCatalog>("GameCatalog");
         Check(catalog.Stages.Select(s=>s.DisplayName).SequenceEqual(new[]{"1-1","1-2","1-3","Test Stage","Test Stage 2"}),"Five original stage identities and order are preserved");
+        Check(catalog.Stages[0].FiniteSpawning&&catalog.Stages[0].TotalEnemies==30&&catalog.Stages[1].FiniteSpawning&&catalog.Stages[1].TotalEnemies==40&&catalog.Stages[2].FiniteSpawning&&catalog.Stages[2].TotalEnemies==45,"Campaign stages 1-1, 1-2, 1-3 use finite enemy counts 30, 40, 45");
         foreach(var stage in catalog.Stages){
-            Check(stage.SceneName==Path.GetFileNameWithoutExtension(TopDownStage3Setup.ScenePath),"Existing shared 2D map is explicit on "+stage.DisplayName);
+            var expectedScene=stage.DisplayName=="1-2"?Stage2MapSetup.SceneName:Path.GetFileNameWithoutExtension(TopDownStage3Setup.ScenePath);
+            Check(stage.SceneName==expectedScene,"Configured 2D map is explicit on "+stage.DisplayName);
             Check(AssetDatabase.LoadAssetAtPath<SceneAsset>("Assets/Defense/Scenes/"+stage.SceneName+".unity")!=null,"Stage scene exists: "+stage.DisplayName);
         }
         foreach(var guid in AssetDatabase.FindAssets("t:EnemyDefinition t:TurretDefinition",new[]{"Assets/Defense/Data"})){
@@ -42,7 +44,7 @@ public static class TwoDOnlyValidation {
             var actor=reference.objectReferenceValue as Component;
             Check(actor!=null&&actor.GetComponentInChildren<SpriteRenderer>(true)!=null&&actor.GetComponentInChildren<Collider>(true)==null&&actor.GetComponentInChildren<MeshRenderer>(true)==null,"Definition uses existing sprite actor: "+obj.name);
         }
-        foreach(var path in new[]{TopDownStage1Setup.ScenePath,TopDownStage2Setup.ScenePath,TopDownStage3Setup.ScenePath}){
+        foreach(var path in new[]{TopDownStage1Setup.ScenePath,TopDownStage2Setup.ScenePath,TopDownStage3Setup.ScenePath,Stage2MapSetup.ScenePath}){
             var scene=EditorSceneManager.OpenPreviewScene(path);
             try{
                 var objects=scene.GetRootGameObjects();

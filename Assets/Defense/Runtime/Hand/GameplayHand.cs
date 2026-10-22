@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Defense {
 public enum CardUseResult { Success, Failure, Cancelled }
 public sealed class GameplayHand : MonoBehaviour {
-    public const string InsufficientElixirMessage = "엘릭서가 부족합니다";
+    public const string InsufficientElixirMessage = "에너지가 부족합니다";
     private TurretPlacementController placement;
     private GameFlow flow;
     private ElixirSystem elixir;

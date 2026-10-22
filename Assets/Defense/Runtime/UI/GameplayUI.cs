@@ -10,22 +10,41 @@ public sealed class GameplayUI : MonoBehaviour {
     [SerializeField] private BaseHealth baseHealth;
     [SerializeField] private ResourceWallet wallet;
     [SerializeField] private TurretPlacementController placement;
-    private Text hpLabel, resourcesLabel, messageLabel;
+    private Text hpLabel, remainingEnemiesLabel, messageLabel;
     private GameObject pause, gameOver, victory, configurationError;
     private UnityEngine.UI.Text configurationDetails;
-    private Text victoryReward;
     private SettingsUI settings;
     private Button pauseButton;
     private FadingMessageUI feedback;
     private GameplayHand hand;
+    private FixedIntervalSpawner schedule;
+    private EnemyRegistry enemies;
+    private int lastRemainingEnemies = -1;
     private void Start() {
         Transform root = canvas.transform;
-        hpLabel = UiFactory.Label(root,"",new Vector2(0,1),new Vector2(120,-35),new Vector2(220,50));
-        resourcesLabel = UiFactory.Label(root,"",new Vector2(0,1),new Vector2(370,-35),new Vector2(260,50));
-        var currency = UiFactory.Rect("Player Currency",root,new Vector2(.5f,1),new Vector2(200,-35),new Vector2(430,50));
-        currency.gameObject.AddComponent<PlayerCurrencyUI>().Initialize(PlayerSession.Currency);
-        pauseButton = UiFactory.Button(root,"Pause",new Vector2(-90,-35),flow.TogglePause,new Vector2(1,1),new Vector2(140,48));
-        messageLabel = UiFactory.Label(root,"",new Vector2(.5f,0),new Vector2(0,163),new Vector2(950,50));
+        schedule = GetComponent<FixedIntervalSpawner>();
+        enemies = GetComponent<EnemyRegistry>();
+        var sidebar = UiFactory.Rect("Right HUD Sidebar",root,Vector2.zero,Vector2.zero,Vector2.zero);
+        sidebar.anchorMin = new Vector2(1,0); sidebar.anchorMax = new Vector2(1,1);
+        sidebar.pivot = new Vector2(1,.5f); sidebar.anchoredPosition = Vector2.zero; sidebar.sizeDelta = new Vector2(220,0);
+        sidebar.gameObject.AddComponent<Image>().color = new Color(.14f,.11f,.09f,.96f);
+        var border = UiFactory.Rect("Sidebar Border",sidebar,Vector2.zero,Vector2.zero,Vector2.zero);
+        border.anchorMin = new Vector2(0,0); border.anchorMax = new Vector2(0,1);
+        border.pivot = new Vector2(0,.5f); border.anchoredPosition = Vector2.zero; border.sizeDelta = new Vector2(3,0);
+        border.gameObject.AddComponent<Image>().color = new Color(.36f,.25f,.16f,1f);
+        var bannerRect = UiFactory.Rect("Top Status Banner",root,new Vector2(.414f,1),new Vector2(0,-36),new Vector2(560,72));
+        var bannerImage = bannerRect.gameObject.AddComponent<Image>();
+        bannerImage.sprite = Resources.Load<Sprite>("UI/TopStatusBanner");
+        bannerImage.preserveAspect = true;
+        bannerImage.raycastTarget = false;
+        bannerImage.color = bannerImage.sprite != null ? Color.white : new Color(.38f,.24f,.12f,.95f);
+        hpLabel = UiFactory.Label(bannerRect,"",new Vector2(.5f,.5f),new Vector2(-115,2),new Vector2(210,40),19);
+        AddOutline(hpLabel);
+        remainingEnemiesLabel = UiFactory.Label(bannerRect,"",new Vector2(.5f,.5f),new Vector2(115,2),new Vector2(230,40),19);
+        AddOutline(remainingEnemiesLabel);
+        pauseButton = UiFactory.Button(root,"Pause",new Vector2(-110,-34),flow.TogglePause,new Vector2(1,1),new Vector2(176,42));
+        messageLabel = UiFactory.Label(root,"",new Vector2(.414f,0),new Vector2(0,22),new Vector2(760,38),20);
+        AddOutline(messageLabel);
         feedback = messageLabel.gameObject.AddComponent<FadingMessageUI>();
         hand = placement.GetComponent<GameplayHand>();
         hand.Message += ShowMessage;
@@ -48,13 +67,11 @@ public sealed class GameplayUI : MonoBehaviour {
         var defeatLobbyButton = UiFactory.Button(gameOver.transform,"Lobby",new Vector2(0,-70),flow.ExitToMenu);
         victory = Overlay("Victory",root);
         var clearTitle = UiFactory.Label(victory.transform,"Stage Clear",new Vector2(.5f,.5f),new Vector2(0,150),new Vector2(600,70),42);
-        victoryReward = UiFactory.Label(victory.transform,"",new Vector2(.5f,.5f),new Vector2(0,80),new Vector2(600,50),28);
         var replayButton = UiFactory.Button(victory.transform,"Replay",new Vector2(0,0),flow.Retry);
         var clearLobbyButton = UiFactory.Button(victory.transform,"Return to Lobby",new Vector2(0,-70),flow.ExitToMenu);
         if (resultSkin != null) {
             defeatTitle.rectTransform.anchoredPosition = new Vector2(0,170);
             clearTitle.rectTransform.anchoredPosition = new Vector2(0,220);
-            victoryReward.rectTransform.anchoredPosition = new Vector2(0,150);
             SkinMenuButton(retryButton,resultSkin.Retry,new Vector2(0,20));
             SkinMenuButton(defeatLobbyButton,resultSkin.Lobby,new Vector2(0,-115));
             SkinMenuButton(replayButton,resultSkin.Replay,new Vector2(0,20));
@@ -66,9 +83,14 @@ public sealed class GameplayUI : MonoBehaviour {
         UiFactory.Button(configurationError.transform,"Retry",new Vector2(0,-85),flow.Retry);
         UiFactory.Button(configurationError.transform,"Return to Lobby",new Vector2(0,-155),flow.ExitToMenu);
         settings = GetComponent<SettingsUI>(); settings.Initialize(root);
-        baseHealth.Changed += UpdateHealth; wallet.Changed += UpdateResources;
+        baseHealth.Changed += UpdateHealth;
         flow.Changed += UpdateState; placement.Message += ShowMessage;
-        UpdateHealth(baseHealth.Current); UpdateResources(wallet.Balance); UpdateState(flow.State);
+        UpdateHealth(baseHealth.Current); UpdateRemainingEnemies(); UpdateState(flow.State);
+    }
+    private static void AddOutline(Text text) {
+        var outline = text.gameObject.AddComponent<Outline>();
+        outline.effectColor = new Color(.16f,.07f,.02f,.95f);
+        outline.effectDistance = new Vector2(1.5f,-1.5f);
     }
     private static void SkinMenuButton(UnityEngine.UI.Button button, MainMenuSkin.ButtonSprites sprites, Vector2 position) {
         UiFactory.ApplyButtonSkin(button,sprites);
@@ -78,10 +100,21 @@ public sealed class GameplayUI : MonoBehaviour {
     private static GameObject Overlay(string name, Transform parent) => UiFactory.Panel(name,parent,new Color(0,0,0,.78f));
     private void Update() {
         if (Input.GetKeyDown(KeyCode.Escape)) flow.TogglePause();
-
+        UpdateRemainingEnemies();
+    }
+    private void UpdateRemainingEnemies() {
+        if (remainingEnemiesLabel == null) return;
+        int unspawned = schedule != null && schedule.PlannedSpawnCount > 0
+            ? Mathf.Max(0, schedule.PlannedSpawnCount - schedule.SpawnedCount)
+            : 0;
+        int alive = enemies != null ? enemies.AliveEnemyCount : 0;
+        int remaining = unspawned + alive;
+        if (remaining != lastRemainingEnemies) {
+            lastRemainingEnemies = remaining;
+            remainingEnemiesLabel.text = "Remain Enemies: " + remaining;
+        }
     }
     private void UpdateHealth(int health) { hpLabel.text = "Base HP: " + health; }
-    private void UpdateResources(int resources) { resourcesLabel.text = "Resources: " + resources; }
     private void ShowMessage(string message) { feedback.Show(message,message == GameplayHand.InsufficientElixirMessage ? 1.5f : 3); }
     private void UpdateState(GameplayState state) {
         GetComponent<BuildMenuUI>().SetInteractionEnabled(state == GameplayState.Playing);
@@ -90,12 +123,10 @@ public sealed class GameplayUI : MonoBehaviour {
         victory.SetActive(state == GameplayState.Victory);
         configurationError.SetActive(state == GameplayState.ConfigurationError);
         if(state == GameplayState.ConfigurationError) configurationDetails.text = flow.ConfigurationErrorMessage;
-        if (state == GameplayState.Victory) victoryReward.text = "Gold Earned: "+placement.GetComponent<StageVictoryController>().GoldEarned;
         pauseButton.interactable = !flow.IsTerminal;
     }
     private void OnDestroy() {
         if (baseHealth != null) baseHealth.Changed -= UpdateHealth;
-        if (wallet != null) wallet.Changed -= UpdateResources;
         if (flow != null) flow.Changed -= UpdateState;
         if (placement != null) placement.Message -= ShowMessage;
         if (hand != null) hand.Message -= ShowMessage;

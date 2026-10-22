@@ -11,6 +11,7 @@ public sealed class DeckEditorUI : MonoBehaviour {
     private DeckEditorController editor;
     private RectTransform content;
     private readonly Dictionary<CardDefinition, RectTransform> availableViews = new Dictionary<CardDefinition, RectTransform>();
+    private readonly Image[] slotImages = new Image[6];
     private readonly Text[] labels = new Text[6];
     private readonly CardIconView[] icons = new CardIconView[6];
     public void Initialize(RectTransform canvas, Action back, Action settings, MainMenuSkin skin = null) {
@@ -33,23 +34,35 @@ public sealed class DeckEditorUI : MonoBehaviour {
         viewport.gameObject.AddComponent<Image>().color = new Color(.1f,.14f,.2f);
         viewport.gameObject.AddComponent<RectMask2D>();
         var scroll = viewport.gameObject.AddComponent<ScrollRect>();
-        content = UiFactory.Rect("Available Cards",viewport,new Vector2(.5f,1),Vector2.zero,new Vector2(530,Mathf.Max(450,Mathf.CeilToInt(editor.Available.Count/3f)*140)));
+        content = UiFactory.Rect("Available Cards",viewport,new Vector2(.5f,1),Vector2.zero,new Vector2(530,Mathf.Max(450,Mathf.CeilToInt(editor.Available.Count/3f)*175)));
         content.pivot = new Vector2(.5f,1); scroll.content = content; scroll.viewport = viewport; scroll.horizontal = false; scroll.movementType = ScrollRect.MovementType.Clamped;
         for (int i=0;i<PlayerSession.Catalog.AvailableCards.Count;i++) {
             var definition = PlayerSession.Catalog.AvailableCards[i];
             if (definition == null || availableViews.ContainsKey(definition)) continue;
-            var card = UiFactory.Rect("Available "+definition.DisplayName,content,new Vector2(.5f,1),new Vector2((i%3-1)*175,-75-i/3*140),new Vector2(165,120));
-            card.gameObject.AddComponent<Image>().color = new Color(.2f,.32f,.4f);
-            bool artwork = CardIconView.Create(card,new Vector2(-57,0),new Vector2(42,78)).Bind(definition);
-            UiFactory.Label(card,definition.DisplayName+"\n"+definition.CostDescription,new Vector2(.5f,.5f),artwork ? new Vector2(23,0) : Vector2.zero,artwork ? new Vector2(112,115) : new Vector2(160,115),artwork ? 17 : 19);
+            var card = UiFactory.Rect("Available "+definition.DisplayName,content,new Vector2(.5f,1),new Vector2((i%3-1)*155,-90-i/3*175),new Vector2(106,164));
+            var cardImage = card.gameObject.AddComponent<Image>();
+            cardImage.preserveAspect = true;
+            bool hasCardSprite = definition.CardSprite != null;
+            cardImage.sprite = hasCardSprite ? definition.CardSprite : null;
+            cardImage.color = hasCardSprite ? Color.white : new Color(.2f,.32f,.4f);
+            var iconView = CardIconView.Create(card,new Vector2(0,12),new Vector2(54,84));
+            if (hasCardSprite) iconView.gameObject.SetActive(false); else iconView.Bind(definition);
+            var label = UiFactory.Label(card,definition.DisplayName+"\n"+definition.CostDescription,new Vector2(.5f,.5f),new Vector2(0,-52),new Vector2(100,46),13);
+            var outline = label.gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0f,0f,0f,.95f);
+            outline.effectDistance = new Vector2(1.2f,-1.2f);
             card.gameObject.AddComponent<DeckCardDrag>().Initialize(definition,canvas);
             availableViews.Add(definition,card);
         }
         for (int i=0;i<6;i++) {
-            var card = UiFactory.Rect("Deck Slot T"+(i+1),transform,new Vector2(.75f,1),new Vector2((i%2-.5f)*240,-235-i/2*155),new Vector2(220,135));
-            card.gameObject.AddComponent<Image>().color = new Color(.2f,.28f,.25f);
-            labels[i] = UiFactory.Label(card,"",new Vector2(.5f,.5f),Vector2.zero,new Vector2(215,130),23);
-            icons[i] = CardIconView.Create(card,new Vector2(-78,0),new Vector2(50,94));
+            var card = UiFactory.Rect("Deck Slot T"+(i+1),transform,new Vector2(.75f,1),new Vector2((i%3-1)*150,-225-i/3*195),new Vector2(114,176));
+            slotImages[i] = card.gameObject.AddComponent<Image>();
+            slotImages[i].preserveAspect = true;
+            labels[i] = UiFactory.Label(card,"",new Vector2(.5f,.5f),new Vector2(0,-56),new Vector2(108,48),14);
+            var outline = labels[i].gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0f,0f,0f,.95f);
+            outline.effectDistance = new Vector2(1.2f,-1.2f);
+            icons[i] = CardIconView.Create(card,new Vector2(0,12),new Vector2(58,90));
             drops[i] = card.gameObject.AddComponent<DeckSlotDrop>(); drops[i].Initialize(editor,i);
         }
         UiFactory.Label(transform,"Drag an available card onto T1-T6. Changes save automatically.",new Vector2(.5f,0),new Vector2(0,35),new Vector2(1100,50),20);
@@ -70,19 +83,30 @@ public sealed class DeckEditorUI : MonoBehaviour {
     }
     private void Refresh() {
         for (int i=0;i<6;i++) {
-            bool artwork = icons[i].Bind(deck.Slots[i]);
-            labels[i].rectTransform.anchoredPosition = artwork ? new Vector2(27,0) : Vector2.zero;
-            labels[i].rectTransform.sizeDelta = artwork ? new Vector2(158,125) : new Vector2(215,130);
-            labels[i].fontSize = artwork ? 20 : 23;
-            labels[i].text = "T"+(i+1)+"\n"+deck.Slots[i].DisplayName;
+            var slotCard = deck.Slots[i];
+            bool hasCardSprite = slotCard != null && slotCard.CardSprite != null;
+            slotImages[i].sprite = hasCardSprite ? slotCard.CardSprite : null;
+            slotImages[i].color = hasCardSprite ? Color.white : new Color(.2f,.28f,.25f);
+            if (hasCardSprite) {
+                icons[i].gameObject.SetActive(false);
+                labels[i].rectTransform.anchoredPosition = new Vector2(0,-56);
+                labels[i].rectTransform.sizeDelta = new Vector2(108,48);
+                labels[i].fontSize = 14;
+            } else {
+                bool artwork = icons[i].Bind(slotCard);
+                labels[i].rectTransform.anchoredPosition = artwork ? new Vector2(0,-50) : Vector2.zero;
+                labels[i].rectTransform.sizeDelta = new Vector2(108,52);
+                labels[i].fontSize = 15;
+            }
+            labels[i].text = "T"+(i+1)+"\n"+slotCard.DisplayName;
         }
         var available = editor.Available;
         var visible = new HashSet<CardDefinition>(available);
         // Reuse views. Hiding a consumed source safely cancels its drag ghost during OnDrop.
         foreach (var pair in availableViews) pair.Value.gameObject.SetActive(visible.Contains(pair.Key));
         for (int i=0;i<available.Count;i++)
-            availableViews[available[i]].anchoredPosition = new Vector2((i%3-1)*175,-75-i/3*140);
-        content.sizeDelta = new Vector2(530,Mathf.Max(450,Mathf.CeilToInt(available.Count/3f)*140));
+            availableViews[available[i]].anchoredPosition = new Vector2((i%3-1)*155,-90-i/3*175);
+        content.sizeDelta = new Vector2(530,Mathf.Max(450,Mathf.CeilToInt(available.Count/3f)*175));
     }
     private void ShowWarning(string message) => warning.Show(message,3);
     private void OnDestroy() { if (presets != null) presets.Changed -= OnPresetsChanged; if (deck != null) deck.Rejected -= ShowWarning; }

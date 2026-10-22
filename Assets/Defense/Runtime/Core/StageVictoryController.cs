@@ -27,14 +27,9 @@ public sealed class StageVictoryController : MonoBehaviour {
     public bool EvaluateClear() {
         if (processed || flow == null || !flow.IsPlaying || !schedule.IsFinishedSpawning || enemies.AliveEnemyCount != 0) return false;
         processed = true;
-        GoldEarned = stage.ClearGoldReward <= int.MaxValue-currency.Gold ? stage.ClearGoldReward : 0;
-        if (GoldEarned != stage.ClearGoldReward) Debug.LogWarning("Clear Gold could not be credited because the currency limit was reached.");
+        GoldEarned = 0;
         if (!flow.TryVictory()) return false;
         completeProgression?.Invoke();
-        if (!currency.AddGold(GoldEarned)) {
-            GoldEarned = 0;
-            Debug.LogWarning("Clear Gold could not be credited because the currency limit was reached.");
-        }
         return true;
     }
     private void TrackScheduledEnemy(Enemy enemy) {

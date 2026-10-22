@@ -17,8 +17,6 @@ public sealed class LobbyUI : MonoBehaviour {
             UiFactory.ApplyButtonSkin(backButton,skin.LobbyBack);
             UiFactory.ApplyButtonSkin(settingsButton,skin.LobbySettings);
         }
-        var currency = UiFactory.Rect("Player Currency",transform,new Vector2(.5f,1),new Vector2(0,-95),new Vector2(480,36));
-        currency.gameObject.AddComponent<PlayerCurrencyUI>().Initialize(PlayerSession.Currency);
         var viewport = UiFactory.Rect("Stage Carousel",transform,new Vector2(.5f,1),new Vector2(0,-230),new Vector2(970,290));
         Carousel = viewport.gameObject.AddComponent<StageCarouselView>();
         Carousel.Initialize(PlayerSession.Catalog,PlayerSession.Selection,PlayerSession.Progression,skin);

@@ -38,8 +38,6 @@ public sealed class StageInitializer : MonoBehaviour {
             Debug.LogError(issue,this); flow.FailConfiguration(issue); return;
         }
         schedule.Configure(definition);
-        var candy = GetComponent<CandyDropSystem>() ?? gameObject.AddComponent<CandyDropSystem>();
-        candy.Initialize(GetComponent<EnemySpawner>(),PlayerSession.Currency);
         var victory = GetComponent<StageVictoryController>() ?? gameObject.AddComponent<StageVictoryController>();
         victory.Initialize(flow,schedule,GetComponent<EnemyRegistry>(),definition,PlayerSession.Currency,()=>PlayerSession.CompleteActiveStage(),trackScheduledDefeats);
     }

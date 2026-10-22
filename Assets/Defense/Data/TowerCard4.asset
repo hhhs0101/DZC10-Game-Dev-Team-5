@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Defense.TowerCardDefinition
   cardId: tower.test.4
   displayName: Black Pepper
-  elixirCost: 0
+  elixirCost: 2
   color: {r: 0.18, g: 0.26, b: 0.34, a: 1}
   tower: {fileID: 11400000, guid: 77f87bbb556540338f374b28909c58ce, type: 2}
+  cardSprite: {fileID: 21300000, guid: d1e2f3a4b5c647898901234567890204, type: 3}

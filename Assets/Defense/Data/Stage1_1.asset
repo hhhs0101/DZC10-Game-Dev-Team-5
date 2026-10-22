@@ -20,8 +20,8 @@ MonoBehaviour:
   spawnInterval: 2
   spawnSequence: []
   spawnPlanJson: {fileID: 0}
-  finiteSpawning: 0
-  totalEnemies: 5
+  finiteSpawning: 1
+  totalEnemies: 30
   clearGoldReward: 50
   alwaysUnlocked: 0
   availableTurrets:

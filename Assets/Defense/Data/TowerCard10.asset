@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Defense.TowerCardDefinition
   cardId: tower.test.10
   displayName: Mayonnaise
-  elixirCost: 0
+  elixirCost: 3
   color: {r: 0.18, g: 0.26, b: 0.34, a: 1}
   tower: {fileID: 11400000, guid: 305c46df435f4aa1b1c1132934f1144b, type: 2}
+  cardSprite: {fileID: 21300000, guid: d1e2f3a4b5c647898901234567890210, type: 3}

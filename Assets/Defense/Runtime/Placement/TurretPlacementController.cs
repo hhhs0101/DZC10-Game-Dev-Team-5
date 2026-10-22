@@ -44,7 +44,6 @@ public sealed class TurretPlacementController : MonoBehaviour {
         if (!flow.IsPlaying || selected == null || !GetComponent<GameplayHand>().CanPlace(selected)) return false;
         if (slot == null || (pointer2D != null && !pointer2D.Map.PlayableArea.Contains(slot.PlacementPoint.position))) return Fail("You cannot place a turret here.");
         if (slot.IsOccupied) return Fail("A turret is already placed here.");
-        if (!wallet.CanAfford(selected.Cost)) return Fail("Not enough resources.");
         if (selected.Prefab == null || selected.Targeting == null) {
             Debug.LogError("Selected turret requires a prefab and targeting strategy.", this); return false;
         }
@@ -54,7 +53,6 @@ public sealed class TurretPlacementController : MonoBehaviour {
         Turret turret = Instantiate(spritePrefab != null ? spritePrefab : selected.Prefab, slot.PlacementPoint.position, slot.PlacementPoint.rotation, slot.transform);
         turret.Initialize(selected, registry);
         if (!slot.TryOccupy(turret)) { Destroy(turret.gameObject); return Fail("A turret is already placed here."); }
-        wallet.TrySpend(selected.Cost);
         var used = selected;
         hand.CompleteUse(card, CardUseResult.Success);
         Placed?.Invoke(used);

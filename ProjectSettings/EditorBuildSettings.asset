@@ -11,4 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Defense/Scenes/TopDownStage3.unity
     guid: 4fb10c691fd6d4a93a758eb3a96fe0b2
+  - enabled: 1
+    path: Assets/Defense/Scenes/TopDownStage1_2.unity
+    guid: c4e5f6a7b8d94231890123456789abcd
   m_configObjects: {}
