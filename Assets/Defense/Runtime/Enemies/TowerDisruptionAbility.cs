@@ -12,19 +12,22 @@ public sealed class TowerDisruptionAbility : EnemyRoleAbility {
         cooldown = Mathf.Max(0,cooldown-deltaTime);
         if(cooldown > 0) return;
         // First attempt is immediate; missed attempts also wait the configured interval.
-        cooldown = Data.DisruptionCooldown; TryDisruptNearest();
+        cooldown = Data.DisruptionCooldown; TryDisruptRandom();
     }
-    public bool TryDisruptNearest() {
+    public bool TryDisruptNearest() => TryDisruptRandom(); // Legacy callers.
+    public bool TryDisruptRandom() {
         if(!IsOperational || (Flow != null && !Flow.IsPlaying)) return false;
-        Turret nearest = null; float nearestDistance = float.PositiveInfinity;
+        Turret nearest = null; int candidates = 0;
         foreach(var slot in Object.FindObjectsByType<TowerPlacementSlot>()) {
             var tower = slot.Occupant;
             if(tower == null || !tower.isActiveAndEnabled || tower.Definition == null || tower.gameObject.scene != Owner.gameObject.scene) continue;
             float distance = PlanarSpace.SqrDistance(Owner.transform.position,tower.transform.position,WaypointPlane.XY);
-            if(distance <= Data.DisruptionRange*Data.DisruptionRange && distance < nearestDistance) { nearest = tower; nearestDistance = distance; }
+            if(distance <= Data.DisruptionRange*Data.DisruptionRange && Random.Range(0,++candidates) == 0) nearest = tower;
         }
         LastTarget = nearest;
-        return nearest != null && nearest.AttackStatus.Apply(sourceToken,Data.DisruptionDuration);
+        if(nearest == null) return false;
+        DirtProjectile.Launch(Owner.transform.position,nearest,sourceToken,Data.DisruptionDuration,Flow);
+        return true;
     }
     // Applied effects intentionally survive source death until target-owned expiry.
     protected override void OnDeactivated() => LastTarget = null;

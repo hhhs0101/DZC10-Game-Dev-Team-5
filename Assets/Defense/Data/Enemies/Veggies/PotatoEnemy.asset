@@ -15,18 +15,25 @@ MonoBehaviour:
   enemyTypeId: enemy_potato
   displayName: Potato
   sprite: {fileID: 21300000, guid: c85b9dee84a6a4975b9be72402c79068, type: 3}
-  prefab: {fileID: 7971707257215467551, guid: 33849ed52015f419b9db496e0d87d51c, type: 3}
-  health: 150
-  movementSpeed: 1.8
+  prefab: {fileID: 7971707257215467551, guid: 0c5a3ffb033e41a0af8c4f80b8af7698, type: 3}
+  health: 200
+  movementSpeed: 2
   baseDamage: 20
   baseDamageUnconfigured: 0
   role: 3
-  supportArea: 0
+  supportArea: 3
   speedIncrease: 1.5
-  shieldValue: 1000
-  disruptionRange: 0
-  disruptionCooldown: 0
-  disruptionDuration: 0
+  shieldValue: 0.6
+  disruptionRange: 4
+  disruptionCooldown: 5
+  disruptionDuration: 3
   resourceReward: 10
   candyDropChance: 0.1
   candyDropAmount: 1
+  vegetableType: 7
+  splitCount: 5
+  summonCount: 3
+  summonInterval: 5
+  towerAttackRange: 3
+  towerAttackInterval: 5
+  towerDamageFraction: 0.66

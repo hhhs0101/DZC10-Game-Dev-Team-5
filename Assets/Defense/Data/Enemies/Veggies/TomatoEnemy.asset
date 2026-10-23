@@ -21,12 +21,19 @@ MonoBehaviour:
   baseDamage: 100
   baseDamageUnconfigured: 0
   role: 0
-  supportArea: 0
+  supportArea: 3
   speedIncrease: 1.5
-  shieldValue: 1000
-  disruptionRange: 0
-  disruptionCooldown: 0
-  disruptionDuration: 0
+  shieldValue: 0.6
+  disruptionRange: 4
+  disruptionCooldown: 5
+  disruptionDuration: 3
   resourceReward: 10
   candyDropChance: 0.1
   candyDropAmount: 1
+  vegetableType: 2
+  splitCount: 5
+  summonCount: 3
+  summonInterval: 5
+  towerAttackRange: 3
+  towerAttackInterval: 5
+  towerDamageFraction: 0.66

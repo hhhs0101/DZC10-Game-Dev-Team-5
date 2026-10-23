@@ -14,6 +14,12 @@ public sealed class EnemyPathFollower : MonoBehaviour {
         path = route; BaseMovementSpeed = movementSpeed; Modifiers.Clear(); next = 1;
         transform.position = path.GetPoint(0); following = true;
     }
+    public WaypointPath Route => path;
+    public int NextWaypoint => next;
+    public void ContinueFrom(EnemyPathFollower source) {
+        path = source.path; next = source.next; transform.position = source.transform.position;
+        following = next < path.Count;
+    }
     public void Stop() { following = false; }
     private void Update() { Advance(Time.deltaTime); }
     public void Advance(float deltaTime) {

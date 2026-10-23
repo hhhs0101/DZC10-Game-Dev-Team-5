@@ -18,10 +18,17 @@ public sealed class LobbyDeckPreview : MonoBehaviour {
             outline.effectDistance = new Vector2(1.2f,-1.2f);
             icons[i] = CardIconView.Create(rect,new Vector2(0,8),new Vector2(44,68));
         }
-        presets.Changed += Refresh; Refresh();
+        presets.Changed += Refresh; PlayerSession.StageCardsChanged += OnStageChanged; Refresh();
+    }
+    private void OnStageChanged() {
+        if(presets != null) presets.Changed -= Refresh;
+        presets = PlayerSession.Presets; presets.Changed += Refresh; Refresh();
     }
     private void Refresh() {
         for (int i=0;i<labels.Length;i++) {
+            bool occupied = i < presets.ActiveDeck.Slots.Count;
+            images[i].gameObject.SetActive(occupied); if(!occupied) continue;
+            images[i].rectTransform.anchoredPosition = new Vector2((i-(presets.ActiveDeck.Slots.Count-1)*.5f)*106,4);
             var card = presets.ActiveDeck.Slots[i];
             bool hasCardSprite = card != null && card.CardSprite != null;
             images[i].sprite = hasCardSprite ? card.CardSprite : null;
@@ -40,6 +47,6 @@ public sealed class LobbyDeckPreview : MonoBehaviour {
             labels[i].text = "T"+(i+1)+"\n"+card.DisplayName;
         }
     }
-    private void OnDestroy() { if (presets != null) presets.Changed -= Refresh; }
+    private void OnDestroy() { PlayerSession.StageCardsChanged -= OnStageChanged; if (presets != null) presets.Changed -= Refresh; }
 }
 }

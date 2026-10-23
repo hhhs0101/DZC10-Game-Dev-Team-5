@@ -11,7 +11,11 @@ public sealed class DeckPresetButtons : MonoBehaviour {
             int index = i;
             buttons[i] = UiFactory.Button(transform,"Preset "+(i+1),new Vector2((i-1)*155,0),()=>presets.SwitchPreset(index),size:new Vector2(145,42));
         }
-        presets.Changed += Refresh; Refresh();
+        Bind(model);
+    }
+    public void Bind(DeckPresetManager model) {
+        if(presets != null) presets.Changed -= Refresh;
+        presets = model; presets.Changed += Refresh; Refresh();
     }
     private void Refresh() {
         for (int i=0;i<buttons.Length;i++) {

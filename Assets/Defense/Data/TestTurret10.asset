@@ -14,11 +14,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Defense.TurretDefinition
   displayName: Mayonnaise
   prefab: {fileID: 2061435135399564034, guid: 03bbcf2016563478f886bb7d357e254f, type: 3}
-  cost: 3
-  damage: 22
+  cost: 0
+  damage: 0
   attackRange: 4.5
-  attackCooldown: 1.5
+  attackCooldown: 1
   targeting: {fileID: 11400000, guid: 352398aa511754b47a79b53950a3b3b4, type: 2}
   sprite: {fileID: 21300000, guid: 88e379331040046848afd8ed5f2726a4, type: 3}
   spriteScale: 1.6149533
   spriteOffset: {x: 0, y: 0.6813084}
+  towerType: 5
+  maximumHealth: 100
+  splashRadius: 1.5
+  burnDamagePerSecond: 5
+  burnDuration: 4
+  slowMultiplier: 0.5
+  slowDuration: 2
+  damageBoost: 1.5
+  cleanseInterval: 5

@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Defense.TurretDefinition
   displayName: Brown Sauce
   prefab: {fileID: 2061435135399564034, guid: 03bbcf2016563478f886bb7d357e254f, type: 3}
-  cost: 3
-  damage: 18
-  attackRange: 4
-  attackCooldown: 1.2
+  cost: 0
+  damage: 36.0
+  attackRange: 4.0
+  attackCooldown: 0.96
   targeting: {fileID: 11400000, guid: 352398aa511754b47a79b53950a3b3b4, type: 2}
   sprite: {fileID: 21300000, guid: 3cce507597f854e85bccb25a613d7c62, type: 3}
   spriteScale: 1.5567567

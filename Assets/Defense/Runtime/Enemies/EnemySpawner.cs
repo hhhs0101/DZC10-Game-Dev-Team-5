@@ -39,13 +39,24 @@ public sealed class EnemySpawner : MonoBehaviour {
         enemy.Died -= OnEnemyDied;
         EnemyDefeated?.Invoke(enemy);
     }
+    private Enemy ActorPrefab(EnemyDefinition definition) => definition.Prefab.GetType() != typeof(BasicEnemy)
+        ? definition.Prefab : (spritePrefab != null ? spritePrefab : definition.Prefab);
+    public Enemy SpawnChild(EnemyDefinition definition, Enemy source, bool canSplit) {
+        if(!CanSpawn || definition == null || definition.Prefab == null || source == null || source.Movement.Route == null) return null;
+        var child = Instantiate(ActorPrefab(definition),source.transform.position,Quaternion.identity,enemyRoot);
+        child.Spawner = this; child.CanSplit = canSplit;
+        child.Initialize(definition,source.Movement.Route,baseHealth,registry,source.Movement);
+        // Children count toward Victory through the registry, but do not farm resources/Candy.
+        return child;
+    }
     public Enemy Spawn(EnemyDefinition definition) {
         if (!flow.IsPlaying) return null;
         var activePath = SelectSpawnPath();
         if (definition == null || definition.Prefab == null || activePath == null || activePath.Count < 2) {
             Debug.LogError("EnemySpawner requires a prefab and at least two waypoints.", this); return null;
         }
-        Enemy enemy = Instantiate(spritePrefab != null ? spritePrefab : definition.Prefab, activePath.GetPoint(0), Quaternion.identity, enemyRoot);
+        Enemy enemy = Instantiate(ActorPrefab(definition), activePath.GetPoint(0), Quaternion.identity, enemyRoot);
+        enemy.Spawner = this;
         enemy.Initialize(definition, activePath, baseHealth, registry);
         enemy.Died += OnEnemyDied;
         return enemy;

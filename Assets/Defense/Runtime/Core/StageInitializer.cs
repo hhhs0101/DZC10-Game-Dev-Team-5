@@ -21,7 +21,8 @@ public sealed class StageInitializer : MonoBehaviour {
         if (hand == null) hand = gameObject.AddComponent<GameplayHand>();
         var elixir = GetComponent<ElixirSystem>() ?? gameObject.AddComponent<ElixirSystem>();
         elixir.Initialize(flow);
-        hand.Initialize(PlayerSession.Deck,placement,flow);
+        if(definition != null) PlayerSession.BindActiveStage(definition);
+        hand.Initialize(PlayerSession.Deck,placement,flow,definition);
         var skills = GetComponent<SkillCastingController>() ?? gameObject.AddComponent<SkillCastingController>();
         skills.Initialize(hand, flow, GetComponent<EnemyRegistry>(), Camera.main);
         if (definition == null) {

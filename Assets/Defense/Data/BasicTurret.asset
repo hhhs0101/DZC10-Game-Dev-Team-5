@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Defense.TurretDefinition
   displayName: Basic Turret
   prefab: {fileID: 2061435135399564034, guid: 03bbcf2016563478f886bb7d357e254f, type: 3}
-  cost: 50
+  cost: 0
   damage: 10
   attackRange: 3
   attackCooldown: 0.75

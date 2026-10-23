@@ -1,7 +1,8 @@
 using UnityEngine;
 namespace Defense {
 // Existing content is Basic (zero); stable string enemy IDs remain unchanged.
-public enum EnemyRole { Basic = 0, SpeedSupport = 1, ShieldSupport = 2, Disruptor = 3, Boss = 4 }
+public enum EnemyRole { Basic = 0, SpeedSupport = 1, ShieldSupport = 2, Disruptor = 3, Boss = 4, Split = 5 }
+public enum VegetableType { Other, Carrot, Tomato, Eggplant, Garlic, BellPepper, Corn, Potato, Broccoli }
 [CreateAssetMenu(menuName="Defense/Enemy Definition")]
 public sealed class EnemyDefinition : ScriptableObject {
     [Header("Identity and presentation")]
@@ -26,15 +27,31 @@ public sealed class EnemyDefinition : ScriptableObject {
     [SerializeField, Min(0), Tooltip("Support radius in XY world units. Zero means design tuning is not configured.")]
     private float supportArea;
     [SerializeField, Min(1), Tooltip("Garlic multiplier; strongest boost wins, then combines with strongest slow.")]
-    private float speedIncrease = 1.2f;
-    [SerializeField, Min(0), Tooltip("Finite shared shield per Broccoli instance; never replenishes except spawn/reset.")]
-    private float shieldValue = 100;
+    private float speedIncrease = 1.5f;
+    [SerializeField, Min(0), Tooltip("Fraction of incoming damage absorbed by the Bell Pepper aura, including itself.")]
+    private float shieldValue = .6f;
     [SerializeField, Min(0), Tooltip("Potato XY reach. Zero means not configured.")]
     private float disruptionRange;
     [SerializeField, Min(0), Tooltip("Seconds between Potato attempts, including attempts with no Tower. Zero means not configured.")]
     private float disruptionCooldown;
     [SerializeField, Min(0), Tooltip("Attack-disable seconds; survives source death until expiry. Zero means not configured.")]
     private float disruptionDuration;
+    [SerializeField] private VegetableType vegetableType;
+    [SerializeField, Min(1)] private int splitCount = 5;
+    [SerializeField, Min(1)] private int summonCount = 3;
+    [SerializeField, Min(.1f)] private float summonInterval = 5;
+    [SerializeField] private EnemyDefinition[] summonTypes = System.Array.Empty<EnemyDefinition>();
+    [SerializeField, Min(.1f)] private float towerAttackRange = 3;
+    [SerializeField, Min(.1f)] private float towerAttackInterval = 5;
+    [SerializeField, Range(0,1)] private float towerDamageFraction = .66f;
+    public VegetableType VegetableType => vegetableType;
+    public int SplitCount => Mathf.Max(1,splitCount);
+    public int SummonCount => Mathf.Max(1,summonCount);
+    public float SummonInterval => Mathf.Max(.1f,summonInterval);
+    public System.Collections.Generic.IReadOnlyList<EnemyDefinition> SummonTypes => summonTypes;
+    public float TowerAttackRange => towerAttackRange;
+    public float TowerAttackInterval => Mathf.Max(.1f,towerAttackInterval);
+    public float TowerDamageFraction => Mathf.Clamp01(towerDamageFraction);
     public EnemyRole Role => role;
     public bool HasConfiguredBaseDamage => !baseDamageUnconfigured;
     public float SupportArea => supportArea;
@@ -51,7 +68,7 @@ public sealed class EnemyDefinition : ScriptableObject {
                 case EnemyRole.SpeedSupport:
                     return Positive(supportArea) && Positive(speedIncrease) && speedIncrease >= 1 ? null : "Garlic supportArea (radius) or speed multiplier is not configured.";
                 case EnemyRole.ShieldSupport:
-                    return Positive(supportArea) && Positive(shieldValue) ? null : "Broccoli supportArea (radius) or finite shield pool is not configured.";
+                    return Positive(supportArea) && Positive(shieldValue) && shieldValue <= 1 ? null : "Bell Pepper support radius or shield fraction is invalid.";
                 case EnemyRole.Disruptor:
                     return Positive(disruptionRange) && Positive(disruptionCooldown) && Positive(disruptionDuration) ? null : "Potato disruption range, cooldown and duration must all be configured.";
                 default: return null;

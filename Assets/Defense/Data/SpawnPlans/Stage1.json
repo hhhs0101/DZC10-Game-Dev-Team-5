@@ -1,0 +1,125 @@
+{
+  "stageId": "stage_1",
+  "spawns": [
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 5
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_eggplant",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_eggplant",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 6
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_eggplant",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_eggplant",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 6
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_eggplant",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_eggplant",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 2.0
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 2.0
+    }
+  ]
+}

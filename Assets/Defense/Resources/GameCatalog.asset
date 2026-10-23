@@ -16,8 +16,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8c326c6647134616bf0ae753d9ab9298, type: 2}
   - {fileID: 11400000, guid: 641526385d7a4d588f406a9805f47e5b, type: 2}
   - {fileID: 11400000, guid: 43786d6748bd4cc6b1ed6b0e56ebde6b, type: 2}
-  - {fileID: 11400000, guid: 9bbe8ca128f72427087c5025046a3089, type: 2}
-  - {fileID: 11400000, guid: f519ed28373be4d25a8f12726379fb0b, type: 2}
   availableTowers:
   - {fileID: 11400000, guid: 04ae679be013433580c018e4b27e4bd9, type: 2}
   - {fileID: 11400000, guid: 1e6ab288cd744598bff374d5eeffb51a, type: 2}

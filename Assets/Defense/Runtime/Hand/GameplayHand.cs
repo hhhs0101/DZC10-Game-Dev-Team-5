@@ -7,11 +7,14 @@ public sealed class GameplayHand : MonoBehaviour {
     private TurretPlacementController placement;
     private GameFlow flow;
     private ElixirSystem elixir;
+    private StageDefinition stage;
     public RuntimeCardCycle Cycle { get; private set; }
     public RuntimeCard SelectedCard { get; private set; }
     public event Action Changed;
     public event Action<string> Message;
-    public void Initialize(PlayerDeck deck, TurretPlacementController controller, GameFlow gameFlow) {
+    public void Initialize(PlayerDeck deck, TurretPlacementController controller, GameFlow gameFlow, StageDefinition stageDefinition = null) {
+        stage = stageDefinition;
+        foreach(var card in deck.Slots) if(!StageCardRules.Allows(stage,card)) throw new InvalidOperationException("Deck contains a card unavailable in this stage.");
         placement = controller; flow = gameFlow; elixir = GetComponent<ElixirSystem>();
         Cycle = new RuntimeCardCycle(deck); SelectedCard = null;
         placement.Select(null); Changed?.Invoke();
@@ -30,7 +33,7 @@ public sealed class GameplayHand : MonoBehaviour {
     public void CancelSelection() { SelectedCard = null; placement.Select(null); Changed?.Invoke(); }
     public bool CanPlace(TurretDefinition definition) => SelectedCard?.Definition is TowerCardDefinition tower && tower.Tower == definition && Cycle.Contains(SelectedCard);
     public bool CanUse(RuntimeCard card) {
-        if (!flow.IsPlaying || card == null || card != SelectedCard || !Cycle.Contains(card)) return false;
+        if (!flow.IsPlaying || card == null || card != SelectedCard || !Cycle.Contains(card) || !StageCardRules.Allows(stage,card.Definition)) return false;
         if (elixir.CanAfford(card.Definition.ElixirCost)) return true;
         Message?.Invoke(InsufficientElixirMessage); return false;
     }

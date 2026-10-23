@@ -15,21 +15,20 @@ public static class LobbyAssetSetup {
             var stage = AssetDatabase.LoadAssetAtPath<StageDefinition>(stagePath);
             if (stage == null) {
                 stage = Object.Instantiate(first); stage.name = "Stage1_"+(i+1);
-                var serialized = new SerializedObject(stage); serialized.FindProperty("displayName").stringValue = "1-"+(i+1);
+                var serialized = new SerializedObject(stage); serialized.FindProperty("displayName").stringValue = "Stage "+(i+1);
                 serialized.FindProperty("finiteSpawning").boolValue = true;
                 serialized.FindProperty("totalEnemies").intValue = stageEnemyCounts[i];
                 serialized.FindProperty("alwaysUnlocked").boolValue = false;
                 serialized.FindProperty("baseHealth").intValue = 10;
                 serialized.FindProperty("enemy").objectReferenceValue = AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/Defense/Data/BasicEnemy.asset");
-                serialized.FindProperty("startingResources").intValue = 150+i*25;
+                serialized.FindProperty("startingResources").intValue = 300;
                 serialized.FindProperty("spawnInterval").floatValue = 2-i*.1f;
+                serialized.FindProperty("spawnPlanJson").objectReferenceValue = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/Defense/Data/SpawnPlans/Stage"+(i+1)+".json");
+                serialized.FindProperty("sceneName").stringValue = i == 1 ? "TopDownStage1_2" : "TopDownStage3";
                 serialized.ApplyModifiedPropertiesWithoutUndo(); AssetDatabase.CreateAsset(stage,stagePath);
             }
             stages.Add(stage);
         }
-        stages.Add(first);
-        var secondTest = AssetDatabase.LoadAssetAtPath<StageDefinition>("Assets/Defense/Data/TestStage2.asset");
-        if (secondTest != null) stages.Add(secondTest);
         var catalog = ScriptableObject.CreateInstance<GameCatalog>(); AssetDatabase.CreateAsset(catalog,path);
         var so = new SerializedObject(catalog);
         SetArray(so,"stages",stages.ToArray());

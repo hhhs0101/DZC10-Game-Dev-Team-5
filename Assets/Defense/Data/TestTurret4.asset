@@ -14,11 +14,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Defense.TurretDefinition
   displayName: Black Pepper
   prefab: {fileID: 2061435135399564034, guid: 03bbcf2016563478f886bb7d357e254f, type: 3}
-  cost: 2
-  damage: 8
-  attackRange: 3.5
-  attackCooldown: 0.5
+  cost: 0
+  damage: 32
+  attackRange: 3
+  attackCooldown: 0.6
   targeting: {fileID: 11400000, guid: 352398aa511754b47a79b53950a3b3b4, type: 2}
   sprite: {fileID: 21300000, guid: 8c389c0beb2d14d038abbdde55d702a7, type: 3}
   spriteScale: 1.9636364
   spriteOffset: {x: 0, y: 0.675}
+  towerType: 2
+  maximumHealth: 100
+  splashRadius: 1.5
+  burnDamagePerSecond: 5
+  burnDuration: 4
+  slowMultiplier: 0.5
+  slowDuration: 2
+  damageBoost: 1.25
+  cleanseInterval: 5

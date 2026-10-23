@@ -14,6 +14,6 @@ public abstract class CardDefinition : ScriptableObject {
     public virtual Sprite Icon => null;
     public Sprite CardSprite => cardSprite != null ? cardSprite : Icon;
     public abstract CardType Type { get; }
-    public string CostDescription => "Energy: " + ElixirCost;
+    public string CostDescription => "Energy: " + ElixirCost + (this is TowerCardDefinition tower && tower.Tower != null ? "\nCost: " + tower.Tower.Cost : "");
 }
 }
