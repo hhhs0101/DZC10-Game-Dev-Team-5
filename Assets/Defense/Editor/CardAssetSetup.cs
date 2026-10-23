@@ -52,8 +52,8 @@ public static class CardAssetSetup {
         if (created) { value = ScriptableObject.CreateInstance<T>(); AssetDatabase.CreateAsset(value,path); }
         return value;
     }
-    private static void Common(SerializedObject so,string id,string name,float cost) {
-        so.FindProperty("cardId").stringValue = id; so.FindProperty("displayName").stringValue = name; so.FindProperty("elixirCost").floatValue = cost;
+    private static void Common(SerializedObject so,string id,string name,int cost) {
+        so.FindProperty("cardId").stringValue = id; so.FindProperty("displayName").stringValue = name; so.FindProperty("elixirCost").intValue = cost;
     }
 }
 }

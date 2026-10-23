@@ -22,7 +22,7 @@ public static class TopDownStage2Validation {
     private static T Find<T>() where T:UnityEngine.Object=>UnityEngine.Object.FindFirstObjectByType<T>();
     static TopDownStage2Validation(){if(SessionState.GetBool(Key,false))Attach();}
     private static void Check(bool ok,string message){if(!ok)throw new Exception(message);checks++;Debug.Log("TOPDOWN2 PASS: "+message);}
-    private static void Value(UnityEngine.Object obj,string name,float value){var so=new SerializedObject(obj);so.FindProperty(name).floatValue=value;so.ApplyModifiedPropertiesWithoutUndo();}
+    private static void Value(UnityEngine.Object obj,string name,float value){var so=new SerializedObject(obj);var field=so.FindProperty(name);if(field.propertyType==SerializedPropertyType.Integer){if(value!=Mathf.Floor(value))throw new ArgumentException("Fractional cost");field.intValue=(int)value;}else field.floatValue=value;so.ApplyModifiedPropertiesWithoutUndo();}
     private static void Reference(UnityEngine.Object obj,string name,UnityEngine.Object value)=>PrototypeBuilder.Set(obj,name,value);
     private static GameFlow Flow=>Find<GameFlow>();
     private static GameplayHand Hand=>Find<GameplayHand>();

@@ -39,7 +39,7 @@ public sealed class CardEnergyBadge : MonoBehaviour {
     public void Bind(CardDefinition card) {
         gameObject.SetActive(card != null);
         if (card == null) return;
-        number.text = card.ElixirCost.ToString("0.##",CultureInfo.InvariantCulture);
+        number.text = card.ElixirCost.ToString(CultureInfo.InvariantCulture);
     }
 }
 }

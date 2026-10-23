@@ -246,7 +246,7 @@ Both TopDownStage2 and the integrated TopDownStage3 are wired. Pause, terminal s
 
 `CardDefinition` holds a stable ID, display name, placeholder color, and Elixir cost. `TowerCardDefinition` references the existing `TurretDefinition`; `SkillCardDefinition` references a `SkillDefinition`. Combat remains outside the UI.
 
-Every run starts with **3 Elixir**, regenerates **0.36 per second** while Playing, and caps at **10**. Pause, Game Over and Victory stop regeneration. The vertical bar on the right smoothly follows the authoritative value. Retry resets it.
+Every run starts with **3 Elixir**, regenerates **exactly 1 integer Energy every 2 seconds** while Playing, and caps at **10**. Pause, Game Over and Victory stop regeneration. The vertical bar on the right immediately displays the authoritative value with ten reusable yellow segments, filling bottom to top. Retry resets it.
 
 | Skill | Damage | Radius | Casting Time | Travel Time | Elixir |
 |---|---:|---:|---:|---:|---:|
@@ -259,7 +259,7 @@ Toy Throw reuses the existing area-damage asset (its stable script/asset identit
 
 Both skills share the existing Hand/Elixir commitment pipeline. Empty-area casts still pay and cycle. Cancellation, invalid placement, or insufficient funds never spend Elixir or advance the cycle. CastingTime (before launch) and TravelTime (after launch) are separate delays; no projectile is rendered. The optional ThrowOrigin is captured separately from the target. Pause freezes both delays and area/fade timers; Game Over and Victory discard pending casts, clear transient skill markers/slow sources and freeze the remaining scene until Retry/exit.
 
-Tower Cards currently cost **0 Elixir** and retain their existing resource costs. Their Elixir cost can be changed independently in the card asset. The default deck remains the original six towers; add Toy Throw and Slow Area through the Deck Editor.
+Tower Cards currently use integer Energy costs of **2–4**; Skill Cards retain their existing costs of **2** (Slow Area) and **3** (Toy Throw). Their Elixir cost can be changed independently in the card asset. The default deck remains the original six towers; add Toy Throw and Slow Area through the Deck Editor.
 
 Existing skill GUIDs and stable card IDs (`skill.fireball`, `skill.arrowrain`) are retained for reference compatibility; display names and asset paths reflect the new content.
 
@@ -316,3 +316,18 @@ The integrated `TopDownStage3` gameplay UI uses the Inspector-assigned `Assets/D
 Game Over uses Retry (source row 2) and Lobby (row 3); Victory uses Replay (row 1) and the same Lobby sprites. `Assets/Defense/Data/ResultMenuSkin.asset` supplies nine padded 488 x 180 Single Sprites from `Assets/Defense/Art/UI/ResultMenu/`. The shared button helper maps Normal / Hover and Selected / Pressed to columns 1 / 2 / 3, preserves aspect and hides duplicate Text rendering. Each result button retains its original name and callback, with a 360 x 120 click target centered at y=20 or -115. Titles and the Gold reward label are spaced above the buttons. The saved TopDownStage3 scene and setup script include this binding.
 
 Pause Exit now calls the existing `GameFlow.ExitToMenu` directly, returning to Lobby without a confirmation dialog. Result replay/retry, rewards, progress and persistent data logic are unchanged. Related validation scripts reflect the direct-exit flow. `Defense.Editor.ResultMenuSkinValidation.Run` provides a short isolated Play Mode check of result states, native button clicks, restart/return routing, timeScale, reward idempotence and direct Pause Exit.
+
+
+### Segmented integer Energy
+
+`ElixirSystem.CurrentEnergy` / `MaxEnergy` and `CardDefinition.ElixirCost` are integers; `Current` remains an integer compatibility alias. Runs start at 3 Energy and cap at 10. A separate internal timer grants one point after each 2 active gameplay seconds, preserving leftover time and handling multiple intervals in long frames. Full Energy discards excess timer progress; Pause and terminal states freeze it. Legacy float spending overloads accept only exact integers and reject fractional/NaN/infinite values without rounding. All 17 existing authored card costs were audited as integral and remain unchanged.
+
+`ElixirBarUI` observes Energy change events and shows the bottom N of ten Images sharing `Resources/UI/EnergySegment.png`. `EnergyBarFrame.png` contains the supplied wooden frame and Energy label; the detached source block is not separately displayed. Both are exact RGBA crops of the archived source at `Art/UI/SegmentedEnergy/EnergySheet.png`, imported with Point filtering and no mipmaps/compression. The bar retains the existing sidebar center and uses a proportional 88 x 401.69 size; segments remain in the unobstructed dark interior. Only the integer amount is printed below the baked-in Energy label. Both integrated gameplay scenes use the same runtime UI automatically; no scene references need editing.
+
+Tower lifetimes preserve their existing balance through `TowerLifetime.LifetimeReferenceRegeneration`; changing Energy recovery no longer implicitly alters tower expiry. Existing placement and Skill commitment logic still owns affordability, spending and Hand cycling. `Defense.Editor.SegmentedEnergyValidation.Run` uses isolated save paths and verifies integer regeneration, pause/cap/timer behavior, 0/1/5/10 segment display, unchanged costs and actual successful/cancelled/failed Skill and placement paths.
+
+
+Energy artwork was revised using `ChatGPT Image Oct 23, 2026, 09_29_20 PM (4).png`. The frame crop is (222,97,294,1342) and reusable segment crop is (46,1046,144,114), measured from the source top-left. The fill interior is (314,222)-(424,1195). Runtime frame height follows its imported Sprite ratio; the amount label follows the bottom of the frame. The integer 0–10 resource, starting value 3, 2-second recovery interval and all card/skill commitments remain unchanged.
+
+
+The Energy bar adds `Resources/UI/EnergyBarBolt.png` as its final child after the segment container. This keeps the supplied lightning mark in front of all yellow blocks, including at full Energy. It preserves aspect ratio, uses Point filtering, and has raycastTarget disabled. The source is archived as `Art/UI/SegmentedEnergy/EnergyBoltSource.png`; latest source `image (7).png`, crop (188,299,312,426), measured from top-left.

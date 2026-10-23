@@ -7,7 +7,7 @@ namespace Defense.Editor {
 public static class CardSkillValidation {
     private static T Find<T>() where T : UnityEngine.Object => UnityEngine.Object.FindFirstObjectByType<T>();
     private static void Set(UnityEngine.Object target,string property,float value) {
-        var so = new SerializedObject(target); so.FindProperty(property).floatValue = value; so.ApplyModifiedPropertiesWithoutUndo();
+        var so = new SerializedObject(target); var field=so.FindProperty(property); if(field.propertyType==SerializedPropertyType.Integer) { if(value!=Mathf.Floor(value))throw new ArgumentException("Fractional cost");field.intValue=(int)value; } else field.floatValue=value; so.ApplyModifiedPropertiesWithoutUndo();
     }
     public static void Models(GameCatalog catalog,Action<bool,string> check) {
         check(catalog.AvailableCards.Count==17 && catalog.AvailableCards.Select(c=>c.CardId).Distinct().Count()==17,"Seventeen unique stable Card IDs: fifteen towers and two skills");
@@ -50,7 +50,7 @@ public static class CardSkillValidation {
         var registry=Find<EnemyRegistry>(); var spawner=Find<EnemySpawner>(); var wallet=Find<ResourceWallet>();
         foreach(var turret in UnityEngine.Object.FindObjectsByType<Turret>()) turret.enabled=false;
         elixir.Initialize(flow); check(elixir.Current==3,"Fresh Elixir starts at exactly three");
-        elixir.Advance(2); check(Mathf.Approximately(elixir.Current,3.72f),"Playing regenerates exactly .36 per second");
+        elixir.Advance(2); check(elixir.Current==4,"Playing regenerates one integer point every two seconds");
         flow.TogglePause(); float paused=elixir.Current; elixir.Advance(100); check(elixir.Current==paused,"Pause stops Elixir regeneration");
         flow.TogglePause(); elixir.Advance(100); check(elixir.Current==10,"Resume regenerates and clamps at maximum ten");
         check(!elixir.TrySpend(11) && !elixir.TrySpend(-1) && !elixir.TrySpend(float.NaN) && elixir.Current==10,"Invalid and unaffordable spending preserves Elixir");
@@ -127,7 +127,7 @@ public static class CardSkillValidation {
         free.Occupant.enabled=false; UnityEngine.Object.Destroy(paid);
         var bar=Find<ElixirBarUI>(); bar.Advance(100); float display=bar.DisplayedFill;
         elixir.Advance(100); bar.Advance(.1f);
-        check(bar.DisplayedFill>display && bar.DisplayedFill<1 && elixir.Current==10,"Elixir fill smoothly approaches authoritative value without changing it");
+        check(bar.DisplayedFill==1 && bar.DisplayedSegments==10 && elixir.Current==10,"Energy segments immediately match the authoritative integer value");
         hand.Initialize(PlayerSession.Deck,placement,flow); hand.CancelSelection(); elixir.Initialize(flow);
         var isolated=new GameObject("Game Over Elixir test"); var isolatedFlow=isolated.AddComponent<GameFlow>(); var isolatedElixir=isolated.AddComponent<ElixirSystem>(); isolatedElixir.Initialize(isolatedFlow);
         isolatedFlow.GameOver(); isolatedElixir.Advance(100); check(isolatedElixir.Current==3,"Game Over stops Elixir regeneration");

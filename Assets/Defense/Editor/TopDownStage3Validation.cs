@@ -156,7 +156,7 @@ public static class TopDownStage3Validation {
                 Check(Hand.Cycle.InitialOrder.Take(3).SequenceEqual(Hand.Cycle.Hand)&&Hand.Cycle.InitialOrder.Skip(3).SequenceEqual(Hand.Cycle.UpcomingQueue)&&Hand.Cycle.InitialOrder.Select(c=>c.Definition).OrderBy(c=>c.CardId).SequenceEqual(PlayerSession.Deck.Slots.OrderBy(c=>c.CardId)),"Initial shuffle copies the six active preset cards into Hand and queue");
                 VerifyDeck();sampleElixir=Elixir.Current;sampleTime=Time.time;Next(2,.35);break;
             case 2:
-                Check(Time.time>sampleTime+.15f&&Mathf.Abs(Elixir.Current-sampleElixir-(Time.time-sampleTime)*.36f)<.02f,"Advancing Play Mode frames regenerate real Elixir at 0.36 per second");
+                Check(Time.time>sampleTime+.15f&&Elixir.Current==sampleElixir,"Sub-two-second gameplay advances preserve integer Energy");
                 Click("Pause");sampleTime=Time.time;sampleElixir=Elixir.Current;Next(3,.3);break;
             case 3:
                 Check(Flow.State==GameplayState.Paused&&Time.time==sampleTime&&Elixir.Current==sampleElixir&&Schedule.SpawnedCount==0,"Pause freezes gameplay time, Elixir and spawning");

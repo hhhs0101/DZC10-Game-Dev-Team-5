@@ -5,6 +5,8 @@ namespace Defense {
 public sealed class TowerLifetime : MonoBehaviour {
     public const float RechargeCycles = 4f;
     public const float MinimumLifetime = 20f;
+    // Preserve existing tower durations when passive Energy regeneration is rebalanced.
+    public const float LifetimeReferenceRegeneration = .36f;
     private Turret tower;
     private TowerPlacementSlot slot;
     private GameFlow flow;
@@ -17,7 +19,7 @@ public sealed class TowerLifetime : MonoBehaviour {
     public static float DurationForCost(float energyCost) {
         if (float.IsNaN(energyCost) || float.IsInfinity(energyCost) || energyCost < 0)
             energyCost = 0;
-        return Mathf.Max(MinimumLifetime, RechargeCycles * energyCost / ElixirSystem.Regeneration);
+        return Mathf.Max(MinimumLifetime, RechargeCycles * energyCost / LifetimeReferenceRegeneration);
     }
     public void Initialize(Turret owner, TowerPlacementSlot placementSlot, GameFlow gameFlow, float energyCost) {
         tower = owner; slot = placementSlot; flow = gameFlow;

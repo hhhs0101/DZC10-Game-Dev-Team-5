@@ -10,7 +10,7 @@ public static class TowerLifetimeValidation {
         var root = new GameObject("Tower lifetime validation");
         try {
             foreach (float cost in new[] { 2f, 3f, 4f })
-                Check(Mathf.Abs(TowerLifetime.DurationForCost(cost) * ElixirSystem.Regeneration - 4 * cost) < .001f, "Four recharge cycles");
+                Check(Mathf.Abs(TowerLifetime.DurationForCost(cost) * TowerLifetime.LifetimeReferenceRegeneration - 4 * cost) < .001f, "Existing lifetime balance is preserved");
             Check(TowerLifetime.DurationForCost(0) == 20 && TowerLifetime.DurationForCost(float.NaN) == 20, "Safe minimum");
             var flow = root.AddComponent<GameFlow>();
             var slotObject = new GameObject("Slot"); slotObject.transform.SetParent(root.transform);
