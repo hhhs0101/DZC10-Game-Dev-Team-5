@@ -10,12 +10,14 @@ public enum SoundCategory {
 }
 
 public static class GameAudio {
+    public const float TowerSfxDuration = 1f;
     private const string BgmVolumePrefKey = "Defense.Audio.BgmVolume";
     private const string SfxVolumePrefKey = "Defense.Audio.SfxVolume";
 
     private static GameAudioCatalog catalog;
     private static AudioSource bgmSource;
     private static AudioSource sfxSource;
+    private static AudioSource towerSfxSource;
     private static float bgmVolume = -1f;
     private static float sfxVolume = -1f;
 
@@ -60,6 +62,7 @@ public static class GameAudio {
             sfxVolume = clamped;
             PlayerPrefs.SetFloat(SfxVolumePrefKey, clamped);
             if (sfxSource != null) sfxSource.volume = clamped;
+            if (towerSfxSource != null) towerSfxSource.volume = clamped;
         }
         VolumeChanged?.Invoke(category, clamped);
     }
@@ -67,7 +70,7 @@ public static class GameAudio {
     private static void EnsureSources() {
         if (!Application.isPlaying) return;
         EnsureAudioListener();
-        if (bgmSource != null && sfxSource != null) return;
+        if (bgmSource != null && sfxSource != null && towerSfxSource != null) return;
         var host = new GameObject("GameAudio");
         UnityEngine.Object.DontDestroyOnLoad(host);
 
@@ -86,6 +89,12 @@ public static class GameAudio {
         sfxSource.spatialBlend = 0f;
         sfxSource.loop = false;
         sfxSource.volume = SfxVolume;
+
+        towerSfxSource = sfxGroup.AddComponent<AudioSource>();
+        towerSfxSource.playOnAwake = false;
+        towerSfxSource.spatialBlend = 0f;
+        towerSfxSource.loop = false;
+        towerSfxSource.volume = SfxVolume;
     }
 
     private static void EnsureAudioListener() {
@@ -116,15 +125,15 @@ public static class GameAudio {
         if (tower == null || string.IsNullOrEmpty(tower.DisplayName)) return;
         string name = tower.DisplayName.Trim().ToLowerInvariant();
         if (name.Contains("ketchup") || name.Contains("mayonnaise") || name.Contains("mustard")) {
-            PlaySfx(Resolve(Catalog != null ? Catalog.ketchupMayoMustard : null, "Assets/SFX/ketchup_mayo_mustard.wav"));
+            PlayTowerSfx(Resolve(Catalog != null ? Catalog.ketchupMayoMustard : null, "Assets/SFX/ketchup_mayo_mustard.wav"));
         } else if (name.Contains("olive oil") || name.Contains("soy sauce") || name.Contains("soya sauce")) {
-            PlaySfx(Resolve(Catalog != null ? Catalog.oilSoya : null, "Assets/SFX/oil_soya.wav"));
+            PlayTowerSfx(Resolve(Catalog != null ? Catalog.oilSoya : null, "Assets/SFX/oil_soya.wav"));
         } else if (name.Contains("paprika")) {
-            PlaySfx(Resolve(Catalog != null ? Catalog.paprika : null, "Assets/SFX/paprika.wav"));
+            PlayTowerSfx(Resolve(Catalog != null ? Catalog.paprika : null, "Assets/SFX/paprika.wav"));
         } else if (name.Contains("black pepper") || name == "pepper") {
-            PlaySfx(Resolve(Catalog != null ? Catalog.pepper : null, "Assets/SFX/pepper.wav"));
+            PlayTowerSfx(Resolve(Catalog != null ? Catalog.pepper : null, "Assets/SFX/pepper.wav"));
         } else if (name.Contains("salt")) {
-            PlaySfx(Resolve(Catalog != null ? Catalog.salt : null, "Assets/SFX/salt.wav"));
+            PlayTowerSfx(Resolve(Catalog != null ? Catalog.salt : null, "Assets/SFX/salt.wav"));
         }
     }
 
@@ -144,6 +153,18 @@ public static class GameAudio {
         EnsureSources();
         sfxSource.volume = SfxVolume;
         sfxSource.PlayOneShot(clip, SfxVolume);
+    }
+
+    private static void PlayTowerSfx(AudioClip clip) {
+        if (!Application.isPlaying || clip == null) return;
+        EnsureSources();
+        towerSfxSource.Stop();
+        towerSfxSource.clip = clip;
+        towerSfxSource.volume = SfxVolume;
+        towerSfxSource.time = 0f;
+        double startDsp = AudioSettings.dspTime;
+        towerSfxSource.PlayScheduled(startDsp);
+        towerSfxSource.SetScheduledEndTime(startDsp + TowerSfxDuration);
     }
 }
 }
