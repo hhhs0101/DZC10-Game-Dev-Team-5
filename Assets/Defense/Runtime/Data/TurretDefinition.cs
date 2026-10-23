@@ -16,7 +16,7 @@ public sealed class TurretDefinition : ScriptableObject {
     [SerializeField, Tooltip("Presentation-only offset from the unchanged placement point.")] private Vector2 spriteOffset;
     [Header("Combat role and editable balance")]
     [SerializeField] private TowerType towerType;
-    [SerializeField, Min(1)] private float maximumHealth = 100;
+    [SerializeField, Min(1)] private float maximumHealth = 1000;
     [SerializeField, Min(0)] private float splashRadius = 1.5f;
     [SerializeField, Min(0)] private float burnDamagePerSecond = 5;
     [SerializeField, Min(.1f)] private float burnDuration = 4;

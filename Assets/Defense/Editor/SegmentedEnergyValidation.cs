@@ -86,7 +86,7 @@ public static class SegmentedEnergyValidation {
         if(Time.frameCount-frame<3)return;
         var energy=Find<ElixirSystem>();
         switch(phase){
-            case 0:Find<FixedIntervalSpawner>().enabled=false;Model();UI();Actions();energy.Initialize(Find<GameFlow>());energy.enabled=true;sampleTime=Time.time;phase=1;break;
+            case 0:Find<FixedIntervalSpawner>().enabled=false;Model();TowerLifetimeValidation.Run();UI();Actions();energy.Initialize(Find<GameFlow>());energy.enabled=true;sampleTime=Time.time;phase=1;break;
             case 1:if(Time.time-sampleTime<2.05f)return;Check(energy.CurrentEnergy==4&&Find<ElixirBarUI>().DisplayedSegments==4,"Live frame updates regenerate one point after two seconds");phase=2;break;
             case 2:if(Time.time-sampleTime<4.05f)return;Check(energy.CurrentEnergy==5&&Find<ElixirBarUI>().DisplayedSegments==5,"Live frame updates regenerate a second point after four seconds");Finish(true,checks+" assertions");break;
         }

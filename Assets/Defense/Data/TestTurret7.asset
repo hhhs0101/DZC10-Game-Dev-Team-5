@@ -22,3 +22,4 @@ MonoBehaviour:
   sprite: {fileID: 21300000, guid: 3cce507597f854e85bccb25a613d7c62, type: 3}
   spriteScale: 1.5567567
   spriteOffset: {x: 0, y: 0.65675676}
+  maximumHealth: 1000

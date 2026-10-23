@@ -32,7 +32,7 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
         health = GetComponent<EnemyHealth>(); movement = GetComponent<EnemyPathFollower>();
         registry = enemies; baseTarget = target; baseDamage = data.BaseDamage;
         Definition = data; ResourceReward = data.ResourceReward;
-        health.Initialize(data.Health);
+        health.Initialize(data.Health, data.VegetableType == VegetableType.Corn ? data.SplitCount : 1);
         health.Depleted += Die; movement.ReachedEnd += ReachBase;
         movement.Initialize(path, data.MovementSpeed);
         if(continuation != null) movement.ContinueFrom(continuation);

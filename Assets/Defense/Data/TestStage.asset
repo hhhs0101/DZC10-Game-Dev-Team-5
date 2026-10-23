@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Defense.StageDefinition
   displayName: Test Stage
   sceneName: TopDownStage3
-  baseHealth: 3
+  baseHealth: 1000
   startingResources: 300
   enemy: {fileID: 11400000, guid: 1cd19b3d71e543b281c63e5f62430a55, type: 2}
   spawnInterval: 0.75
