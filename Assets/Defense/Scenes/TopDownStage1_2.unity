@@ -1249,7 +1249,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Defense.EnemySpawner
   path: {fileID: 1553294649}
-  branchPaths: []
+  branchPaths:
+  - {fileID: 1553294649}
+  - {fileID: 700102}
+  - {fileID: 700202}
   baseHealth: {fileID: 978773744}
   registry: {fileID: 978773743}
   flow: {fileID: 978773746}

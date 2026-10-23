@@ -8,18 +8,38 @@ public sealed class EnemySpawner : MonoBehaviour {
     [SerializeField] private GameFlow flow;
     [SerializeField] private Transform enemyRoot;
     [SerializeField, Tooltip("Optional native 2D actor prefab. EnemyDefinition still owns stats/rewards.")] private Enemy spritePrefab;
-    private int nextBranchIndex;
+    private int lastBranchIndex = -1;
+    private int sameBranchStreak;
     public bool CanSpawn => flow != null && flow.IsPlaying;
     internal GameFlow Flow => flow;
     private WaypointPath SelectSpawnPath() {
-        if (branchPaths != null && branchPaths.Length > 0) {
-            for (int i = 0; i < branchPaths.Length; i++) {
-                var candidate = branchPaths[(nextBranchIndex + i) % branchPaths.Length];
-                if (candidate != null && candidate.Count >= 2) {
-                    nextBranchIndex = (nextBranchIndex + i + 1) % branchPaths.Length;
-                    return candidate;
-                }
+        if ((branchPaths == null || branchPaths.Length == 0)) {
+            var map = UnityEngine.Object.FindFirstObjectByType<BattlefieldMap2D>();
+            if (map != null && map.BranchPaths != null && map.BranchPaths.Count > 1) {
+                branchPaths = new WaypointPath[map.BranchPaths.Count];
+                for (int i = 0; i < map.BranchPaths.Count; i++) branchPaths[i] = map.BranchPaths[i];
             }
+        }
+        if (branchPaths != null && branchPaths.Length > 1) {
+            var validIndices = new System.Collections.Generic.List<int>(branchPaths.Length);
+            for (int i = 0; i < branchPaths.Length; i++) {
+                if (branchPaths[i] != null && branchPaths[i].Count >= 2)
+                    validIndices.Add(i);
+            }
+            if (validIndices.Count > 1) {
+                // Prevent long single-lane streaks while keeping each spawn unpredictable.
+                if (sameBranchStreak >= 2 && validIndices.Contains(lastBranchIndex)) {
+                    validIndices.Remove(lastBranchIndex);
+                }
+                int chosen = validIndices[UnityEngine.Random.Range(0, validIndices.Count)];
+                if (chosen == lastBranchIndex) sameBranchStreak++;
+                else {
+                    lastBranchIndex = chosen;
+                    sameBranchStreak = 1;
+                }
+                return branchPaths[chosen];
+            }
+            if (validIndices.Count == 1) return branchPaths[validIndices[0]];
         }
         return path;
     }
