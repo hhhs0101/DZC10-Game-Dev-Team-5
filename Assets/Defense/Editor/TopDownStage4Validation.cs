@@ -42,7 +42,7 @@ public static class TopDownStage4Validation {
         if(kind==LogType.Error||kind==LogType.Exception||kind==LogType.Assert)Finish(false,m+"\n"+trace);
     }
     private static void Check(bool pass,string message){if(!pass)throw new Exception(message);checks++;Debug.Log("TOPDOWN4 PASS: "+message);}
-    private static void Click(string text){var b=UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Button>(FindObjectsSortMode.None).Single(x=>x.GetComponentInChildren<UnityEngine.UI.Text>().text==text);Check(b.interactable,"UI callback available: "+text);b.onClick.Invoke();Canvas.ForceUpdateCanvases();}
+    private static void Click(string text){var b=UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Button>().Single(x=>x.GetComponentInChildren<UnityEngine.UI.Text>().text==text);Check(b.interactable,"UI callback available: "+text);b.onClick.Invoke();Canvas.ForceUpdateCanvases();}
     private static void Next(int next,double wait=.1){step=next;deadline=EditorApplication.timeSinceStartup+wait;}
     private static void TestStage(){while(PlayerSession.Selection.SelectedStageIndex>0)PlayerSession.Selection.MovePrevious();int target=PlayerSession.Catalog.Stages.ToList().FindIndex(s=>s.DisplayName=="Test Stage");for(int i=0;i<target;i++)PlayerSession.Selection.MoveNext();Find<LobbyUI>().Carousel.Advance(1);}
     private static void ConfigurePreset(){
@@ -70,7 +70,7 @@ public static class TopDownStage4Validation {
         foreach(var c in new UnityEngine.Object[]{Find<TurretPlacementController>(),Find<SkillCastingController>()}){
             var data=new SerializedObject(c);Check(data.FindProperty("pointer2D").objectReferenceValue!=null&&data.FindProperty("surface")==null,"2D input dependency exists and retired surface field is removed: "+c.GetType().Name);
         }
-        Check(UnityEngine.Object.FindObjectsByType<UnityEngine.EventSystems.EventSystem>(FindObjectsSortMode.None).Length==1&&UnityEngine.Object.FindObjectsByType<StageInitializer>(FindObjectsSortMode.None).Length==1,"Single EventSystem and authoritative session bootstrap");
+        Check(UnityEngine.Object.FindObjectsByType<UnityEngine.EventSystems.EventSystem>().Length==1&&UnityEngine.Object.FindObjectsByType<StageInitializer>().Length==1,"Single EventSystem and authoritative session bootstrap");
         foreach(var root in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())foreach(var t in root.GetComponentsInChildren<Transform>(true))Check(GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(t.gameObject)==0,"No missing script: "+t.name);
         foreach(var slot in Map.PlacementSlots){var visual=slot.GetComponentInChildren<SpriteRenderer>();var shape=slot.GetComponent<Collider2D>();Check(Vector2.Distance(visual.bounds.center,shape.bounds.center)<.001f&&Vector2.Distance(shape.bounds.size,Vector2.one)<.001f&&Vector2.Distance(visual.transform.localScale,new Vector2(1.5f,1.5f))<.001f,"Wooden plate visual is enlarged 1.5x while centered on unchanged slot Collider2D: "+slot.name);}
     }
@@ -78,12 +78,12 @@ public static class TopDownStage4Validation {
         Find<ResourceWallet>().Initialize(10000);
         for(int n=0;n<4&&!Hand.Cycle.Hand.Any(c=>c.Definition is SkillCardDefinition);n++){
             Hand.Select(0);Check(Find<TurretPlacementController>().TryPlace(Map.PlacementSlots.First(s=>!s.IsOccupied)),"Production placement brings a Skill into random Hand");
-            foreach(var t in UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None))t.enabled=false;
+            foreach(var t in UnityEngine.Object.FindObjectsByType<Turret>())t.enabled=false;
         }
         int index=Hand.Cycle.Hand.ToList().FindIndex(c=>c.Definition is SkillCardDefinition);Check(index>=0&&Hand.Select(index),"Actual persistent Hand selects a Skill for spatial aiming probes");
     }
     private static Enemy Spawn(Vector3 position,EnemyDefinition data){var e=Find<EnemySpawner>().Spawn(data);e.Movement.Stop();e.transform.position=position;Registry.NotifyMoved(e);return e;}
-    private static PersistentSlowArea Area(SkillDefinition data,Vector3 position){var before=UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None);data.Effect.Apply(data,new SkillCastContext(position,Registry,Flow));return UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None).Except(before).Single();}
+    private static PersistentSlowArea Area(SkillDefinition data,Vector3 position){var before=UnityEngine.Object.FindObjectsByType<PersistentSlowArea>();data.Effect.Apply(data,new SkillCastContext(position,Registry,Flow));return UnityEngine.Object.FindObjectsByType<PersistentSlowArea>().Except(before).Single();}
     private static void Radius(SkillAreaVisual visual,Vector3 center,float radius){
         SkillEllipseValidation.AssertMarker(visual,center,radius,Check);
         float pixels=radius*Map.WorldCamera.pixelHeight/(2*Map.WorldCamera.orthographicSize),aspect=AssetDatabase.LoadAssetAtPath<SkillDefinition>("Assets/Defense/Data/ToyThrowSkill.asset").RangeProfile.AspectRatio;
@@ -95,10 +95,10 @@ public static class TopDownStage4Validation {
         foreach(var slot in Map.PlacementSlots){var screen=camera.WorldToScreenPoint(slot.PlacementPoint.position);Check(camera.pixelRect.Contains(screen)&&pointer.TryGetPoint(screen,out var world)&&Vector3.Distance(world,slot.PlacementPoint.position)<.001f&&pointer.GetSlot(world)==slot,"Visible slot round-trips through screen/XY/Physics2D: "+slot.name);}
         var floor=Map.PlayableArea.Bounds;
         var probes=new[]{new Vector3(floor.min.x+.1f,floor.max.y-.1f,0),new Vector3(floor.max.x-.1f,floor.min.y+.1f,0),Map.Path.GetPoint(2),Map.PlacementSlots[2].PlacementPoint.position+Vector3.right*.55f};
-        foreach(var p in probes){Vector2 screen=camera.WorldToScreenPoint(p);bool ui=GameplayPointer.IsOverUI(screen);bool valid=casting.TryGetTabletopPoint(screen,out var world);Check(valid==!ui&&(!valid||Vector3.Distance(world,p)<.002f),"Skill conversion at edge/turn/near-slot respects world coordinates and any HUD interception");if(valid){casting.ProcessPointer(screen,true,false);Check(casting.IsAiming,"Real Skill input aims at edge/turn/near-slot without immediate cast");Radius(UnityEngine.Object.FindObjectsByType<SkillAreaVisual>(FindObjectsSortMode.None).Single(v=>v.name=="Skill Aim Indicator"),p,casting.IndicatorRadius);casting.CancelAim();}}
+        foreach(var p in probes){Vector2 screen=camera.WorldToScreenPoint(p);bool ui=GameplayPointer.IsOverUI(screen);bool valid=casting.TryGetTabletopPoint(screen,out var world);Check(valid==!ui&&(!valid||Vector3.Distance(world,p)<.002f),"Skill conversion at edge/turn/near-slot respects world coordinates and any HUD interception");if(valid){casting.ProcessPointer(screen,true,false);Check(casting.IsAiming,"Real Skill input aims at edge/turn/near-slot without immediate cast");Radius(UnityEngine.Object.FindObjectsByType<SkillAreaVisual>().Single(v=>v.name=="Skill Aim Indicator"),p,casting.IndicatorRadius);casting.CancelAim();}}
         Check(!pointer.TryGetPoint(camera.WorldToScreenPoint(new Vector3(floor.max.x+.1f,floor.center.y,0)),out _),"Outside logical playable shape rejects input at every camera size");
         var button=GameObject.Find("Hand Card 1").GetComponent<RectTransform>();var original=button.position;
-        var root=UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None).Single(c=>c.renderMode==RenderMode.ScreenSpaceOverlay);
+        var root=UnityEngine.Object.FindObjectsByType<Canvas>().Single(c=>c.renderMode==RenderMode.ScreenSpaceOverlay);
         Vector2 target=camera.WorldToScreenPoint(Map.PlacementSlots[2].transform.position);RectTransformUtility.ScreenPointToWorldPointInRectangle(root.GetComponent<RectTransform>(),target,null,out var overlay);button.position=overlay;Canvas.ForceUpdateCanvases();
         Check(GameplayPointer.IsOverUI(target)&&!pointer.TryGetPoint(target,out _)&&!casting.TryGetTabletopPoint(target,out _),"Actual uGUI Hand intercepts 2D slot and Skill queries at this resolution");button.position=original;Canvas.ForceUpdateCanvases();
         var enemyData=UnityEngine.Object.Instantiate(PlayerSession.ActiveStage.Enemy);var data=new SerializedObject(enemyData);data.FindProperty("health").floatValue=200;data.FindProperty("resourceReward").intValue=0;data.FindProperty("candyDropChance").floatValue=0;data.ApplyModifiedPropertiesWithoutUndo();
@@ -116,7 +116,7 @@ public static class TopDownStage4Validation {
         Check(a.GetComponentInChildren<SpriteRenderer>().sortingOrder>area.GetComponentInChildren<SkillAreaVisual>().MarkerRenderer.sortingOrder&&a.GetComponentInChildren<Canvas>().sortingOrder>a.GetComponentInChildren<SpriteRenderer>().sortingOrder&&root.sortingOrder>a.GetComponentInChildren<Canvas>().sortingOrder,"Sorting puts units above zones, HP above units, and HUD above HP");
         a.ReceiveDamage(100000);Check(a.Movement.Modifiers.SourceCount==0,"Death while inside overlapping zones releases all slow sources");UnityEngine.Object.DestroyImmediate(b.gameObject);Check(area.AffectedCount==0,"Despawn inside overlapping zones removes membership");
         UnityEngine.Object.DestroyImmediate(other.gameObject);Check(c.Movement.Modifiers.SourceCount==0,"Removing final zone releases remaining source");area.Advance(slow.ActiveDuration+.01f);float opacity=area.VisualOpacity;Flow.TogglePause();area.Advance(100);Check(!area.IsActive&&area.VisualOpacity==opacity&&opacity>0,"Pause freezes post-expiry visual fade");Flow.TogglePause();area.Advance(slow.FadeDuration+1);
-        foreach(var effect in UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None))UnityEngine.Object.DestroyImmediate(effect.gameObject);
+        foreach(var effect in UnityEngine.Object.FindObjectsByType<PersistentSlowArea>())UnityEngine.Object.DestroyImmediate(effect.gameObject);
         foreach(var e in Registry.Enemies.ToArray())UnityEngine.Object.DestroyImmediate(e.gameObject);UnityEngine.Object.DestroyImmediate(enemyData);
         Check(Victory.DefeatedCount==0&&Schedule.SpawnedCount==0,"Spatial diagnostic actors never satisfy finite stage kill objective");VerifyProfile();
         Debug.Log("TOPDOWN4 MATRIX: "+Screen.width+"x"+Screen.height+" minSize="+zooms[zoomIndex]+" actualSize="+camera.orthographicSize);
@@ -129,7 +129,7 @@ public static class TopDownStage4Validation {
                 if(Find<MainMenuUI>()==null||GameObject.Find("Start Game")==null)return;
                 Check(File.ReadAllText(DeckPersistence.DefaultPath)==loadedDeck&&File.ReadAllText(PlayerCurrency.DefaultPath)==loadedCurrency,"Copied existing version-1 saves load without reset or rewrite");Click("Start Game");
                 if(restarting){RestoreSnapshot();TestStage();Click("Enter Stage");Next(80,.02);break;}
-                ConfigurePreset();PlayerSession.Selection.MoveNext();Find<LobbyUI>().Carousel.Advance(1);Check(!Find<LobbyUI>().TryEnter()&&UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Text>(FindObjectsSortMode.None).Any(t=>t.text=="This stage is locked.")&&UnityEngine.SceneManagement.SceneManager.GetActiveScene().name=="MainMenu","Default 2D entry respects existing stage locks");
+                ConfigurePreset();PlayerSession.Selection.MoveNext();Find<LobbyUI>().Carousel.Advance(1);Check(!Find<LobbyUI>().TryEnter()&&UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Text>().Any(t=>t.text=="This stage is locked.")&&UnityEngine.SceneManagement.SceneManager.GetActiveScene().name=="MainMenu","Default 2D entry respects existing stage locks");
                 TestStage();Check(PlayerSession.TrySelectStageForPlay()&&PlayerSession.ActiveBattleScene==PlayerSession.TopDownSceneName,"Parameterless session selection now defaults to 2D");Click("Enter Stage");Next(1,.02);break;
             case 1:
                 if(GameObject.Find("Hand Card 1")==null)return;Schedule.enabled=false;CheckCleanWorld();EnsureVisibleSkill();Next(2);break;
@@ -137,7 +137,7 @@ public static class TopDownStage4Validation {
                 var frame=Map.WorldCamera.GetComponent<TopDownCameraFrame>();var config=new SerializedObject(frame);config.FindProperty("minimumSize").floatValue=zooms[zoomIndex];config.ApplyModifiedPropertiesWithoutUndo();frame.Refresh();Spatial();
                 if(++zoomIndex<zooms.Length){Next(2);break;}
                 var slow=PlayerSession.Deck.Slots.OfType<SkillCardDefinition>().First(c=>c.Skill.Effect is SlowAreaSkill).Skill;
-                var fade=Area(slow,Vector3.zero);fade.Advance(slow.ActiveDuration+.01f);Area(slow,Vector3.right);oldObjects=UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None).Cast<UnityEngine.Object>().Concat(UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None)).ToArray();Flow.GameOver();fade.Advance(100);Check(fade.VisualOpacity==0&&!fade.GetComponentInChildren<SkillAreaVisual>().IsVisible&&oldObjects.OfType<PersistentSlowArea>().All(a=>!a.IsActive&&a.AffectedCount==0),"Terminal state clears active/fading skill markers and slow sources before Retry");Click("Retry");Next(3,.02);break;
+                var fade=Area(slow,Vector3.zero);fade.Advance(slow.ActiveDuration+.01f);Area(slow,Vector3.right);oldObjects=UnityEngine.Object.FindObjectsByType<PersistentSlowArea>().Cast<UnityEngine.Object>().Concat(UnityEngine.Object.FindObjectsByType<Turret>()).ToArray();Flow.GameOver();fade.Advance(100);Check(fade.VisualOpacity==0&&!fade.GetComponentInChildren<SkillAreaVisual>().IsVisible&&oldObjects.OfType<PersistentSlowArea>().All(a=>!a.IsActive&&a.AffectedCount==0),"Terminal state clears active/fading skill markers and slow sources before Retry");Click("Retry");Next(3,.02);break;
             case 3:
                 if(GameObject.Find("Hand Card 1")==null)return;Fresh();startGold=PlayerSession.Currency.Gold;startCandy=PlayerSession.Currency.Candy;Fill();Registry.Enemies.First().ReceiveDamage(100000);
                 Check(PlayerSession.Currency.Candy==startCandy+1,"Required restart sequence earns Candy automatically from a legitimate death");

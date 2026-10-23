@@ -85,7 +85,7 @@ public static class SkillEllipseValidation {
             }
         }finally{ClearActors();UnityEngine.Object.DestroyImmediate(enemy);}
     }
-    private static PersistentSlowArea Area(Vector3 center){var before=UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None);Slow.Effect.Apply(Slow,new SkillCastContext(center,Registry,Flow));return UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None).Except(before).Single();}
+    private static PersistentSlowArea Area(Vector3 center){var before=UnityEngine.Object.FindObjectsByType<PersistentSlowArea>();Slow.Effect.Apply(Slow,new SkillCastContext(center,Registry,Flow));return UnityEngine.Object.FindObjectsByType<PersistentSlowArea>().Except(before).Single();}
     private static void Slowing(){
         var data=EnemyData();float y=Slow.Radius*Slow.RangeProfile.AspectRatio;var enemy=Spawn(Vector3.zero,data);var boost=new object();enemy.Movement.Modifiers.SetSpeedBoost(boost,1.2f);var speed=enemy.Movement.BaseMovementSpeed;
         var a=Area(Vector3.zero);var b=Area(Vector3.up*y);AssertMarker(a.GetComponentInChildren<SkillAreaVisual>(),Vector3.zero,Slow.Radius,Check);
@@ -125,8 +125,8 @@ public static class SkillEllipseValidation {
         var data=EnemyData();
         foreach(var state in new[]{GameplayState.GameOver,GameplayState.Victory,GameplayState.ConfigurationError}){
             var fixture=new GameObject("Terminal cleanup fixture");var localFlow=fixture.AddComponent<GameFlow>();var enemy=Spawn(Vector3.zero,data);
-            var previous=UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None);Slow.Effect.Apply(Slow,new SkillCastContext(Vector3.zero,Registry,localFlow));
-            var area=UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None).Except(previous).Single();var visual=area.GetComponentInChildren<SkillAreaVisual>();
+            var previous=UnityEngine.Object.FindObjectsByType<PersistentSlowArea>();Slow.Effect.Apply(Slow,new SkillCastContext(Vector3.zero,Registry,localFlow));
+            var area=UnityEngine.Object.FindObjectsByType<PersistentSlowArea>().Except(previous).Single();var visual=area.GetComponentInChildren<SkillAreaVisual>();
             Check(visual.IsVisible&&enemy.Movement.Modifiers.SourceCount==1,"Terminal fixture starts with a visible active ellipse");
             if(state==GameplayState.GameOver)localFlow.GameOver();
             else if(state==GameplayState.Victory)typeof(GameFlow).GetMethod("TryVictory",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).Invoke(localFlow,null);
@@ -145,7 +145,7 @@ public static class SkillEllipseValidation {
         if(phase==0){Find<FixedIntervalSpawner>().enabled=false;ClearActors();frame=Time.frameCount;phase=1;}
         else if(phase==1&&Time.frameCount>frame+2){Check(Time.frameCount>frame+2,"Actual Play Mode frames advance");Models();Visuals();Damage();Slowing();DelayedImpact();TerminalCleanup();
             Check(PlayerSession.Currency==null&&PlayerSession.Presets==null,"Focused geometry/effect tests never initialize persistent services");
-            oldMarkers=UnityEngine.Object.FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None).Where(s=>s.name=="Skill Glow Marker").Cast<UnityEngine.Object>().ToArray();oldFlow=Flow;SceneManager.LoadScene(TopDownStage2Setup.ScenePath);phase=2;}
+            oldMarkers=UnityEngine.Object.FindObjectsByType<SpriteRenderer>().Where(s=>s.name=="Skill Glow Marker").Cast<UnityEngine.Object>().ToArray();oldFlow=Flow;SceneManager.LoadScene(TopDownStage2Setup.ScenePath);phase=2;}
         else if(phase==2&&Flow!=oldFlow){Find<FixedIntervalSpawner>().enabled=false;Check(oldMarkers.All(o=>o==null),"Scene reload destroys all captured preview/slow marker roots without orphans");Finish(true,checks+" geometry/visual/damage/slow assertions");}
     }catch(Exception e){Finish(false,e.ToString());}}
     private static void Finish(bool pass,string message){if(!SessionState.GetBool(Key,false))return;SessionState.SetBool(Key,false);EditorApplication.update-=Tick;Application.logMessageReceived-=OnLog;Directory.CreateDirectory("Documentation/Report");File.WriteAllText("Documentation/Report/Skill_Ellipse_Result.txt",(pass?"PASS: ":"FAIL: ")+message);if(pass)Debug.Log("SKILL_ELLIPSE_PASSED "+message);else Debug.LogError("SKILL_ELLIPSE_FAILED "+message);EditorApplication.isPlaying=false;Application.runInBackground=SessionState.GetBool(Key+".Background",false);if(Application.isBatchMode)EditorApplication.Exit(pass?0:1);}

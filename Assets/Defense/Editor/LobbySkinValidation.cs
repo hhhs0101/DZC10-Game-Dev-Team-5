@@ -28,7 +28,7 @@ public static class LobbySkinValidation {
     }
     private static void Attach(){checks=phase=0;firstFrame=-1;started=EditorApplication.timeSinceStartup;EditorApplication.update-=Tick;EditorApplication.update+=Tick;EditorApplication.playModeStateChanged-=State;EditorApplication.playModeStateChanged+=State;Application.logMessageReceived-=Log;Application.logMessageReceived+=Log;}
     private static void Check(bool value,string message){if(!value)throw new Exception(message);checks++;Debug.Log("LOBBY_SKIN PASS: "+message);}
-    private static Button Button(string name)=>UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Single(b=>b.name==name);
+    private static Button Button(string name)=>UnityEngine.Object.FindObjectsByType<Button>().Single(b=>b.name==name);
     private static void Mouse(PointerEventData p,Vector2 point,PointerEventData.FramePressState state){
         p.position=point;var hits=new List<RaycastResult>();EventSystem.current.RaycastAll(p,hits);p.pointerCurrentRaycast=hits.FirstOrDefault();
         typeof(StandaloneInputModule).GetMethod("ProcessMousePress",BindingFlags.NonPublic|BindingFlags.Instance).Invoke(EventSystem.current.currentInputModule,new object[]{new PointerInputModule.MouseButtonEventData{buttonData=p,buttonState=state}});
@@ -80,7 +80,7 @@ public static class LobbySkinValidation {
         Check(background.sprite==skin.Background&&!background.raycastTarget&&background.transform.GetSiblingIndex()==0,"Harvest background uses the shared skin and stays behind all UI without blocking clicks");
         Check(background.GetComponent<AspectRatioFitter>().aspectMode==AspectRatioFitter.AspectMode.EnvelopeParent,"Background uses proportional full-screen cover");
         Check(menu.GetComponent<Image>().color==new Color(0,0,0,.08f),"Main Menu uses a subtle 8 percent dark readability shade");
-        Check(UnityEngine.Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Length==1&&menu.GetComponentInParent<GraphicRaycaster>()!=null,"Original single EventSystem and Canvas raycaster retained");
+        Check(UnityEngine.Object.FindObjectsByType<EventSystem>().Length==1&&menu.GetComponentInParent<GraphicRaycaster>()!=null,"Original single EventSystem and Canvas raycaster retained");
         var logo=menu.transform.Find("Food Defense Logo").GetComponent<Image>();
         Check(logo.sprite==skin.Logo&&logo.preserveAspect&&!logo.raycastTarget,"Logo uses source artwork without blocking input");
         Check(menu.GetComponentsInChildren<Button>().Length==3&&!menu.GetComponentsInChildren<Text>().Any(t=>t.enabled),"Start screen renders exactly three art buttons and no duplicate labels");

@@ -57,7 +57,7 @@ public static class PrototypeValidation {
         assertions++; Debug.Log("PASS: "+message);
     }
     private static void Click(string text) {
-        var button = UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Single(b=>b.GetComponentInChildren<Text>().text==text);
+        var button = UnityEngine.Object.FindObjectsByType<Button>().Single(b=>b.GetComponentInChildren<Text>().text==text);
         Check(button.interactable,"Button available: "+text); button.onClick.Invoke();
     }
     private static void Card(int index) {
@@ -89,7 +89,7 @@ public static class PrototypeValidation {
                     TestPlacementCycle(); TestRewardsAndHealth();
                     DeckPersistenceValidation.VerifyBattle(Check,false);
                     CardSkillValidation.Gameplay(Check);
-                    foreach (var turret in UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None)) turret.enabled=false;
+                    foreach (var turret in UnityEngine.Object.FindObjectsByType<Turret>()) turret.enabled=false;
                     pausedEnemy=Find<EnemySpawner>().Spawn(PlayerSession.Catalog.Stages[0].Enemy);
                     Click("Pause");
                     pausedPosition=pausedEnemy.transform.position; pausedHP=pausedEnemy.CurrentHealth; pausedCount=Find<EnemyRegistry>().Enemies.Count;
@@ -258,11 +258,11 @@ public static class PrototypeValidation {
         lobby.Carousel.Advance(1);
         GameObject.Find("Stage Card 1").GetComponent<Button>().onClick.Invoke(); lobby.Carousel.Advance(1);
         Click("Deck");
-        Check(Find<DeckEditorUI>()!=null && UnityEngine.Object.FindObjectsByType<DeckSlotDrop>(FindObjectsSortMode.None).Length==6,"Deck editor has six fixed drop targets");
-        var available=UnityEngine.Object.FindObjectsByType<DeckCardDrag>(FindObjectsSortMode.None);
+        Check(Find<DeckEditorUI>()!=null && UnityEngine.Object.FindObjectsByType<DeckSlotDrop>().Length==6,"Deck editor has six fixed drop targets");
+        var available=UnityEngine.Object.FindObjectsByType<DeckCardDrag>();
         Check(available.Length==11 && available.All(c=>!PlayerSession.Deck.Contains(c.Definition)),"Deck editor only shows the eleven cards outside PlayerDeck");
         var source=available.Single(c=>c.Definition==PlayerSession.Catalog.AvailableCards[14]);
-        var targets=UnityEngine.Object.FindObjectsByType<DeckSlotDrop>(FindObjectsSortMode.None).OrderBy(t=>t.name).ToArray();
+        var targets=UnityEngine.Object.FindObjectsByType<DeckSlotDrop>().OrderBy(t=>t.name).ToArray();
         var before=PlayerSession.Deck.Slots.ToArray();
         var data=new PointerEventData(EventSystem.current) { pointerDrag=source.gameObject, button=PointerEventData.InputButton.Left, position=new Vector2(200,200) };
         ExecuteEvents.Execute(source.gameObject,data,ExecuteEvents.beginDragHandler);
@@ -272,7 +272,7 @@ public static class PrototypeValidation {
         ExecuteEvents.Execute(targets[2].gameObject,data,ExecuteEvents.dropHandler);
         ExecuteEvents.Execute(source.gameObject,data,ExecuteEvents.endDragHandler);
         Check(PlayerSession.Deck.Slots[2]==source.Definition && Enumerable.Range(0,6).Where(i=>i!=2).All(i=>PlayerSession.Deck.Slots[i]==before[i]),"Drag/drop replaces only T3");
-        var visible = UnityEngine.Object.FindObjectsByType<DeckCardDrag>(FindObjectsSortMode.None);
+        var visible = UnityEngine.Object.FindObjectsByType<DeckCardDrag>();
         Check(visible.Length==11 && visible.Any(c=>c.Definition==before[2]) && visible.All(c=>!PlayerSession.Deck.Contains(c.Definition)),"Available UI immediately adds outgoing and removes incoming definition");
         var edited = PlayerSession.Deck.Slots.ToArray();
         ExecuteEvents.Execute(source.gameObject,data,ExecuteEvents.beginDragHandler);
@@ -281,17 +281,17 @@ public static class PrototypeValidation {
         Check(PlayerSession.Deck.Slots.SequenceEqual(edited) && edited.Distinct().Count()==6,"Stale/hidden drag source cannot duplicate an assigned tower");
         // Swap T3 back and forth through actual UI events, checking refresh after every operation.
         for (int i=0;i<4;i++) {
-            var next = UnityEngine.Object.FindObjectsByType<DeckCardDrag>(FindObjectsSortMode.None).First(c=>c.Definition is TowerCardDefinition);
+            var next = UnityEngine.Object.FindObjectsByType<DeckCardDrag>().First(c=>c.Definition is TowerCardDefinition);
             var incoming = next.Definition; var outgoing = PlayerSession.Deck.Slots[2];
             data.pointerDrag = next.gameObject;
             ExecuteEvents.Execute(next.gameObject,data,ExecuteEvents.beginDragHandler);
             ExecuteEvents.Execute(targets[2].gameObject,data,ExecuteEvents.dropHandler);
             ExecuteEvents.Execute(next.gameObject,data,ExecuteEvents.endDragHandler);
-            visible = UnityEngine.Object.FindObjectsByType<DeckCardDrag>(FindObjectsSortMode.None);
+            visible = UnityEngine.Object.FindObjectsByType<DeckCardDrag>();
             Check(PlayerSession.Deck.Slots[2]==incoming && PlayerSession.Deck.Slots.Distinct().Count()==6 && visible.Any(c=>c.Definition==outgoing)
                 && visible.All(c=>!PlayerSession.Deck.Contains(c.Definition)),"Repeated drag/drop refresh keeps Available and Deck disjoint");
         }
-        Check(UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None).Length==0,"Deck UI creates no combat objects");
+        Check(UnityEngine.Object.FindObjectsByType<Turret>().Length==0,"Deck UI creates no combat objects");
         DeckPersistenceValidation.EditorUI(Check);
         persistentSnapshot=PlayerSession.Deck.Slots.ToArray();
         Click("Settings"); Click("Back"); Check(Find<DeckEditorUI>()!=null && PlayerSession.Deck.Slots.SequenceEqual(persistentSnapshot),"Deck Settings returns without losing deck");
@@ -304,12 +304,12 @@ public static class PrototypeValidation {
         DeckPersistenceValidation.LobbyUI(Check);
         persistentSnapshot=PlayerSession.Deck.Slots.ToArray();
     }
-    private static TowerPlacementSlot[] Slots() => UnityEngine.Object.FindObjectsByType<TowerPlacementSlot>(FindObjectsSortMode.None).OrderBy(s=>s.name).ToArray();
+    private static TowerPlacementSlot[] Slots() => UnityEngine.Object.FindObjectsByType<TowerPlacementSlot>().OrderBy(s=>s.name).ToArray();
     private static void TestPlacementCycle() {
         var hand=Find<GameplayHand>(); var placement=Find<TurretPlacementController>(); var wallet=Find<ResourceWallet>();
         firstRun=hand.Cycle;
         Check(firstRun.InitialOrder.All(c=>c.Definition==persistentSnapshot[c.SourceSlot]),"Stage Hand reads persistent edited PlayerDeck");
-        Check(UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Count(b=>b.name.StartsWith("Hand Card "))==3 && !UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Any(b=>b.GetComponentInChildren<Text>().text=="Turrets"),"Only three Hand cards replace turret catalog UI");
+        Check(UnityEngine.Object.FindObjectsByType<Button>().Count(b=>b.name.StartsWith("Hand Card "))==3 && !UnityEngine.Object.FindObjectsByType<Button>().Any(b=>b.GetComponentInChildren<Text>().text=="Turrets"),"Only three Hand cards replace turret catalog UI");
         placement.Message+=value=>lastMessage=value;
         Card(1); var before=hand.Cycle.Hand.ToArray(); var queue=hand.Cycle.UpcomingQueue.ToArray();
         wallet.Initialize(0);
@@ -383,10 +383,10 @@ public static class PrototypeValidation {
         var enemy = Find<EnemySpawner>().Spawn(retryStage.Enemy); enemy.GetComponent<EnemyPathFollower>().Stop();
         var slow = PlayerSession.Catalog.AvailableCards.OfType<SkillCardDefinition>().Single(c=>c.Skill.Effect is SlowAreaSkill).Skill;
         slow.Effect.Apply(slow,new SkillCastContext(enemy.transform.position,Find<EnemyRegistry>(),Find<GameFlow>()));
-        failedAreas = UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None);
+        failedAreas = UnityEngine.Object.FindObjectsByType<PersistentSlowArea>();
         Check(failedAreas.Any(a=>a.IsActive) && enemy.Movement.Modifiers.SourceCount>0,"Retry fixture includes an active slow area affecting an enemy");
-        failedEnemies = UnityEngine.Object.FindObjectsByType<Enemy>(FindObjectsSortMode.None);
-        failedTurrets = UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None);
+        failedEnemies = UnityEngine.Object.FindObjectsByType<Enemy>();
+        failedTurrets = UnityEngine.Object.FindObjectsByType<Turret>();
         failedRun = Find<GameplayHand>().Cycle;
         Find<ResourceWallet>().Initialize(1);
         Find<ElixirSystem>().TrySpend(Find<ElixirSystem>().Current);
@@ -396,8 +396,8 @@ public static class PrototypeValidation {
         DeckPersistenceValidation.VerifyBattle(Check,true);
         Check(PlayerSession.ActiveStage==retryStage && PlayerSession.Selection.SelectedStageIndex==retryStageIndex && SceneManager.GetActiveScene().name==retryStage.SceneName,"Retry preserves same stage and selected index");
         Check(Find<GameFlow>().IsPlaying && Time.timeScale==1 && Find<BaseHealth>().Current==retryStage.BaseHealth && Find<ResourceWallet>().Balance==retryStage.StartingResources,"Retry resets HP, resources, state and time scale");
-        Check(failedEnemies.All(e=>e==null) && failedTurrets.All(t=>t==null) && Find<EnemyRegistry>().Enemies.Count==0 && UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None).Length==0 && Slots().All(s=>!s.IsOccupied),"Retry destroys old enemies/turrets and clears slots/registry");
-        Check(failedAreas.All(a=>a==null) && UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None).Length==0,"Retry destroys previous slow areas and their modifier sources with the old enemies");
+        Check(failedEnemies.All(e=>e==null) && failedTurrets.All(t=>t==null) && Find<EnemyRegistry>().Enemies.Count==0 && UnityEngine.Object.FindObjectsByType<Turret>().Length==0 && Slots().All(s=>!s.IsOccupied),"Retry destroys old enemies/turrets and clears slots/registry");
+        Check(failedAreas.All(a=>a==null) && UnityEngine.Object.FindObjectsByType<PersistentSlowArea>().Length==0,"Retry destroys previous slow areas and their modifier sources with the old enemies");
         Check(Find<FixedIntervalSpawner>().enabled,"Retry restores spawn scheduler");
         Check(Find<ElixirSystem>().Current >= 3 && Find<ElixirSystem>().Current < 3.5f,"Retry restores starting Elixir with only elapsed regeneration");
         var hand = Find<GameplayHand>(); var cycle = hand.Cycle;

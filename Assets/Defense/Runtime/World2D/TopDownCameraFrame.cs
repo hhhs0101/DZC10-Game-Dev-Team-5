@@ -18,12 +18,12 @@ public sealed class TopDownCameraFrame : MonoBehaviour {
         float aspect = Mathf.Max(.01f, camera.aspect);
         float mapWidthFraction = Mathf.Max(.2f, 1f - rightSidebarFraction);
         if (framingVisual != null) {
-            camera.orthographicSize = Mathf.Max(bounds.extents.y, bounds.extents.x / (mapWidthFraction * aspect));
+            camera.orthographicSize = bounds.extents.y;
         } else {
             camera.orthographicSize = Mathf.Max(minimumSize, bounds.extents.y + padding, (bounds.extents.x + padding) / (mapWidthFraction * aspect));
         }
         float horizontalShift = camera.orthographicSize * aspect * rightSidebarFraction;
-        float verticalShift = framingVisual != null ? Mathf.Max(0f, (camera.orthographicSize - bounds.extents.y) * .3f) : 0f;
+        float verticalShift = 0f;
         transform.SetPositionAndRotation(new Vector3(bounds.center.x + horizontalShift, bounds.center.y + verticalShift, bounds.center.z - depth), Quaternion.identity);
     }
 }

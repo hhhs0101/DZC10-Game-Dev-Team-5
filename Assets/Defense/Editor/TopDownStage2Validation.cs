@@ -35,7 +35,7 @@ public static class TopDownStage2Validation {
     private static void Select(CardDefinition card){for(int i=0;i<6 && !Hand.Cycle.Hand.Any(c=>c.Definition==card);i++)Hand.Cycle.Use(Hand.Cycle.Hand[0]);var index=Hand.Cycle.Hand.ToList().FindIndex(c=>c.Definition==card);var button=GameObject.Find("Hand Card "+(index+1)).GetComponent<UnityEngine.UI.Button>();if(Hand.SelectedCard!=Hand.Cycle.Hand[index])button.onClick.Invoke();Check(button.interactable && Hand.SelectedCard?.Definition==card,"Select through actual Hand UI button: "+card.DisplayName);Canvas.ForceUpdateCanvases();}
     private static Enemy Spawn(Vector3 p,EnemyDefinition data=null){var e=Spawner.Spawn(data??Find<TopDownInteractionSandbox>().TestStage.Enemy);e.Movement.Stop();e.transform.position=p;Registry.NotifyMoved(e);return e;}
     private static void ClearEnemies(){foreach(var e in Registry.Enemies.ToArray())e.ReceiveDamage(100000);}
-    private static void ClearAreas(){foreach(var a in UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None))UnityEngine.Object.DestroyImmediate(a.gameObject);}
+    private static void ClearAreas(){foreach(var a in UnityEngine.Object.FindObjectsByType<PersistentSlowArea>())UnityEngine.Object.DestroyImmediate(a.gameObject);}
     [MenuItem("Defense/2D Migration/Validate Stage 2 (Play Mode)")]
     public static void Run(){if(EditorApplication.isPlaying)throw new InvalidOperationException("Exit Play Mode first.");EditorSceneManager.OpenScene(TopDownStage2Setup.ScenePath);SessionState.SetBool(Key+".PreviousBackground",Application.runInBackground);Application.runInBackground=true;SessionState.SetBool(Key,true);Attach();EditorApplication.isPlaying=true;}
     private static void Attach(){started=EditorApplication.timeSinceStartup;step=checks=0;hits.Clear();EditorApplication.update-=Tick;EditorApplication.update+=Tick;Application.logMessageReceived-=OnLog;Application.logMessageReceived+=OnLog;}
@@ -116,7 +116,7 @@ public static class TopDownStage2Validation {
             Check(!Casting.IsAiming,"Selecting Skill Card alone does not cast or aim");var before=Hand.Cycle.Hand.ToArray();var queue=Hand.Cycle.UpcomingQueue.ToArray();float energy=Elixir.Current;
             var screen=Screen(Vector3.zero);Casting.ProcessPointer(screen,true,false);Check(Casting.IsAiming,"LMB press on valid 2D tabletop begins aiming");
             Casting.ProcessPointer(Screen(Vector3.right),false,false);Check(Casting.AimPosition==Vector2.right,"Hold moves XY aim indicator");
-            AssertRadius(UnityEngine.Object.FindObjectsByType<SkillAreaVisual>(FindObjectsSortMode.None).Single(v=>v.name=="Skill Aim Indicator"),Vector3.right,radius);
+            AssertRadius(UnityEngine.Object.FindObjectsByType<SkillAreaVisual>().Single(v=>v.name=="Skill Aim Indicator"),Vector3.right,radius);
             var rect=GameObject.Find("Hand Card "+(Hand.Cycle.Hand.ToList().FindIndex(c=>c.Definition==card)+1)).GetComponent<RectTransform>();
             Check(Casting.ProcessPointer(rect.position,false,true)==CardUseResult.Cancelled&&!Casting.IsAiming&&Elixir.Current==energy&&Hand.Cycle.Hand.SequenceEqual(before)&&Hand.Cycle.UpcomingQueue.SequenceEqual(queue),"Release on origin Hand Card cancels without cost/cycle");
             Casting.ProcessPointer(screen,true,false);Check(Casting.ProcessPointer(Screen(new Vector3(11,0,0)),false,true)==CardUseResult.Cancelled&&Elixir.Current==energy,"Off-table release cancels without cost");
@@ -132,7 +132,7 @@ public static class TopDownStage2Validation {
             ClearEnemies();Hand.Initialize(new PlayerDeck(deck),Placement,Flow);UnityEngine.Object.Destroy(card);UnityEngine.Object.Destroy(skill);UnityEngine.Object.Destroy(data);
         }
     }
-    private static PersistentSlowArea Area(SkillDefinition skill,Vector3 point){var before=UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None);skill.Effect.Apply(skill,new SkillCastContext(point,Registry,Flow));return UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None).Except(before).Single();}
+    private static PersistentSlowArea Area(SkillDefinition skill,Vector3 point){var before=UnityEngine.Object.FindObjectsByType<PersistentSlowArea>();skill.Effect.Apply(skill,new SkillCastContext(point,Registry,Flow));return UnityEngine.Object.FindObjectsByType<PersistentSlowArea>().Except(before).Single();}
     private static void Move(Enemy enemy,Vector3 point){enemy.transform.position=point;Registry.NotifyMoved(enemy);}
     private static void TestSlow(){
         var slow=deck.OfType<SkillCardDefinition>().First(c=>c.Skill.Effect is SlowAreaSkill);var skill=slow.Skill;Check(skill.ActiveDuration==8,"Existing eight-second Slow Area default is unchanged");

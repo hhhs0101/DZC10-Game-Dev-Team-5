@@ -92,7 +92,7 @@ public static class DeckPersistenceValidation {
         var buttons=ui.GetComponentsInChildren<DeckPresetButtons>().Single().GetComponentsInChildren<Button>();
         check(buttons.Length==3 && buttons.Select(b=>b.GetComponentInChildren<Text>().text).SequenceEqual(new[]{"Preset 1","Preset 2","Preset 3"}),"Deck Editor provides exactly the three requested preset buttons");
         var original=presets.ActiveDeck.Slots.ToArray();
-        var source=UnityEngine.Object.FindObjectsByType<DeckCardDrag>(FindObjectsSortMode.None).First(c=>c.Definition==catalog.AvailableCards[13]);
+        var source=UnityEngine.Object.FindObjectsByType<DeckCardDrag>().First(c=>c.Definition==catalog.AvailableCards[13]);
         var pointer=new PointerEventData(EventSystem.current) { pointerDrag=source.gameObject,button=PointerEventData.InputButton.Left,position=new Vector2(200,200) };
         ExecuteEvents.Execute(source.gameObject,pointer,ExecuteEvents.beginDragHandler);
         buttons[1].onClick.Invoke();
@@ -104,7 +104,7 @@ public static class DeckPersistenceValidation {
         check(slots.Select((s,i)=>s.GetComponentInChildren<Text>().text.Contains(presets.ActiveDeck.Slots[i].DisplayName)).All(v=>v),"All six slot labels refresh immediately on preset switch");
         ExecuteEvents.Execute(source.gameObject,pointer,ExecuteEvents.beginDragHandler); ExecuteEvents.Execute(slots[0].gameObject,pointer,ExecuteEvents.dropHandler); ExecuteEvents.Execute(source.gameObject,pointer,ExecuteEvents.endDragHandler);
         check(presets.GetPreset(1).Slots[0]==source.Definition && presets.GetPreset(0).Slots.SequenceEqual(original),"Drop targets rebind to selected preset while preserving the previous preset");
-        var available=UnityEngine.Object.FindObjectsByType<DeckCardDrag>(FindObjectsSortMode.None);
+        var available=UnityEngine.Object.FindObjectsByType<DeckCardDrag>();
         check(available.Length==11 && available.All(c=>!presets.ActiveDeck.Contains(c.Definition)),"Available UI excludes exactly the current preset after switch and edit");
         buttons[2].onClick.Invoke();
         var distinct= catalog.AvailableCards[12]; new DeckEditorController(presets.ActiveDeck,catalog.AvailableCards).Replace(1,distinct);

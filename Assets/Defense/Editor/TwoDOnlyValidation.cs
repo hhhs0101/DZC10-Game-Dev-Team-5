@@ -59,7 +59,7 @@ public static class TwoDOnlyValidation {
         if(expectedError&&type==LogType.Error&&message.Contains("requires an available 2D scene"))return;
         if(type==LogType.Error||type==LogType.Exception||type==LogType.Assert)Finish(false,message+"\n"+trace);
     }
-    private static void Click(string label){var button=UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Button>(FindObjectsSortMode.None).Single(b=>b.GetComponentInChildren<UnityEngine.UI.Text>().text==label);Check(button.interactable,"UI callback available: "+label);button.onClick.Invoke();}
+    private static void Click(string label){var button=UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Button>().Single(b=>b.GetComponentInChildren<UnityEngine.UI.Text>().text==label);Check(button.interactable,"UI callback available: "+label);button.onClick.Invoke();}
     private static void InvalidRoute(){
         var original=PlayerSession.Catalog.Stages[0];var sceneName=original.SceneName;
         var data=new SerializedObject(original);data.FindProperty("sceneName").stringValue="Unavailable2DBattlefield";data.ApplyModifiedPropertiesWithoutUndo();
@@ -67,7 +67,7 @@ public static class TwoDOnlyValidation {
         try{
             expectedError=true;
             Check(!Find<LobbyUI>().TryEnter()&&SceneManager.GetActiveScene().name=="MainMenu"&&PlayerSession.ActiveStage==active,"Missing stage scene blocks entry without substituting a map or changing active stage");
-            Check(UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Text>(FindObjectsSortMode.None).Any(t=>t.text.Contains("Unavailable2DBattlefield")&&t.text.Contains("requires an available 2D scene")),"Lobby displays an actionable missing-scene error");
+            Check(UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Text>().Any(t=>t.text.Contains("Unavailable2DBattlefield")&&t.text.Contains("requires an available 2D scene")),"Lobby displays an actionable missing-scene error");
         }finally{expectedError=false;data.FindProperty("sceneName").stringValue=sceneName;data.ApplyModifiedPropertiesWithoutUndo();}
     }
     private static void Tick(){if(!SessionState.GetBool(Key,false))return;try{

@@ -27,20 +27,19 @@ public sealed class GameplayUI : MonoBehaviour {
         var sidebar = UiFactory.Rect("Right HUD Sidebar",root,Vector2.zero,Vector2.zero,Vector2.zero);
         sidebar.anchorMin = new Vector2(1,0); sidebar.anchorMax = new Vector2(1,1);
         sidebar.pivot = new Vector2(1,.5f); sidebar.anchoredPosition = Vector2.zero; sidebar.sizeDelta = new Vector2(220,0);
-        sidebar.gameObject.AddComponent<Image>().color = new Color(.14f,.11f,.09f,.96f);
-        var border = UiFactory.Rect("Sidebar Border",sidebar,Vector2.zero,Vector2.zero,Vector2.zero);
-        border.anchorMin = new Vector2(0,0); border.anchorMax = new Vector2(0,1);
-        border.pivot = new Vector2(0,.5f); border.anchoredPosition = Vector2.zero; border.sizeDelta = new Vector2(3,0);
-        border.gameObject.AddComponent<Image>().color = new Color(.36f,.25f,.16f,1f);
-        var bannerRect = UiFactory.Rect("Top Status Banner",root,new Vector2(.414f,1),new Vector2(0,-36),new Vector2(560,72));
+        var sidebarImage = sidebar.gameObject.AddComponent<Image>();
+        sidebarImage.sprite = Resources.Load<Sprite>("UI/SidebarBanner");
+        sidebarImage.color = Color.white;
+        sidebarImage.preserveAspect = false;
+        var bannerRect = UiFactory.Rect("Top Status Banner",root,new Vector2(.414f,1),new Vector2(0,-48),new Vector2(680,96));
         var bannerImage = bannerRect.gameObject.AddComponent<Image>();
         bannerImage.sprite = Resources.Load<Sprite>("UI/TopStatusBanner");
         bannerImage.preserveAspect = true;
         bannerImage.raycastTarget = false;
         bannerImage.color = bannerImage.sprite != null ? Color.white : new Color(.38f,.24f,.12f,.95f);
-        hpLabel = UiFactory.Label(bannerRect,"",new Vector2(.5f,.5f),new Vector2(-115,2),new Vector2(210,40),19);
+        hpLabel = UiFactory.Label(bannerRect,"",new Vector2(.5f,.5f),new Vector2(-135,2),new Vector2(240,44),21);
         AddOutline(hpLabel);
-        remainingEnemiesLabel = UiFactory.Label(bannerRect,"",new Vector2(.5f,.5f),new Vector2(115,2),new Vector2(230,40),19);
+        remainingEnemiesLabel = UiFactory.Label(bannerRect,"",new Vector2(.5f,.5f),new Vector2(135,2),new Vector2(260,44),21);
         AddOutline(remainingEnemiesLabel);
         pauseButton = UiFactory.Button(root,"Pause",new Vector2(-110,-34),flow.TogglePause,new Vector2(1,1),new Vector2(176,42));
         messageLabel = UiFactory.Label(root,"",new Vector2(.414f,0),new Vector2(0,22),new Vector2(760,38),20);
@@ -56,6 +55,8 @@ public sealed class GameplayUI : MonoBehaviour {
         var pauseSettingsButton = UiFactory.Button(pause.transform,"Settings",new Vector2(0,-20),() => { pause.SetActive(false); settings.Open(() => pause.SetActive(true)); });
         var exitButton = UiFactory.Button(pause.transform,"Exit",new Vector2(0,-90),flow.ExitToMenu);
         if (pauseSkin != null) {
+            if (pauseSkin.PauseButton != null && pauseSkin.PauseButton.Normal != null)
+                UiFactory.ApplyButtonSkin(pauseButton, pauseSkin.PauseButton);
             pauseTitle.rectTransform.anchoredPosition = new Vector2(0,210);
             SkinMenuButton(resumeButton,pauseSkin.Resume,new Vector2(0,80));
             SkinMenuButton(pauseSettingsButton,pauseSkin.Settings,new Vector2(0,-50));

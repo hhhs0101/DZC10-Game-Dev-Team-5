@@ -24,6 +24,9 @@ public sealed class BuildMenuUI : MonoBehaviour {
             icons[i] = CardIconView.Create(cards[i].transform,new Vector2(0,10),new Vector2(56,80));
         }
         selection = UiFactory.Label(parent,"",new Vector2(1,.5f),new Vector2(-110,252),new Vector2(204,36),14);
+        var selectionOutline = selection.gameObject.AddComponent<Outline>();
+        selectionOutline.effectColor = new Color(0f,0f,0f,.95f);
+        selectionOutline.effectDistance = new Vector2(1.2f,-1.2f);
         hand.Changed += Refresh; Refresh();
     }
     private void Refresh() {
@@ -48,7 +51,7 @@ public sealed class BuildMenuUI : MonoBehaviour {
             labels[i].text = def.DisplayName+"\n"+def.CostDescription;
             cards[i].interactable = interactive;
         }
-        selection.text = hand.SelectedCard == null ? "Select a card" : "Selected: "+hand.SelectedCard.Definition.DisplayName;
+        selection.text = hand.SelectedCard == null ? "" : "Selected: "+hand.SelectedCard.Definition.DisplayName;
     }
     public void SetInteractionEnabled(bool enabled) { interactive = enabled; Refresh(); }
     private void OnDestroy() { if (hand != null) hand.Changed -= Refresh; }

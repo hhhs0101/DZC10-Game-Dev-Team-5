@@ -101,14 +101,14 @@ public static class RewardValidation {
         check(progressionChanges==1 && PlayerSession.Progression.IsComplete(PlayerSession.Catalog.Stages.ToList().IndexOf(stage)),"First completion updates progression once; repeat is idempotent");
         Find<StageVictoryController>().EvaluateClear(); Find<GameFlow>().GameOver(); Find<GameFlow>().TogglePause();
         check(PlayerSession.Currency.Gold==startGold+50*run && Find<GameFlow>().State==GameplayState.Victory,"Repeated evaluation, Game Over and pause cannot alter committed Victory");
-        check(UnityEngine.Object.FindObjectsByType<Text>(FindObjectsSortMode.None).Any(t=>t.text=="Stage Clear") && UnityEngine.Object.FindObjectsByType<Text>(FindObjectsSortMode.None).Any(t=>t.text=="Gold Earned: 50"),"Victory UI presents Stage Clear and actual configured reward");
+        check(UnityEngine.Object.FindObjectsByType<Text>().Any(t=>t.text=="Stage Clear") && UnityEngine.Object.FindObjectsByType<Text>().Any(t=>t.text=="Gold Earned: 50"),"Victory UI presents Stage Clear and actual configured reward");
         previousCycle=Find<GameplayHand>().Cycle;
     }
     public static void VerifyReplay(Action<bool,string> check) {
         StopSchedule();
         check(PlayerSession.ActiveStage==stage && Find<GameFlow>().IsPlaying && Find<StageVictoryController>().GoldEarned==0 && Find<FixedIntervalSpawner>().SpawnedCount==0 && Find<EnemyRegistry>().AliveEnemyCount==0,"Replay reloads same stage with reset terminal, reward, spawn and population state");
         check(!ReferenceEquals(previousCycle,Find<GameplayHand>().Cycle) && PlayerSession.Deck.Slots.SequenceEqual(deck),"Replay creates a fresh card cycle without editing persistent deck");
-        check(Find<BaseHealth>().Current==stage.BaseHealth && Find<ResourceWallet>().Balance==stage.StartingResources && UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None).Length==0 && UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None).Length==0,"Replay restores Base/resource state and clears towers and skill areas");
+        check(Find<BaseHealth>().Current==stage.BaseHealth && Find<ResourceWallet>().Balance==stage.StartingResources && UnityEngine.Object.FindObjectsByType<Turret>().Length==0 && UnityEngine.Object.FindObjectsByType<PersistentSlowArea>().Length==0,"Replay restores Base/resource state and clears towers and skill areas");
         check(PlayerSession.Currency.Gold==startGold+50 && PlayerSession.Currency.Candy==startCandy+5,"Replay preserves persistent currency");
     }
     public static void ClearAgain(Action<bool,string> check) { FillSchedule(check); KillAll(); }
@@ -130,7 +130,7 @@ public static class RewardValidation {
         check(Find<GameFlow>().IsPlaying && Find<FixedIntervalSpawner>().SpawnedCount==0 && Find<EnemyRegistry>().AliveEnemyCount==0 && PlayerSession.Currency.Candy==failureCandy && PlayerSession.Currency.Gold==startGold+100 && PlayerSession.Deck.Slots.SequenceEqual(deck),"Game Over Retry resets finite run and preserves both currencies and deck");
     }
     public static void VerifyLobby(Action<bool,string> check) {
-        check(Find<LobbyUI>()!=null && UnityEngine.Object.FindObjectsByType<Text>(FindObjectsSortMode.None).Any(t=>t.text=="Gold: "+PlayerSession.Currency.Gold+"   Candy: "+failureCandy),"Lobby reads authoritative persistent currency after clear, replay and failure");
+        check(Find<LobbyUI>()!=null && UnityEngine.Object.FindObjectsByType<Text>().Any(t=>t.text=="Gold: "+PlayerSession.Currency.Gold+"   Candy: "+failureCandy),"Lobby reads authoritative persistent currency after clear, replay and failure");
         PlayerSession.Progression.Changed-=OnProgression;
     }
     public static void WriteRestartFixture() {
