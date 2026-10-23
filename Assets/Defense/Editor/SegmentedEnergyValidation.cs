@@ -14,6 +14,7 @@ public static class SegmentedEnergyValidation {
     private static double started;
     private static float sampleTime;
     static SegmentedEnergyValidation(){if(SessionState.GetBool(Key,false))Attach();}
+    [MenuItem("Defense/Validate Segmented Energy (Play Mode)")]
     public static void Run(){
         if(EditorApplication.isPlaying)throw new InvalidOperationException("Exit Play Mode first.");
         foreach(var path in new[]{DeckPersistence.DefaultPath,PlayerCurrency.DefaultPath})if(Path.GetFullPath(path).StartsWith(Path.GetFullPath(Application.persistentDataPath)+Path.DirectorySeparatorChar))throw new InvalidOperationException("Isolated save paths required.");
@@ -47,14 +48,14 @@ public static class SegmentedEnergyValidation {
         var root=GameObject.Find("Energy Bar");var frameImage=root.GetComponent<Image>();var blocks=root.transform.Find("Energy Segments").GetComponentsInChildren<Image>(true).OrderBy(b=>b.rectTransform.anchorMin.y).ToArray();
         Check(blocks.Length==10&&blocks.Select(b=>b.sprite).Distinct().Single()==Resources.Load<Sprite>("UI/EnergySegment"),"Exactly ten instances reuse one yellow sprite");
         Check(frameImage.sprite==Resources.Load<Sprite>("UI/EnergyBarFrame")&&frameImage.preserveAspect&&!frameImage.raycastTarget,"Empty frame uses original artwork and does not block input");
-        Check(GameObject.Find("Energy Fill")==null&&GameObject.Find("Energy Icon")==null,"Old fill rectangle and detached bar icon removed");
+        Check(GameObject.Find("Energy Fill")==null&&GameObject.Find("Energy Icon")==null&&GameObject.Find("Energy Amount")==null,"Old fill rectangle, detached bar icon, and n/10 amount label removed");
         var bolt=root.transform.Find("Energy Bolt Overlay");
         Check(bolt!=null&&bolt.GetSiblingIndex()>blocks[0].transform.parent.GetSiblingIndex()&&bolt.GetComponent<Image>().sprite==Resources.Load<Sprite>("UI/EnergyBarBolt")&&bolt.GetComponent<Image>().preserveAspect&&!bolt.GetComponent<Image>().raycastTarget,"Lightning overlay is a final sibling above all fill segments and never blocks input");
         Canvas.ForceUpdateCanvases();var parent=(RectTransform)blocks[0].transform.parent;
         foreach(var block in blocks){var corners=new Vector3[4];block.rectTransform.GetWorldCorners(corners);Check(corners.Select(p=>parent.InverseTransformPoint(p)).All(p=>p.x>=parent.rect.xMin-.01f&&p.x<=parent.rect.xMax+.01f&&p.y>=parent.rect.yMin-.01f&&p.y<=parent.rect.yMax+.01f)&&!block.raycastTarget&&block.preserveAspect,"Segment stays within dark fill area: "+block.name);}
         foreach(int amount in new[]{0,1,5,10}){
             energy.Initialize(flow);energy.TrySpend(energy.CurrentEnergy);energy.Advance(amount*2);
-            Check(bar.DisplayedSegments==amount&&blocks.Select((b,i)=>b.gameObject.activeSelf==(i<amount)).All(value=>value)&&GameObject.Find("Energy Amount").GetComponent<Text>().text==amount+" / 10","Immediate bottom-to-top display at "+amount);
+            Check(bar.DisplayedSegments==amount&&blocks.Select((b,i)=>b.gameObject.activeSelf==(i<amount)).All(value=>value)&&bolt.Find("Energy Number").GetComponent<Text>().text==amount.ToString(),"Immediate bottom-to-top display at "+amount);
         }
         foreach(var card in PlayerSession.Catalog.AvailableCards){var field=new SerializedObject(card).FindProperty("elixirCost");Check(field.propertyType==SerializedPropertyType.Integer&&field.intValue==card.ElixirCost,"Exact integer authored cost preserved: "+card.CardId);}
     }
@@ -74,7 +75,7 @@ public static class SegmentedEnergyValidation {
         }
         Select(hand,towers[0]);energy.Initialize(flow);energy.Advance(100);var before=hand.Cycle.Hand.ToArray();
         Check(!placement.TryPlace(null)&&energy.CurrentEnergy==10&&before.SequenceEqual(hand.Cycle.Hand),"Invalid placement preserves Energy and Hand");
-        var slot=UnityEngine.Object.FindObjectsByType<TowerPlacementSlot>(FindObjectsSortMode.None).First(s=>!s.IsOccupied);
+        var slot=UnityEngine.Object.FindObjectsByType<TowerPlacementSlot>().First(s=>!s.IsOccupied);
         Check(placement.TryPlace(slot)&&energy.CurrentEnergy==10-towers[0].ElixirCost&&bar.DisplayedSegments==energy.CurrentEnergy,"Valid tower placement pays own integer cost and updates bar");
         Select(hand,towers[0]);int current=energy.CurrentEnergy;before=hand.Cycle.Hand.ToArray();Check(!placement.TryPlace(slot)&&energy.CurrentEnergy==current&&before.SequenceEqual(hand.Cycle.Hand),"Occupied placement spends nothing and does not cycle");
         hand.CancelSelection();Check(energy.CurrentEnergy==current,"Card deselection spends nothing");
