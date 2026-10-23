@@ -57,8 +57,16 @@ public sealed class MainMenuUI : MonoBehaviour {
     private static void Stretch(RectTransform rect, Vector2 min, Vector2 max) {
         rect.anchorMin = min; rect.anchorMax = max; rect.offsetMin = rect.offsetMax = Vector2.zero;
     }
-    private void Show(GameObject panel) { menu.SetActive(panel==menu); lobby.SetActive(panel==lobby); deckEditor.SetActive(panel==deckEditor); }
-    private void OpenSettings(GameObject origin) { origin.SetActive(false); settings.Open(()=>Show(origin)); }
+    private void Show(GameObject panel) {
+        menu.SetActive(panel==menu); lobby.SetActive(panel==lobby); deckEditor.SetActive(panel==deckEditor);
+        if (panel == menu) GameAudio.PlayIntroBgm();
+        else GameAudio.PlayHomeBgm();
+    }
+    private void OpenSettings(GameObject origin) {
+        origin.SetActive(false);
+        GameAudio.PlayHomeBgm();
+        settings.Open(()=>Show(origin));
+    }
     private static void Quit() {
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;

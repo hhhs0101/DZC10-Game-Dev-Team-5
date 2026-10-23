@@ -56,6 +56,7 @@ public sealed class TurretPlacementController : MonoBehaviour {
         turret.StartLifetime(slot, flow, card.Definition.ElixirCost);
         var used = selected;
         hand.CompleteUse(card, CardUseResult.Success);
+        GameAudio.PlayTowerPlaced(used);
         Placed?.Invoke(used);
         Message?.Invoke("Turret placed."); return true;
     }

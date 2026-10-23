@@ -41,7 +41,9 @@ public sealed class GameplayHand : MonoBehaviour {
     public CardUseResult CompleteUse(RuntimeCard card, CardUseResult result) {
         if (result != CardUseResult.Success) return result;
         if (!CanUse(card) || !elixir.TrySpend(card.Definition.ElixirCost)) return CardUseResult.Failure;
-        SelectedCard = null; placement.Select(null); Cycle.Use(card); Changed?.Invoke();
+        SelectedCard = null; placement.Select(null); Cycle.Use(card);
+        GameAudio.PlayCardUse();
+        Changed?.Invoke();
         return CardUseResult.Success;
     }
 }

@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1b2c3d4e5f64789901234567890ab02, type: 3}
+  m_Name: GameAudioCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::Defense.GameAudioCatalog
+  introTheme: {fileID: 8300000, guid: 65d9b329955744110b43e2f72517725d, type: 3}
+  homeBgm: {fileID: 8300000, guid: 8b07fde13020d44058d271cfc60ffb2a, type: 3}
+  stageBgm: {fileID: 8300000, guid: b368491b5e50941c08306c2ae567a0ab, type: 3}
+  gameOverBgm: {fileID: 8300000, guid: 73929938a8653447fbe9ad69f2ee3d31, type: 3}
+  victoryBgm: {fileID: 8300000, guid: 628464bea84164970a6a9e9841dbecd0, type: 3}
+  buttonClick: {fileID: 8300000, guid: b644fc4e714424e248dc411ad6c056c9, type: 3}
+  cardUse: {fileID: 8300000, guid: 92152509635b84ffe9c8aa7f7553b860, type: 3}
+  ketchupMayoMustard: {fileID: 8300000, guid: d3f5dd8d6e4e41c98bf0f6973f2841a2, type: 3}
+  oilSoya: {fileID: 8300000, guid: 85a77d70b7b54413ba59cecb315c2927, type: 3}
+  paprika: {fileID: 8300000, guid: 88d32dff7f0643f3b6b64b85bdc68139, type: 3}
+  pepper: {fileID: 8300000, guid: 2b7ed65568e3486684bca160e240bdb9, type: 3}
+  salt: {fileID: 8300000, guid: cdbb6cb5d935481bb98b16f80d56f450, type: 3}
+

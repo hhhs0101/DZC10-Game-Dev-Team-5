@@ -39,7 +39,9 @@ public static class UiFactory {
     public static Button Button(Transform parent, string text, Vector2 position, UnityAction action, Vector2? anchor = null, Vector2? size = null) {
         var rect = Rect(text, parent, anchor ?? new Vector2(.5f,.5f), position, size ?? new Vector2(280, 52));
         rect.gameObject.AddComponent<Image>().color = new Color(.18f,.26f,.34f);
-        var button = rect.gameObject.AddComponent<Button>(); button.onClick.AddListener(action);
+        var button = rect.gameObject.AddComponent<Button>();
+        button.onClick.AddListener(GameAudio.PlayButtonClick);
+        button.onClick.AddListener(action);
         Label(rect, text, new Vector2(.5f,.5f), Vector2.zero, rect.sizeDelta, 22);
         return button;
     }

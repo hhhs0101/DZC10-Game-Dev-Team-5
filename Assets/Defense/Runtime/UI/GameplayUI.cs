@@ -52,7 +52,7 @@ public sealed class GameplayUI : MonoBehaviour {
         pause = Overlay("Pause",root);
         var pauseTitle = UiFactory.Label(pause.transform,"Paused",new Vector2(.5f,.5f),new Vector2(0,150),new Vector2(500,60),36);
         var resumeButton = UiFactory.Button(pause.transform,"Resume",new Vector2(0,50),flow.TogglePause);
-        var pauseSettingsButton = UiFactory.Button(pause.transform,"Settings",new Vector2(0,-20),() => { pause.SetActive(false); settings.Open(() => pause.SetActive(true)); });
+        var pauseSettingsButton = UiFactory.Button(pause.transform,"Settings",new Vector2(0,-20),() => { pause.SetActive(false); settings.Open(() => { pause.SetActive(true); GameAudio.PlayStageBgm(); }); });
         var exitButton = UiFactory.Button(pause.transform,"Exit",new Vector2(0,-90),flow.ExitToMenu);
         if (pauseSkin != null) {
             if (pauseSkin.PauseButton != null && pauseSkin.PauseButton.Normal != null)
@@ -125,6 +125,9 @@ public sealed class GameplayUI : MonoBehaviour {
         configurationError.SetActive(state == GameplayState.ConfigurationError);
         if(state == GameplayState.ConfigurationError) configurationDetails.text = flow.ConfigurationErrorMessage;
         pauseButton.interactable = !flow.IsTerminal;
+        if (state == GameplayState.Playing || state == GameplayState.Paused) GameAudio.PlayStageBgm();
+        else if (state == GameplayState.GameOver) GameAudio.PlayGameOverBgm();
+        else if (state == GameplayState.Victory) GameAudio.PlayVictoryBgm();
     }
     private void OnDestroy() {
         if (baseHealth != null) baseHealth.Changed -= UpdateHealth;

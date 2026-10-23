@@ -19,7 +19,13 @@ public sealed class SettingsUI : MonoBehaviour {
     }
     private void ToggleDevMode() { PlayerSession.DevMode = !PlayerSession.DevMode; RefreshDevLabel(); }
     private void RefreshDevLabel() { devLabel.text = "Developer Mode: " + (PlayerSession.DevMode ? "ON" : "OFF"); }
-    public void Open(Action onReturn) { RefreshDevLabel(); returnAction = onReturn; panel.transform.SetAsLastSibling(); panel.SetActive(true); }
+    public void Open(Action onReturn) {
+        RefreshDevLabel();
+        returnAction = onReturn;
+        panel.transform.SetAsLastSibling();
+        panel.SetActive(true);
+        GameAudio.PlayHomeBgm();
+    }
     public void Hide() { panel.SetActive(false); returnAction = null; }
     private void Close() { Action callback = returnAction; Hide(); callback?.Invoke(); }
 }

@@ -41,8 +41,8 @@ public sealed class StageCarouselView : MonoBehaviour {
     private void NavigateCard(int index) {
         // During interpolation the visual center is in flight. Wait for it before accepting a mouse step.
         if (!IsSettled) return;
-        if (index == selection.SelectedStageIndex-1) selection.MovePrevious();
-        else if (index == selection.SelectedStageIndex+1) selection.MoveNext();
+        if (index == selection.SelectedStageIndex-1) { GameAudio.PlayButtonClick(); selection.MovePrevious(); }
+        else if (index == selection.SelectedStageIndex+1) { GameAudio.PlayButtonClick(); selection.MoveNext(); }
     }
     private void Retarget() { fromIndex = visualIndex; elapsed = 0; Render(); }
     private void Update() { Advance(Time.unscaledDeltaTime); }
