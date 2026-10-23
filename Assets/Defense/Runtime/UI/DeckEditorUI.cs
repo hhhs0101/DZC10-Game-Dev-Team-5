@@ -6,6 +6,7 @@ namespace Defense {
 public sealed class DeckEditorUI : MonoBehaviour {
     private DeckPresetManager presets;
     private DeckPresetButtons presetButtons;
+    private readonly CardEnergyBadge[] energyBadges = new CardEnergyBadge[6];
     private Text stageTitle, emptyPool;
     private PlayerDeck deck;
     private readonly DeckSlotDrop[] drops = new DeckSlotDrop[PlayerDeck.SlotCount];
@@ -50,11 +51,13 @@ public sealed class DeckEditorUI : MonoBehaviour {
             cardImage.color = hasCardSprite ? Color.white : new Color(.2f,.32f,.4f);
             var iconView = CardIconView.Create(card,new Vector2(0,12),new Vector2(54,84));
             if (hasCardSprite) iconView.gameObject.SetActive(false); else iconView.Bind(definition);
-            var label = UiFactory.Label(card,definition.DisplayName+"\n"+definition.CostDescription,new Vector2(.5f,.5f),new Vector2(0,-46),new Vector2(100,64),12);
+            var label = UiFactory.Label(card,definition.DisplayName,new Vector2(.5f,.5f),new Vector2(0,-46),new Vector2(100,64),12);
             var outline = label.gameObject.AddComponent<Outline>();
             outline.effectColor = new Color(0f,0f,0f,.95f);
             outline.effectDistance = new Vector2(1.2f,-1.2f);
             card.gameObject.AddComponent<DeckCardDrag>().Initialize(definition,canvas);
+            CardTextBackdrop.Create(card,label);
+            CardEnergyBadge.Create(card).Bind(definition);
             availableViews.Add(definition,card);
         }
         for (int i=0;i<6;i++) {
@@ -66,6 +69,8 @@ public sealed class DeckEditorUI : MonoBehaviour {
             outline.effectColor = new Color(0f,0f,0f,.95f);
             outline.effectDistance = new Vector2(1.2f,-1.2f);
             icons[i] = CardIconView.Create(card,new Vector2(0,12),new Vector2(58,90));
+            CardTextBackdrop.Create(card,labels[i]);
+            energyBadges[i] = CardEnergyBadge.Create(card);
             drops[i] = card.gameObject.AddComponent<DeckSlotDrop>(); drops[i].Initialize(editor,i);
         }
         UiFactory.Label(transform,"Drag an available card onto a deck slot. Changes save automatically.",new Vector2(.5f,0),new Vector2(0,35),new Vector2(1100,50),20);
@@ -95,19 +100,20 @@ public sealed class DeckEditorUI : MonoBehaviour {
             bool occupied = i < deck.Slots.Count;
             slotImages[i].gameObject.SetActive(occupied); if(!occupied) continue;
             var slotCard = deck.Slots[i];
+            energyBadges[i].Bind(slotCard);
             bool hasCardSprite = slotCard != null && slotCard.CardSprite != null;
             slotImages[i].sprite = hasCardSprite ? slotCard.CardSprite : null;
             slotImages[i].color = hasCardSprite ? Color.white : new Color(.2f,.28f,.25f);
             if (hasCardSprite) {
                 icons[i].gameObject.SetActive(false);
-                labels[i].rectTransform.anchoredPosition = new Vector2(0,-56);
-                labels[i].rectTransform.sizeDelta = new Vector2(108,48);
-                labels[i].fontSize = 14;
+
+
+
             } else {
                 bool artwork = icons[i].Bind(slotCard);
-                labels[i].rectTransform.anchoredPosition = artwork ? new Vector2(0,-50) : Vector2.zero;
-                labels[i].rectTransform.sizeDelta = new Vector2(108,52);
-                labels[i].fontSize = 15;
+
+
+
             }
             labels[i].text = "T"+(i+1)+"\n"+slotCard.DisplayName;
         }

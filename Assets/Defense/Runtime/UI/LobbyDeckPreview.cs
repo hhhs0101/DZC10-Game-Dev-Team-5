@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 namespace Defense {
 public sealed class LobbyDeckPreview : MonoBehaviour {
+    private readonly CardEnergyBadge[] energyBadges = new CardEnergyBadge[PlayerDeck.SlotCount];
     private DeckPresetManager presets;
     private readonly Image[] images = new Image[PlayerDeck.SlotCount];
     private readonly Text[] labels = new Text[PlayerDeck.SlotCount];
@@ -17,6 +18,8 @@ public sealed class LobbyDeckPreview : MonoBehaviour {
             outline.effectColor = new Color(0f,0f,0f,.95f);
             outline.effectDistance = new Vector2(1.2f,-1.2f);
             icons[i] = CardIconView.Create(rect,new Vector2(0,8),new Vector2(44,68));
+            CardTextBackdrop.Create(rect,labels[i]);
+            energyBadges[i] = CardEnergyBadge.Create(rect);
         }
         presets.Changed += Refresh; PlayerSession.StageCardsChanged += OnStageChanged; Refresh();
     }
@@ -30,19 +33,20 @@ public sealed class LobbyDeckPreview : MonoBehaviour {
             images[i].gameObject.SetActive(occupied); if(!occupied) continue;
             images[i].rectTransform.anchoredPosition = new Vector2((i-(presets.ActiveDeck.Slots.Count-1)*.5f)*106,4);
             var card = presets.ActiveDeck.Slots[i];
+            energyBadges[i].Bind(card);
             bool hasCardSprite = card != null && card.CardSprite != null;
             images[i].sprite = hasCardSprite ? card.CardSprite : null;
             images[i].color = hasCardSprite ? Color.white : new Color(.16f,.25f,.3f);
             if (hasCardSprite) {
                 icons[i].gameObject.SetActive(false);
-                labels[i].rectTransform.anchoredPosition = new Vector2(0,-40);
-                labels[i].rectTransform.sizeDelta = new Vector2(76,38);
-                labels[i].fontSize = 12;
+
+
+
             } else {
                 bool artwork = icons[i].Bind(card);
-                labels[i].rectTransform.anchoredPosition = artwork ? new Vector2(0,-38) : Vector2.zero;
-                labels[i].rectTransform.sizeDelta = new Vector2(76,42);
-                labels[i].fontSize = 13;
+
+
+
             }
             labels[i].text = "T"+(i+1)+"\n"+card.DisplayName;
         }

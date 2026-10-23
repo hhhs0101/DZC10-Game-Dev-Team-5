@@ -8,6 +8,7 @@ public sealed class BuildMenuUI : MonoBehaviour {
     private readonly Button[] cards = new Button[3];
     private readonly Text[] labels = new Text[3];
     private readonly CardIconView[] icons = new CardIconView[3];
+    private readonly CardEnergyBadge[] energyBadges = new CardEnergyBadge[3];
     private Text selection;
     private bool interactive = true;
     public void Initialize(Transform parent) {
@@ -22,6 +23,8 @@ public sealed class BuildMenuUI : MonoBehaviour {
             outline.effectColor = new Color(0f,0f,0f,.95f);
             outline.effectDistance = new Vector2(1.2f,-1.2f);
             icons[i] = CardIconView.Create(cards[i].transform,new Vector2(0,10),new Vector2(56,80));
+            CardTextBackdrop.Create((RectTransform)cards[i].transform,labels[i]);
+            energyBadges[i] = CardEnergyBadge.Create((RectTransform)cards[i].transform);
         }
         selection = UiFactory.Label(parent,"",new Vector2(1,.5f),new Vector2(-110,252),new Vector2(204,36),14);
         var selectionOutline = selection.gameObject.AddComponent<Outline>();
@@ -37,18 +40,19 @@ public sealed class BuildMenuUI : MonoBehaviour {
             cards[i].image.sprite = hasCardSprite ? def.CardSprite : null;
             if (hasCardSprite) {
                 icons[i].gameObject.SetActive(false);
-                labels[i].rectTransform.anchoredPosition = new Vector2(0,-46);
-                labels[i].rectTransform.sizeDelta = new Vector2(96,64);
-                labels[i].fontSize = 12;
+
+
+
                 cards[i].image.color = card == hand.SelectedCard ? new Color(.72f,1f,.78f) : Color.white;
             } else {
                 bool artwork = icons[i].Bind(def);
-                labels[i].rectTransform.anchoredPosition = artwork ? new Vector2(0,-46) : Vector2.zero;
-                labels[i].rectTransform.sizeDelta = new Vector2(96,64);
-                labels[i].fontSize = 12;
+
+
+
                 cards[i].image.color = card == hand.SelectedCard ? new Color(.2f,.55f,.36f) : def.Color;
             }
-            labels[i].text = def.DisplayName+"\n"+def.CostDescription;
+            labels[i].text = def.DisplayName;
+            energyBadges[i].Bind(def);
             cards[i].interactable = interactive;
         }
         selection.text = hand.SelectedCard == null ? "" : "Selected: "+hand.SelectedCard.Definition.DisplayName;

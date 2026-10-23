@@ -21,6 +21,8 @@ public sealed class DeckCardDrag : MonoBehaviour, IBeginDragHandler, IDragHandle
         var outline = label.gameObject.AddComponent<Outline>();
         outline.effectColor = new Color(0f,0f,0f,.95f);
         outline.effectDistance = new Vector2(1.2f,-1.2f);
+        CardTextBackdrop.Create(ghost,label);
+        CardEnergyBadge.Create(ghost).Bind(Definition);
         OnDrag(data);
     }
     public void OnDrag(PointerEventData data) {
