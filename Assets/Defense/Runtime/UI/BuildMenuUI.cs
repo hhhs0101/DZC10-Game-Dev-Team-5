@@ -34,15 +34,15 @@ public sealed class BuildMenuUI : MonoBehaviour {
             cards[i].image.sprite = hasCardSprite ? def.CardSprite : null;
             if (hasCardSprite) {
                 icons[i].gameObject.SetActive(false);
-                labels[i].rectTransform.anchoredPosition = new Vector2(0,-52);
-                labels[i].rectTransform.sizeDelta = new Vector2(96,46);
-                labels[i].fontSize = 13;
+                labels[i].rectTransform.anchoredPosition = new Vector2(0,-46);
+                labels[i].rectTransform.sizeDelta = new Vector2(96,64);
+                labels[i].fontSize = 12;
                 cards[i].image.color = card == hand.SelectedCard ? new Color(.72f,1f,.78f) : Color.white;
             } else {
                 bool artwork = icons[i].Bind(def);
                 labels[i].rectTransform.anchoredPosition = artwork ? new Vector2(0,-46) : Vector2.zero;
-                labels[i].rectTransform.sizeDelta = new Vector2(96,50);
-                labels[i].fontSize = 14;
+                labels[i].rectTransform.sizeDelta = new Vector2(96,64);
+                labels[i].fontSize = 12;
                 cards[i].image.color = card == hand.SelectedCard ? new Color(.2f,.55f,.36f) : def.Color;
             }
             labels[i].text = def.DisplayName+"\n"+def.CostDescription;

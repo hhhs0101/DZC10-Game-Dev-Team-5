@@ -5,13 +5,19 @@ public sealed class StageDefinition : ScriptableObject {
     [SerializeField] private string displayName = "Test Stage";
     [SerializeField, Tooltip("Configured 2D gameplay scene name included in Build Settings.")] private string sceneName = "TopDownStage3";
     [SerializeField, Min(1)] private int baseHealth = 10;
-    [SerializeField, Min(0)] private int startingResources = 150;
+    [SerializeField, Min(0)] private int startingResources = 300;
     [SerializeField] private EnemyDefinition enemy;
     [SerializeField, Min(0.1f)] private float spawnInterval = 2;
     [SerializeField, Tooltip("Optional finite spawn list, one entry per enemy, in order. Empty uses Enemy and the existing count/continuous settings.")]
     private EnemyDefinition[] spawnSequence = System.Array.Empty<EnemyDefinition>();
     [SerializeField, Tooltip("Optional finite JSON plan. When assigned, it exclusively controls spawn order/count/relative delays; legacy fields are preserved.")]
     private TextAsset spawnPlanJson;
+    [Header("Stage card progression")]
+    [SerializeField, Tooltip("Empty keeps the full catalog for development stages.")] private CardDefinition[] allowedCards = System.Array.Empty<CardDefinition>();
+    [SerializeField, Tooltip("Three to six unique allowed cards used for new stage presets.")] private CardDefinition[] defaultDeck = System.Array.Empty<CardDefinition>();
+    public bool HasCardRestrictions => allowedCards != null && allowedCards.Length > 0;
+    public System.Collections.Generic.IReadOnlyList<CardDefinition> AllowedCards => System.Array.AsReadOnly(allowedCards ?? System.Array.Empty<CardDefinition>());
+    public System.Collections.Generic.IReadOnlyList<CardDefinition> DefaultDeck => System.Array.AsReadOnly(defaultDeck ?? System.Array.Empty<CardDefinition>());
     public TextAsset SpawnPlanJson => spawnPlanJson;
     [Header("Finite stage and rewards")]
     [SerializeField] private bool finiteSpawning;

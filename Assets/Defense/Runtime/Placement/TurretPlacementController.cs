@@ -53,6 +53,7 @@ public sealed class TurretPlacementController : MonoBehaviour {
         Turret turret = Instantiate(spritePrefab != null ? spritePrefab : selected.Prefab, slot.PlacementPoint.position, slot.PlacementPoint.rotation, slot.transform);
         turret.Initialize(selected, registry);
         if (!slot.TryOccupy(turret)) { Destroy(turret.gameObject); return Fail("A turret is already placed here."); }
+        turret.StartLifetime(slot, flow, card.Definition.ElixirCost);
         var used = selected;
         hand.CompleteUse(card, CardUseResult.Success);
         Placed?.Invoke(used);

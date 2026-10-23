@@ -1,3 +1,3 @@
 namespace Defense {
-public sealed class BasicEnemy : Enemy { }
+public class BasicEnemy : Enemy { }
 }

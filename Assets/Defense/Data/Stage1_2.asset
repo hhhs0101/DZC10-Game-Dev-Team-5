@@ -12,14 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d16f3810864884c378b0a0ec8de87ccb, type: 3}
   m_Name: Stage1_2
   m_EditorClassIdentifier: Assembly-CSharp::Defense.StageDefinition
-  displayName: 1-2
+  displayName: Stage 2
   sceneName: TopDownStage1_2
   baseHealth: 10
-  startingResources: 175
+  startingResources: 300
   enemy: {fileID: 11400000, guid: 7a6f0a7f726844ff096a5805a8eb4c74, type: 2}
   spawnInterval: 1.9
   spawnSequence: []
-  spawnPlanJson: {fileID: 0}
+  spawnPlanJson: {fileID: 4900000, guid: 886b91ef08694d3e8a92f1d8ca3184b3, type: 3}
   finiteSpawning: 1
   totalEnemies: 40
   clearGoldReward: 50
@@ -28,3 +28,17 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 04ae679be013433580c018e4b27e4bd9, type: 2}
   - {fileID: 11400000, guid: 1e6ab288cd744598bff374d5eeffb51a, type: 2}
   - {fileID: 11400000, guid: da7da4367609414b848cbffc6eeb6989, type: 2}
+  allowedCards:
+  - {fileID: 11400000, guid: a89fa7734b2342a9bce1b42c17e6df35, type: 2}
+  - {fileID: 11400000, guid: bcb28410ab624f3fa800a4edcc547109, type: 2}
+  - {fileID: 11400000, guid: a7882bd9de724009ab6ce88563d851e1, type: 2}
+  - {fileID: 11400000, guid: db7f1ed0bff94f549e877ff164a75465, type: 2}
+  - {fileID: 11400000, guid: d3bcd301006d4987b2fc414147b39408, type: 2}
+  - {fileID: 11400000, guid: 8b079844b1dc42c396b5dd2d17e92ec7, type: 2}
+  defaultDeck:
+  - {fileID: 11400000, guid: a89fa7734b2342a9bce1b42c17e6df35, type: 2}
+  - {fileID: 11400000, guid: bcb28410ab624f3fa800a4edcc547109, type: 2}
+  - {fileID: 11400000, guid: a7882bd9de724009ab6ce88563d851e1, type: 2}
+  - {fileID: 11400000, guid: db7f1ed0bff94f549e877ff164a75465, type: 2}
+  - {fileID: 11400000, guid: d3bcd301006d4987b2fc414147b39408, type: 2}
+  - {fileID: 11400000, guid: 8b079844b1dc42c396b5dd2d17e92ec7, type: 2}

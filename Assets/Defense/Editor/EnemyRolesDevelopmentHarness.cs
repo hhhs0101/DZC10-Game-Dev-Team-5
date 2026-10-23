@@ -39,15 +39,15 @@ public static class EnemyRolesDevelopmentHarness {
         if(SessionState.GetBool(Key+".Verify",false)) {
             SessionState.SetBool(Key+".Verify",false);
             var all=systems.GetComponent<EnemyRegistry>().Enemies;
-            bool valid=all.Count==7&&all.Select(e=>e.Definition.EnemyTypeId).Distinct().Count()==7&&
+            bool valid=all.Count==EnemyRolesSetup.Names.Length&&all.Select(e=>e.Definition.EnemyTypeId).Distinct().Count()==EnemyRolesSetup.Names.Length&&
                 all.Count(e=>e.GetComponent<EnemyRoleAbility>()!=null&&e.GetComponent<EnemyRoleAbility>().IsOperational)==3&&
-                EnemyRolesSetup.Names.All(n=>{var original=AssetDatabase.LoadAssetAtPath<EnemyDefinition>(EnemyRolesSetup.PathFor(n));return original.SupportArea==0&&original.DisruptionRange==0&&original.DisruptionCooldown==0&&original.DisruptionDuration==0;})&&
+                EnemyRolesSetup.Names.All(n=>{var original=AssetDatabase.LoadAssetAtPath<EnemyDefinition>(EnemyRolesSetup.PathFor(n));return original.AbilityConfigured;})&&
                 PlayerSession.Presets==null&&PlayerSession.Currency==null;
-            if(valid)Debug.Log("ENEMY_ROLE_HARNESS_PASSED: seven unique runtime clones; three operational test abilities; original tuning stays TBD; no persistent services.");
+            if(valid)Debug.Log("ENEMY_ROLE_HARNESS_PASSED: eight unique runtime clones; three operational support/disruption abilities; authored tuning is configured; no persistent services.");
             else Debug.LogError("ENEMY_ROLE_HARNESS_FAILED: isolated initial sandbox setup contract");
             EditorApplication.isPlaying=false;if(Application.isBatchMode)EditorApplication.Exit(valid?0:1);return;
         }
-        Debug.Log("ROLE_SANDBOX_TEST_TUNING: Stage2 local fixture, no persistent services. Cloned definitions only: radius 3, disruption range 6, cooldown 2s, duration 1.5s. Place Towers using the existing Hand. Enemies are stopped along the normal path for inspection; use EnemyRolesValidation for movement, Pause and cleanup checks. Boss damage/art remain TBD. Shield pool is visible on ShieldSupportAbility. Stop Play Mode to discard fixtures.");
+        Debug.Log("ROLE_SANDBOX_TEST_TUNING: Stage2 local fixture, no persistent services. Cloned definitions only: radius 3, disruption range 6, cooldown 2s, duration 1.5s. Place Towers using the existing Hand. Enemies are stopped along the normal path for inspection; use EnemyRolesValidation for movement, Pause and cleanup checks. Boss summons and tower damage are active. ShieldSupportAbility reduces damage by 60%. Stop Play Mode to discard fixtures.");
     }
 }
 }

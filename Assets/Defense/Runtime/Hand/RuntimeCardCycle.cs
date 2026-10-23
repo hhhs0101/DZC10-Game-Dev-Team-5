@@ -11,18 +11,18 @@ public sealed class RuntimeCardCycle {
     public RuntimeCardCycle(PlayerDeck deck, Random random = null) {
         if (deck == null) throw new ArgumentNullException(nameof(deck));
         random = random ?? new Random(Guid.NewGuid().GetHashCode());
-        var copy = new RuntimeCard[PlayerDeck.SlotCount];
+        var copy = new RuntimeCard[deck.Slots.Count];
         for (int i=0;i<copy.Length;i++) copy[i] = new RuntimeCard(i,deck.Slots[i]);
         // Fisher-Yates: called only here, never during successful card use.
         for (int i=copy.Length-1;i>0;i--) { int j = random.Next(i+1); var value = copy[i]; copy[i] = copy[j]; copy[j] = value; }
         InitialOrder = Array.AsReadOnly(copy);
-        for (int i=0;i<3;i++) { hand.Add(copy[i]); upcoming.Add(copy[i+3]); }
+        for (int i=0;i<copy.Length;i++) { if(i<3) hand.Add(copy[i]); else upcoming.Add(copy[i]); }
         Hand = hand.AsReadOnly(); UpcomingQueue = upcoming.AsReadOnly();
         ValidateState();
     }
     private void ValidateState() {
-        if (hand.Count != 3 || upcoming.Count != 3)
-            throw new InvalidOperationException("Runtime cycle must have three Hand and three Upcoming cards.");
+        if (hand.Count != 3 || upcoming.Count != InitialOrder.Count-3)
+            throw new InvalidOperationException("Runtime cycle must have three Hand cards and the remaining deck in Upcoming.");
         var definitions = new HashSet<CardDefinition>();
         foreach (var card in hand)
             if (card == null || card.Definition == null || !definitions.Add(card.Definition))
@@ -35,7 +35,8 @@ public sealed class RuntimeCardCycle {
     public bool Use(RuntimeCard card) {
         ValidateState();
         if (!hand.Remove(card)) return false;
-        hand.Add(upcoming[0]); upcoming.RemoveAt(0); upcoming.Add(card);
+        if(upcoming.Count == 0) hand.Add(card);
+        else { hand.Add(upcoming[0]); upcoming.RemoveAt(0); upcoming.Add(card); }
         ValidateState();
         Changed?.Invoke(); return true;
     }

@@ -32,8 +32,8 @@ public sealed class DeckPresetManager : IDisposable {
         for (int i=0;i<PresetCount;i++) {
             try {
                 var ids = data?.Presets != null && i<data.Presets.Length ? data.Presets[i]?.CardIds : null;
-                if (ids == null || ids.Length != PlayerDeck.SlotCount) throw new ArgumentException("Expected six Card IDs.");
-                var resolved = new CardDefinition[PlayerDeck.SlotCount];
+                if (ids == null || ids.Length != defaults.Count) throw new ArgumentException("Expected the stage deck size.");
+                var resolved = new CardDefinition[defaults.Count];
                 for (int slot=0;slot<resolved.Length;slot++)
                     if (!catalog.TryResolve(ids[slot],out resolved[slot])) throw new ArgumentException("Missing or ambiguous Card ID: "+(ids[slot] ?? "<null>"));
                 presets[i] = new PlayerDeck(resolved);
@@ -62,7 +62,7 @@ public sealed class DeckPresetManager : IDisposable {
     private void Save() {
         var data = new DeckSaveData { Version = SaveVersion, ActivePresetIndex = ActivePresetIndex, Presets = new DeckPresetData[PresetCount] };
         for (int i=0;i<PresetCount;i++) {
-            var ids = new string[PlayerDeck.SlotCount];
+            var ids = new string[presets[i].Slots.Count];
             for (int slot=0;slot<ids.Length;slot++) ids[slot] = presets[i].Slots[slot].CardId;
             data.Presets[i] = new DeckPresetData { CardIds = ids };
         }
