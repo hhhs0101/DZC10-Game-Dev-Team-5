@@ -56,7 +56,7 @@ public static class TopDownStage3Validation {
         if(type==LogType.Error||type==LogType.Exception||type==LogType.Assert)Finish(false,message+"\n"+trace);
     }
     private static void Check(bool ok,string message){if(!ok)throw new Exception(message);checks++;Debug.Log("TOPDOWN3 PASS: "+message);}
-    private static void Click(string label){var button=UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Button>(FindObjectsSortMode.None).Single(b=>b.GetComponentInChildren<UnityEngine.UI.Text>().text==label);Check(button.interactable,"Actual UI callback available: "+label);button.onClick.Invoke();Canvas.ForceUpdateCanvases();}
+    private static void Click(string label){var button=UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Button>().Single(b=>b.GetComponentInChildren<UnityEngine.UI.Text>().text==label);Check(button.interactable,"Actual UI callback available: "+label);button.onClick.Invoke();Canvas.ForceUpdateCanvases();}
     private static void Next(int phase,double wait=.12){step=phase;deadline=EditorApplication.timeSinceStartup+wait;}
     private static void OnProgression()=>progressionChanges++;
     private static void SelectVisible(int index){var button=GameObject.Find("Hand Card "+(index+1)).GetComponent<UnityEngine.UI.Button>();Check(button.interactable,"Real Hand card button is enabled");if(Hand.SelectedCard!=Hand.Cycle.Hand[index])button.onClick.Invoke();Check(Hand.SelectedCard==Hand.Cycle.Hand[index],"UI selects runtime card");}
@@ -112,7 +112,7 @@ public static class TopDownStage3Validation {
         Check(Flow.State==GameplayState.Victory&&Time.timeScale==0&&Victory.DefeatedCount==5,"Actual LateUpdate clears the finished schedule after all five combat deaths");
         Check(PlayerSession.Currency.Gold==startGold+50*run&&PlayerSession.Currency.Candy==startCandy+5*run,"Each clear pays 50 Gold again and grants one Candy per Enemy");
         Check(progressionChanges==1&&PlayerSession.Progression.IsComplete(PlayerSession.Catalog.Stages.ToList().IndexOf(stage)),"First completion changes progression once; repeats have no duplicate side effect");
-        Check(UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Text>(FindObjectsSortMode.None).Any(t=>t.text=="Gold Earned: 50"),"Existing Victory UI displays configured clear reward");
+        Check(UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Text>().Any(t=>t.text=="Gold Earned: 50"),"Existing Victory UI displays configured clear reward");
         Check(!Victory.EvaluateClear(),"Repeated clear evaluation is idempotent");Flow.GameOver();Flow.TogglePause();
         Check(Flow.State==GameplayState.Victory&&PlayerSession.Currency.Gold==startGold+50*run,"Terminal Victory rejects Game Over/pause and duplicate reward");
         var disk=JsonUtility.FromJson<PlayerCurrencySaveData>(File.ReadAllText(PlayerSession.Currency.SavePath));Check(disk.Gold==PlayerSession.Currency.Gold&&disk.Candy==PlayerSession.Currency.Candy,"Gold and Candy are already persisted before leaving results UI");VerifyDeck();previousCycle=Hand.Cycle;
@@ -168,7 +168,7 @@ public static class TopDownStage3Validation {
                 foreach(var e in Registry.Enemies)e.Movement.Stop();
                 Check(Registry.Enemies.All(e=>e.GetComponent<Collider2D>()!=null&&e.GetComponent<EnemyHealthBar>()!=null),"Scheduled BasicEnemy instances use sprite actors and reusable HP bars");
                 KillAll();Check(Victory.DefeatedCount==5&&PlayerSession.Currency.Candy==startCandy+5,"Repeated lethal damage counts each actual death and Candy drop once");
-                retiredObjects=UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None).Cast<UnityEngine.Object>().Concat(UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None)).ToArray();Next(5);break;
+                retiredObjects=UnityEngine.Object.FindObjectsByType<Turret>().Cast<UnityEngine.Object>().Concat(UnityEngine.Object.FindObjectsByType<PersistentSlowArea>()).ToArray();Next(5);break;
             case 5:
                 CheckVictory(1);Check(retiredObjects.Length>0,"Replay fixture contains actual old Towers/slow effects");Click("Replay");Next(6,.02);break;
             case 6:
@@ -211,7 +211,7 @@ public static class TopDownStage3Validation {
                 if(GameObject.Find("Hand Card 1")==null)return;VerifyFresh();Click("Pause");Click("Exit");Next(13);break;
             case 13:
                 if(Find<LobbyUI>()==null)return;
-                VerifyDeck();Check(UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Text>(FindObjectsSortMode.None).Any(t=>t.text=="Gold: "+PlayerSession.Currency.Gold+"   Candy: "+PlayerSession.Currency.Candy),"Return to Lobby reads authoritative earned currency");
+                VerifyDeck();Check(UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Text>().Any(t=>t.text=="Gold: "+PlayerSession.Currency.Gold+"   Candy: "+PlayerSession.Currency.Candy),"Return to Lobby reads authoritative earned currency");
                 Click("Enter Stage");Next(14,.02);break;
             case 14:
                 if(Find<GameplayUI>()==null||GameObject.Find("Hand Card 1")==null)return;

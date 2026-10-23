@@ -39,8 +39,8 @@ public static class VeggieEnemyValidation {
     private static void Set(UnityEngine.Object target,string name,float value){var data=new SerializedObject(target);data.FindProperty(name).floatValue=value;data.ApplyModifiedPropertiesWithoutUndo();}
     private static Enemy Spawn(EnemyDefinition data,Vector3 position){var e=Spawner.Spawn(data);e.Movement.Stop();e.transform.position=position;Registry.NotifyMoved(e);return e;}
     private static void Move(Enemy enemy,Vector3 position){enemy.transform.position=position;Registry.NotifyMoved(enemy);}
-    private static PersistentSlowArea Area(SkillDefinition data,Vector3 position){var old=UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None);data.Effect.Apply(data,new SkillCastContext(position,Registry,Flow));return UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None).Except(old).Single();}
-    private static void ClearAreas(){foreach(var a in UnityEngine.Object.FindObjectsByType<PersistentSlowArea>(FindObjectsSortMode.None))UnityEngine.Object.DestroyImmediate(a.gameObject);}
+    private static PersistentSlowArea Area(SkillDefinition data,Vector3 position){var old=UnityEngine.Object.FindObjectsByType<PersistentSlowArea>();data.Effect.Apply(data,new SkillCastContext(position,Registry,Flow));return UnityEngine.Object.FindObjectsByType<PersistentSlowArea>().Except(old).Single();}
+    private static void ClearAreas(){foreach(var a in UnityEngine.Object.FindObjectsByType<PersistentSlowArea>())UnityEngine.Object.DestroyImmediate(a.gameObject);}
     private static void InspectContent(){
         var basic=AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/Defense/Data/BasicEnemy.asset");
         definitions=VeggieEnemySetup.Names.Select(n=>AssetDatabase.LoadAssetAtPath<EnemyDefinition>(VeggieEnemySetup.DataRoot+"/"+n+"Enemy.asset")).ToArray();

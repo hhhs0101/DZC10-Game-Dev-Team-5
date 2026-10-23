@@ -31,7 +31,7 @@ public static class VeggieTestStageValidation {
         if (trace.Contains("UnityEditor.Search.SearchDatabase") && !trace.Contains("Defense.")) return;
         if (kind == LogType.Error || kind == LogType.Exception || kind == LogType.Assert) Finish(false, message + "\n" + trace);
     }
-    private static void Click(string label) { var b = UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Button>(FindObjectsSortMode.None).Single(x => x.GetComponentInChildren<UnityEngine.UI.Text>().text == label); Check(b.interactable, "Actual UI callback enabled: " + label); b.onClick.Invoke(); }
+    private static void Click(string label) { var b = UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Button>().Single(x => x.GetComponentInChildren<UnityEngine.UI.Text>().text == label); Check(b.interactable, "Actual UI callback enabled: " + label); b.onClick.Invoke(); }
     private static void Fresh() {
         var schedule = Find<FixedIntervalSpawner>();
         Check(PlayerSession.ActiveStage == stage && Find<GameFlow>().IsPlaying && schedule.SpawnedCount == 0 && !schedule.IsFinishedSpawning, "Same Test Stage 2 starts a fresh sequence");

@@ -48,7 +48,7 @@ public static class CardSkillValidation {
         var hand=Find<GameplayHand>(); var flow=Find<GameFlow>(); var elixir=Find<ElixirSystem>();
         var placement=Find<TurretPlacementController>(); var casting=Find<SkillCastingController>();
         var registry=Find<EnemyRegistry>(); var spawner=Find<EnemySpawner>(); var wallet=Find<ResourceWallet>();
-        foreach(var turret in UnityEngine.Object.FindObjectsByType<Turret>(FindObjectsSortMode.None)) turret.enabled=false;
+        foreach(var turret in UnityEngine.Object.FindObjectsByType<Turret>()) turret.enabled=false;
         elixir.Initialize(flow); check(elixir.Current==3,"Fresh Elixir starts at exactly three");
         elixir.Advance(2); check(Mathf.Approximately(elixir.Current,3.72f),"Playing regenerates exactly .36 per second");
         flow.TogglePause(); float paused=elixir.Current; elixir.Advance(100); check(elixir.Current==paused,"Pause stops Elixir regeneration");
@@ -73,7 +73,7 @@ public static class CardSkillValidation {
             check(cardUi,"Current-position UI raycast recognizes originating Hand card");
             check(casting.ReleaseAim(Vector2.one,cardUi)==CardUseResult.Cancelled && !casting.IsAiming && elixir.Current==0 && hand.Cycle.Hand.SequenceEqual(before) && hand.Cycle.UpcomingQueue.SequenceEqual(queue),"Release over UI cancels without cost or cycle");
             casting.BeginAim(Vector2.zero,false);
-            var pauseButton=UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Single(b=>b.GetComponentInChildren<Text>().text=="Pause");
+            var pauseButton=UnityEngine.Object.FindObjectsByType<Button>().Single(b=>b.GetComponentInChildren<Text>().text=="Pause");
             bool otherUi=GameplayPointer.IsOverUI(RectTransformUtility.WorldToScreenPoint(null,pauseButton.transform.position));
             check(otherUi && casting.ReleaseAim(Vector2.zero,otherUi)==CardUseResult.Cancelled && hand.Cycle.Hand.SequenceEqual(before) && elixir.Current==0,"Release over another actual UI element cancels without spending or cycling");
             casting.BeginAim(Vector2.zero,false);
@@ -118,7 +118,7 @@ public static class CardSkillValidation {
         var paid=UnityEngine.Object.Instantiate((TowerCardDefinition)catalog.InitialDeck[0]); Set(paid,"elixirCost",2);
         hand.Initialize(new PlayerDeck(new CardDefinition[]{paid}.Concat(catalog.InitialDeck.Skip(1)).ToArray()),placement,flow);
         Select(hand,paid); wallet.Initialize(1000);
-        var free=UnityEngine.Object.FindObjectsByType<TowerPlacementSlot>(FindObjectsSortMode.None).First(s=>!s.IsOccupied);
+        var free=UnityEngine.Object.FindObjectsByType<TowerPlacementSlot>().First(s=>!s.IsOccupied);
         var towerCycle=hand.Cycle.Hand.ToArray();
         check(!placement.TryPlace(free) && !free.IsOccupied && wallet.Balance==1000 && hand.Cycle.Hand.SequenceEqual(towerCycle),"Paid tower insufficient Elixir preserves gold, slot and cycle");
         elixir.Initialize(flow);

@@ -27,7 +27,7 @@ public static class ResultMenuSkinValidation {
     }
     private static void Attach(){checks=phase=0;frame=-1;started=EditorApplication.timeSinceStartup;EditorApplication.update-=Tick;EditorApplication.update+=Tick;Application.logMessageReceived-=Log;Application.logMessageReceived+=Log;}
     private static void Check(bool ok,string message){if(!ok)throw new Exception(message);checks++;Debug.Log("RESULT_SKIN PASS: "+message);}
-    private static Button Button(string name)=>UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Single(b=>b.name==name);
+    private static Button Button(string name)=>UnityEngine.Object.FindObjectsByType<Button>().Single(b=>b.name==name);
     private static GameFlow Flow=>UnityEngine.Object.FindAnyObjectByType<GameFlow>();
     private static void Click(string name){
         var b=Button(name);Canvas.ForceUpdateCanvases();var p=new PointerEventData(EventSystem.current){button=PointerEventData.InputButton.Left,pointerId=-190,position=RectTransformUtility.WorldToScreenPoint(null,b.transform.position)};
@@ -79,14 +79,14 @@ public static class ResultMenuSkinValidation {
             case 1:
                 var skin=AssetDatabase.LoadAssetAtPath<ResultMenuSkin>("Assets/Defense/Data/ResultMenuSkin.asset");
                 Check(Flow.State==GameplayState.GameOver&&Time.timeScale==0,"Base depletion opens defeat");
-                Check(Button("Retry").transform.parent.GetComponentsInChildren<Button>().Length==2&&!UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Any(b=>b.name=="Replay"),"Defeat has exactly Retry and Lobby choices");
+                Check(Button("Retry").transform.parent.GetComponentsInChildren<Button>().Length==2&&!UnityEngine.Object.FindObjectsByType<Button>().Any(b=>b.name=="Replay"),"Defeat has exactly Retry and Lobby choices");
                 Visual(Button("Retry"),skin.Retry);Visual(Button("Lobby"),skin.Lobby);
                 stage=PlayerSession.ActiveStage;Click("Retry");break;
             case 2:Fresh();Clear();break;
             case 3:
                 skin=AssetDatabase.LoadAssetAtPath<ResultMenuSkin>("Assets/Defense/Data/ResultMenuSkin.asset");
                 Check(Flow.State==GameplayState.Victory&&Time.timeScale==0,"Clear opens Victory");
-                Check(Button("Replay").transform.parent.GetComponentsInChildren<Button>().Length==2&&!UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Any(b=>b.name=="Retry"),"Victory has exactly Replay and Lobby choices");
+                Check(Button("Replay").transform.parent.GetComponentsInChildren<Button>().Length==2&&!UnityEngine.Object.FindObjectsByType<Button>().Any(b=>b.name=="Retry"),"Victory has exactly Replay and Lobby choices");
                 Visual(Button("Replay"),skin.Replay);Visual(Button("Return to Lobby"),skin.Lobby);
                 Click("Replay");break;
             case 4:Fresh();Defeat();break;

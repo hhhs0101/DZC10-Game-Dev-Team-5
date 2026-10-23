@@ -30,7 +30,7 @@ public static class PauseMenuSkinValidation {
     }
     private static void Attach(){checks=phase=0;frame=-1;started=EditorApplication.timeSinceStartup;EditorApplication.update-=Tick;EditorApplication.update+=Tick;Application.logMessageReceived-=Log;Application.logMessageReceived+=Log;}
     private static void Check(bool ok,string message){if(!ok)throw new Exception(message);checks++;Debug.Log("PAUSE_SKIN PASS: "+message);}
-    private static Button Button(string name)=>UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Single(b=>b.name==name);
+    private static Button Button(string name)=>UnityEngine.Object.FindObjectsByType<Button>().Single(b=>b.name==name);
     private static GameFlow Flow=>UnityEngine.Object.FindAnyObjectByType<GameFlow>();
     private static void Click(string name){
         var b=Button(name);Canvas.ForceUpdateCanvases();var p=new PointerEventData(EventSystem.current){button=PointerEventData.InputButton.Left,pointerId=-190,position=RectTransformUtility.WorldToScreenPoint(null,b.transform.position)};
@@ -70,13 +70,13 @@ public static class PauseMenuSkinValidation {
                 actor=UnityEngine.Object.FindAnyObjectByType<EnemySpawner>().Spawn(PlayerSession.ActiveStage.Enemy);
                 Check(actor!=null,"Existing enemy spawns for pause/freeze verification");
                 deck=PlayerSession.Deck.Slots.ToArray();preset=PlayerSession.Presets.ActivePresetIndex;
-                Check(Button("Pause").transition==Selectable.Transition.ColorTint,"Top-right Pause remains unskinned");Click("Pause");break;
+                Check(Button("Pause").transition==Selectable.Transition.SpriteSwap,"Top-right Pause is skinned with sprite swap");Click("Pause");break;
             case 1:
                 Check(Flow.State==GameplayState.Paused&&Time.timeScale==0,"Pause freezes gameplay through existing GameFlow");
                 var skin=AssetDatabase.LoadAssetAtPath<PauseMenuSkin>("Assets/Defense/Data/PauseMenuSkin.asset");
                 Visual(Button("Resume"),skin.Resume);Visual(Button("Settings"),skin.Settings);Visual(Button("Exit"),skin.Exit);
                 Check(Button("Resume").transform.parent.GetComponent<Image>().color==new Color(0,0,0,.78f),"Original dark overlay unchanged");
-                Check(UnityEngine.Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Length==1&&Button("Resume").GetComponentInParent<GraphicRaycaster>()!=null,"Original EventSystem/raycaster retained");
+                Check(UnityEngine.Object.FindObjectsByType<EventSystem>().Length==1&&Button("Resume").GetComponentInParent<GraphicRaycaster>()!=null,"Original EventSystem/raycaster retained");
                 pausedTime=Time.time;pausedPosition=actor.transform.position;Click("Settings");break;
             case 2:
                 Check(Button("Back").transform.parent.name=="Settings"&&Time.timeScale==0,"Existing Settings opens while paused");Click("Back");break;
