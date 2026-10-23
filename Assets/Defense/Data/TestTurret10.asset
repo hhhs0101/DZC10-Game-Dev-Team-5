@@ -23,7 +23,7 @@ MonoBehaviour:
   spriteScale: 1.6149533
   spriteOffset: {x: 0, y: 0.6813084}
   towerType: 5
-  maximumHealth: 100
+  maximumHealth: 1000
   splashRadius: 1.5
   burnDamagePerSecond: 5
   burnDuration: 4

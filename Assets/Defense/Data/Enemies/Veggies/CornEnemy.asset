@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Corn
   sprite: {fileID: 21300000, guid: 5b92fff443a145869fe154963d389f97, type: 3}
   prefab: {fileID: 7971707257215467551, guid: 3c2e95b620d845138715d1b29ac4b017, type: 3}
-  health: 30
+  health: 20
   movementSpeed: 2
   baseDamage: 40
   baseDamageUnconfigured: 0

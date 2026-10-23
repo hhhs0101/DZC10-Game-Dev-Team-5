@@ -2,6 +2,8 @@ using UnityEngine;
 namespace Defense {
 // Currency and deck presets persist to disk; progression and stage selection remain session-only.
 public static class PlayerSession {
+    // Session-only testing switch; does not rewrite campaign unlocks.
+    public static bool DevMode { get; set; }
     public static GameCatalog Catalog { get; private set; }
     public static DeckPresetManager Presets { get; private set; }
     public static PlayerCurrency Currency { get; private set; }
@@ -19,7 +21,7 @@ public static class PlayerSession {
     public static bool ReturnToLobby { get; set; }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void Reset() { foreach(var manager in stagePresets.Values) manager.Dispose(); stagePresets.Clear();
-        StageCardsChanged = null; CardStage = null; Presets = null; Currency = null; Catalog = null; Progression = null; Selection = null; ActiveStage = null; ReturnToLobby = false; }
+        DevMode = false; StageCardsChanged = null; CardStage = null; Presets = null; Currency = null; Catalog = null; Progression = null; Selection = null; ActiveStage = null; ReturnToLobby = false; }
     public static void Ensure() {
         if (Catalog != null) return;
         Catalog = Resources.Load<GameCatalog>("GameCatalog");
@@ -45,7 +47,7 @@ public static class PlayerSession {
     public static bool TrySelectStageForPlay() => TrySelectStageForPlay(out _);
     public static bool TrySelectStageForPlay(out string issue) {
         Ensure(); int index = Selection.SelectedStageIndex;
-        if (!Progression.IsUnlocked(index)) { issue = "This stage is locked."; return false; }
+        if (!DevMode && !Progression.IsUnlocked(index)) { issue = "This stage is locked."; return false; }
         var stage = Catalog.Stages[index];
         if (!TryValidateStageScene(stage,out issue)) { Debug.LogError(issue); return false; }
         ActiveStage = stage;

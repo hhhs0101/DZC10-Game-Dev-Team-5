@@ -26,7 +26,7 @@ MonoBehaviour:
   shieldValue: 0.6
   disruptionRange: 4
   disruptionCooldown: 5
-  disruptionDuration: 3
+  disruptionDuration: 10
   resourceReward: 10
   candyDropChance: 0.1
   candyDropAmount: 1

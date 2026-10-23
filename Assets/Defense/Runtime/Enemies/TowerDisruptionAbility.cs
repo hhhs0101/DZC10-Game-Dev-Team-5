@@ -2,21 +2,24 @@ using UnityEngine;
 namespace Defense {
 public sealed class TowerDisruptionAbility : EnemyRoleAbility {
     private object sourceToken;
+    public const float InitialDelay = 7f;
     private float cooldown;
+    private bool attempted;
     public Turret LastTarget { get; private set; }
     public float CooldownRemaining => cooldown;
-    protected override void ResetState() { sourceToken = new object(); cooldown = 0; LastTarget = null; }
+    protected override void ResetState() { sourceToken = new object(); cooldown = InitialDelay; attempted = false; LastTarget = null; }
     private void Update() => Advance(Time.deltaTime);
     public void Advance(float deltaTime) {
-        if(!IsOperational || (Flow != null && !Flow.IsPlaying) || deltaTime <= 0 || float.IsNaN(deltaTime) || float.IsInfinity(deltaTime)) return;
+        if(attempted || !IsOperational || (Flow != null && !Flow.IsPlaying) || deltaTime <= 0 || float.IsNaN(deltaTime) || float.IsInfinity(deltaTime)) return;
         cooldown = Mathf.Max(0,cooldown-deltaTime);
         if(cooldown > 0) return;
-        // First attempt is immediate; missed attempts also wait the configured interval.
-        cooldown = Data.DisruptionCooldown; TryDisruptRandom();
+        // Exactly one attempt per spawn, even when no eligible tower is in range.
+        TryDisruptRandom();
     }
     public bool TryDisruptNearest() => TryDisruptRandom(); // Legacy callers.
     public bool TryDisruptRandom() {
-        if(!IsOperational || (Flow != null && !Flow.IsPlaying)) return false;
+        if(attempted || cooldown > 0 || !IsOperational || (Flow != null && !Flow.IsPlaying)) return false;
+        attempted = true;
         Turret nearest = null; int candidates = 0;
         foreach(var slot in Object.FindObjectsByType<TowerPlacementSlot>()) {
             var tower = slot.Occupant;

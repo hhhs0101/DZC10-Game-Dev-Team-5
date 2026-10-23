@@ -103,10 +103,10 @@ public static class EnemyRolesValidation {
         var tower=Tower(6,Vector3.right);var slot=tower.GetComponentInParent<TowerPlacementSlot>();
         boss.AdvanceAbilities(4);Check(registry.AliveEnemyCount==1,"Summons wait five seconds");
         flow.TogglePause();boss.AdvanceAbilities(10);Check(registry.AliveEnemyCount==1,"Boss pauses");flow.TogglePause();
-        boss.AdvanceAbilities(1);Check(registry.AliveEnemyCount==4,"Boss summons three");Near(tower.CurrentHealth,34,"Boss hits for 66% maximum tower health");
+        boss.AdvanceAbilities(1);Check(registry.AliveEnemyCount==4,"Boss summons three");Near(tower.CurrentHealth,tower.MaximumHealth,"Broccoli does not damage towers");
         var children=registry.Enemies.Where(e=>e!=boss).ToArray();Check(children.Select(e=>e.Definition).Distinct().Count()==3,"Three random distinct types");Check(children.All(e=>e.Definition.Role!=EnemyRole.Boss),"Never summons another boss");
         foreach(var child in children)UnityEngine.Object.DestroyImmediate(child.gameObject);
-        boss.AdvanceAbilities(5);Check(!slot.IsOccupied&&!tower.gameObject.activeSelf,"Second boss strike destroys tower and releases slot");
+        boss.AdvanceAbilities(5);Check(slot.IsOccupied&&tower.gameObject.activeSelf,"Broccoli leaves tower and slot intact");Near(tower.CurrentHealth,tower.MaximumHealth,"Repeated boss updates do not damage towers");
         flow.GameOver();int count=registry.AliveEnemyCount;boss.AdvanceAbilities(20);Check(registry.AliveEnemyCount==count,"Terminal state blocks summons");
         // Restore this isolated fixture only; normal gameplay terminal states remain irreversible.
         UnityEngine.Object.DestroyImmediate(flow);flow=root.AddComponent<GameFlow>();Set(spawner,"flow",flow);

@@ -7,7 +7,7 @@ public sealed class PlayerDeck {
     private readonly CardDefinition[] slots;
     private readonly IReadOnlyList<CardDefinition> view;
     public IReadOnlyList<CardDefinition> Slots => view;
-    public const string MinimumTowerMessage = "덱에 최소 1장의 Tower 카드가 들어가야 합니다";
+    public const string MinimumTowerMessage = "Your deck must contain at least one tower card.";
     public event Action Changed;
     public event Action<string> Rejected;
     public PlayerDeck(IReadOnlyList<CardDefinition> initial) {

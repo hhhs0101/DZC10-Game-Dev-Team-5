@@ -4,7 +4,7 @@ namespace Defense {
 public sealed class StageDefinition : ScriptableObject {
     [SerializeField] private string displayName = "Test Stage";
     [SerializeField, Tooltip("Configured 2D gameplay scene name included in Build Settings.")] private string sceneName = "TopDownStage3";
-    [SerializeField, Min(1)] private int baseHealth = 10;
+    [SerializeField, Min(1)] private int baseHealth = 1000;
     [SerializeField, Min(0)] private int startingResources = 300;
     [SerializeField] private EnemyDefinition enemy;
     [SerializeField, Min(0.1f)] private float spawnInterval = 2;

@@ -15,7 +15,7 @@ MonoBehaviour:
   displayName: Olive Oil
   prefab: {fileID: 2061435135399564034, guid: 03bbcf2016563478f886bb7d357e254f, type: 3}
   cost: 0
-  damage: 8
+  damage: 7.2
   attackRange: 4
   attackCooldown: 0.8
   targeting: {fileID: 11400000, guid: 352398aa511754b47a79b53950a3b3b4, type: 2}
@@ -23,7 +23,7 @@ MonoBehaviour:
   spriteScale: 1.4896553
   spriteOffset: {x: 0, y: 0.65172416}
   towerType: 8
-  maximumHealth: 100
+  maximumHealth: 1000
   splashRadius: 1.5
   burnDamagePerSecond: 5
   burnDuration: 4

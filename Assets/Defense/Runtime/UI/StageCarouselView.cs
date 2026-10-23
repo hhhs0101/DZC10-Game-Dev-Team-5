@@ -65,7 +65,7 @@ public sealed class StageCarouselView : MonoBehaviour {
             navigationButtons[i].transition = board != null ? Selectable.Transition.None : Selectable.Transition.ColorTint;
             if (board != null) backgrounds[i].canvasRenderer.SetColor(Color.white);
             navigationButtons[i].interactable = IsSettled && Mathf.Abs(i-selection.SelectedStageIndex)==1;
-            labels[i].text = catalog.Stages[i].DisplayName + "\n" + (progression.IsUnlocked(i) ? "Unlocked" : "Locked")
+            labels[i].text = catalog.Stages[i].DisplayName + "\n" + (progression.IsUnlocked(i) ? "Unlocked" : PlayerSession.DevMode ? "Dev access" : "Locked")
                 + (i == selection.SelectedStageIndex ? "\nSelected Stage" : "");
         }
     }

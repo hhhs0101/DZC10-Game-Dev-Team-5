@@ -3,14 +3,15 @@ using UnityEngine.UI;
 namespace Defense {
 // Created only after successful placement. Preview and sandbox actors stay untimed.
 public sealed class TowerLifetime : MonoBehaviour {
-    public const float RechargeCycles = 4f;
-    public const float MinimumLifetime = 20f;
+    public const float RechargeCycles = 3.5f;
+    public const float MinimumLifetime = 17.5f;
     private Turret tower;
     private TowerPlacementSlot slot;
     private GameFlow flow;
     private RectTransform display;
     private Text label;
-    private Image fill, healthFill;
+    private Image timerFill;
+    private GameObject disruptionMarker;
     private bool expired;
     public float Duration { get; private set; }
     public float Remaining { get; private set; }
@@ -28,13 +29,22 @@ public sealed class TowerLifetime : MonoBehaviour {
         // No GraphicRaycaster: the display must never block card or map input.
         var background = UiFactory.Panel("Background", display, new Color(.05f,.08f,.1f,.85f));
         background.GetComponent<Image>().raycastTarget = false;
-        var bar = UiFactory.Rect("Remaining", display, new Vector2(0,0), new Vector2(0,2), new Vector2(100,4));
-        bar.pivot = new Vector2(0,0);
-        fill = bar.gameObject.AddComponent<Image>(); fill.raycastTarget = false;
-        label = UiFactory.Label(display, "", new Vector2(.5f,.5f), new Vector2(0,2), new Vector2(100,28), 22);
-        var hp = UiFactory.Rect("Tower health",display,new Vector2(0,0),new Vector2(0,-4),new Vector2(100,3));
-        hp.pivot = new Vector2(0,0); healthFill = hp.gameObject.AddComponent<Image>();
-        healthFill.raycastTarget = false; healthFill.color = new Color(.3f,.85f,.3f);
+        label = UiFactory.Label(display, "", new Vector2(.5f,.5f), Vector2.zero, new Vector2(100,28), 22);
+        var bar = UiFactory.Rect("Tower Timer Bar",display,new Vector2(0,0),new Vector2(0,1),new Vector2(100,4));
+        bar.pivot = Vector2.zero;
+        timerFill = bar.gameObject.AddComponent<Image>();
+        timerFill.raycastTarget = false;
+        var marker = UiFactory.Rect("Disrupted Status",display,new Vector2(.5f,1),
+            new Vector2(0,22),new Vector2(160,30));
+        disruptionMarker = marker.gameObject;
+        var markerBackground = disruptionMarker.AddComponent<Image>();
+        markerBackground.color = new Color(.35f,.08f,.02f,.95f);
+        markerBackground.raycastTarget = false;
+        var statusText = UiFactory.Label(marker,"DISRUPTED",new Vector2(.5f,.5f),
+            Vector2.zero,new Vector2(156,28),18);
+        statusText.color = new Color(1f,.8f,.25f);
+        statusText.fontStyle = FontStyle.Bold;
+        disruptionMarker.SetActive(false);
         RefreshDisplay();
     }
     // Driven before the turret's attack so an expired tower cannot fire one extra shot.
@@ -62,11 +72,13 @@ public sealed class TowerLifetime : MonoBehaviour {
         var scale = display.lossyScale;
         display.localScale = new Vector3(.012f / Mathf.Max(.0001f, Mathf.Abs(scale.x)),
             .012f / Mathf.Max(.0001f, Mathf.Abs(scale.y)), .012f / Mathf.Max(.0001f, Mathf.Abs(scale.z)));
+        // Read the authoritative status after tower updates, including expiry and Mayonnaise cleanse.
+        disruptionMarker.SetActive(tower.IsDisrupted);
         label.text = Mathf.CeilToInt(Remaining) + "s";
-        healthFill.rectTransform.sizeDelta = new Vector2(100 * (tower.MaximumHealth > 0 ? tower.CurrentHealth / tower.MaximumHealth : 0),3);
         var color = Remaining <= 5 ? new Color(1,.45f,.25f) : new Color(.4f,.95f,.75f);
-        label.color = color; fill.color = color;
-        fill.rectTransform.sizeDelta = new Vector2(100 * Remaining / Duration, 4);
+        label.color = color;
+        timerFill.color = Remaining <= 5 ? new Color(1,.45f,.25f) : new Color(1f,.82f,.2f);
+        timerFill.rectTransform.sizeDelta = new Vector2(100*Mathf.Clamp01(Remaining/Duration),4);
     }
     private void OnDestroy() { if (slot != null) slot.Release(tower); }
 }

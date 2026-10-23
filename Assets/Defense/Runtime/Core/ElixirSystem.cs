@@ -1,7 +1,7 @@
 using UnityEngine;
 namespace Defense {
 public sealed class ElixirSystem : MonoBehaviour {
-    public const float Maximum = 10, Starting = 3, Regeneration = .36f;
+    public const float Maximum = 10, Starting = 3, Regeneration = .34f;
     private GameFlow flow;
     public float Current { get; private set; } = Starting;
     public void Initialize(GameFlow gameFlow) { flow = gameFlow; Current = Starting; }
