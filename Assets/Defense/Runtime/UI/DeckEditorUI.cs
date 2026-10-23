@@ -5,7 +5,6 @@ using UnityEngine.UI;
 namespace Defense {
 public sealed class DeckEditorUI : MonoBehaviour {
     private DeckPresetManager presets;
-    private DeckPresetButtons presetButtons;
     private readonly CardEnergyBadge[] energyBadges = new CardEnergyBadge[6];
     private Text stageTitle, emptyPool;
     private PlayerDeck deck;
@@ -21,24 +20,63 @@ public sealed class DeckEditorUI : MonoBehaviour {
         presets = PlayerSession.Presets;
         deck = presets.ActiveDeck;
         editor = new DeckEditorController(deck,PlayerSession.AvailableCards);
+
+        var panelImage = GetComponent<Image>();
+        if (panelImage != null) panelImage.color = Color.clear;
+        var bg = UiFactory.Rect("Deck Background",transform,new Vector2(.5f,.5f),Vector2.zero,Vector2.zero);
+        bg.anchorMin = Vector2.zero; bg.anchorMax = Vector2.one;
+        bg.offsetMin = bg.offsetMax = Vector2.zero;
+        bg.SetAsFirstSibling();
+        var bgImage = bg.gameObject.AddComponent<Image>();
+        var bgSprite = Resources.Load<Sprite>("UI/DeckBackground");
+        bgImage.sprite = bgSprite;
+        bgImage.preserveAspect = true;
+        bgImage.raycastTarget = false;
+        var fit = bg.gameObject.AddComponent<AspectRatioFitter>();
+        fit.aspectRatio = bgSprite != null ? bgSprite.rect.width / bgSprite.rect.height : 16f / 9f;
+        fit.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
+
         var backButton = UiFactory.Button(transform,"Back to Lobby",new Vector2(140,-40),()=>back(),new Vector2(0,1),new Vector2(250,48));
         var settingsButton = UiFactory.Button(transform,"Settings",new Vector2(-100,-40),()=>settings(),new Vector2(1,1),new Vector2(180,48));
         if (skin != null) {
             UiFactory.ApplyButtonSkin(backButton,skin.LobbyBack);
             UiFactory.ApplyButtonSkin(settingsButton,skin.LobbySettings);
         }
-        var presetRow = UiFactory.Rect("Deck Presets",transform,new Vector2(.5f,1),new Vector2(0,-40),new Vector2(465,42));
-        presetButtons = presetRow.gameObject.AddComponent<DeckPresetButtons>(); presetButtons.Initialize(presets);
         stageTitle = UiFactory.Label(transform,"Available Cards",new Vector2(.25f,1),new Vector2(0,-105),new Vector2(500,55),30);
-        UiFactory.Label(transform,"Current Deck",new Vector2(.75f,1),new Vector2(0,-105),new Vector2(500,55),30);
-        var divider = UiFactory.Rect("Book Divider",transform,new Vector2(.5f,.5f),Vector2.zero,new Vector2(3,550));
-        divider.gameObject.AddComponent<Image>().color = new Color(.4f,.45f,.5f);
-        var viewport = UiFactory.Rect("Available Cards List",transform,new Vector2(.25f,.5f),new Vector2(0,-25),new Vector2(540,450));
-        viewport.gameObject.AddComponent<Image>().color = new Color(.1f,.14f,.2f);
+        var stageTitleOutline = stageTitle.gameObject.AddComponent<Outline>();
+        stageTitleOutline.effectColor = new Color(0f,0f,0f,.95f);
+        stageTitleOutline.effectDistance = new Vector2(1.5f,-1.5f);
+
+        var currentDeckLabel = UiFactory.Label(transform,"Current Deck",new Vector2(.75f,1),new Vector2(0,-105),new Vector2(500,55),30);
+        var currentDeckOutline = currentDeckLabel.gameObject.AddComponent<Outline>();
+        currentDeckOutline.effectColor = new Color(0f,0f,0f,.95f);
+        currentDeckOutline.effectDistance = new Vector2(1.5f,-1.5f);
+
+        var leftPanel = UiFactory.Rect("Tower Cards Wood Panel",transform,new Vector2(.25f,1),new Vector2(0,-325),new Vector2(580,442));
+        var leftPanelImage = leftPanel.gameObject.AddComponent<Image>();
+        leftPanelImage.sprite = Resources.Load<Sprite>("UI/TowerCardsWoodPanel");
+        leftPanelImage.preserveAspect = true;
+        leftPanelImage.raycastTarget = false;
+
+        var rightBoard = UiFactory.Rect("Six Card Cutting Board",transform,new Vector2(.75f,1),new Vector2(0,-325),new Vector2(590,442));
+        var rightBoardImage = rightBoard.gameObject.AddComponent<Image>();
+        rightBoardImage.sprite = Resources.Load<Sprite>("UI/SixCardCuttingBoard");
+        rightBoardImage.preserveAspect = true;
+        rightBoardImage.raycastTarget = false;
+
+        var divider = UiFactory.Rect("Book Divider",transform,new Vector2(.5f,.5f),Vector2.zero,new Vector2(3,460));
+        divider.gameObject.AddComponent<Image>().color = new Color(.25f,.16f,.08f,.6f);
+
+        var viewport = UiFactory.Rect("Available Cards List",transform,new Vector2(.25f,1),new Vector2(0,-325),new Vector2(520,400));
+        var viewportImage = viewport.gameObject.AddComponent<Image>();
+        viewportImage.color = Color.clear;
         viewport.gameObject.AddComponent<RectMask2D>();
         emptyPool = UiFactory.Label(viewport,"All cards for this stage are equipped.",new Vector2(.5f,.5f),Vector2.zero,new Vector2(450,90),22);
+        var emptyOutline = emptyPool.gameObject.AddComponent<Outline>();
+        emptyOutline.effectColor = new Color(0f,0f,0f,.95f);
+        emptyOutline.effectDistance = new Vector2(1.2f,-1.2f);
         var scroll = viewport.gameObject.AddComponent<ScrollRect>();
-        content = UiFactory.Rect("Available Cards",viewport,new Vector2(.5f,1),Vector2.zero,new Vector2(530,Mathf.Max(450,Mathf.CeilToInt(editor.Available.Count/3f)*175)));
+        content = UiFactory.Rect("Available Cards",viewport,new Vector2(.5f,1),Vector2.zero,new Vector2(520,Mathf.Max(400,Mathf.CeilToInt(editor.Available.Count/3f)*175)));
         content.pivot = new Vector2(.5f,1); scroll.content = content; scroll.viewport = viewport; scroll.horizontal = false; scroll.movementType = ScrollRect.MovementType.Clamped;
         for (int i=0;i<PlayerSession.Catalog.AvailableCards.Count;i++) {
             var definition = PlayerSession.Catalog.AvailableCards[i];
@@ -73,7 +111,10 @@ public sealed class DeckEditorUI : MonoBehaviour {
             energyBadges[i] = CardEnergyBadge.Create(card);
             drops[i] = card.gameObject.AddComponent<DeckSlotDrop>(); drops[i].Initialize(editor,i);
         }
-        UiFactory.Label(transform,"Drag an available card onto a deck slot. Changes save automatically.",new Vector2(.5f,0),new Vector2(0,35),new Vector2(1100,50),20);
+        var instructionLabel = UiFactory.Label(transform,"Drag an available card onto a deck slot. Changes save automatically.",new Vector2(.5f,0),new Vector2(0,35),new Vector2(1100,50),20);
+        var instructionOutline = instructionLabel.gameObject.AddComponent<Outline>();
+        instructionOutline.effectColor = new Color(0f,0f,0f,.95f);
+        instructionOutline.effectDistance = new Vector2(1.5f,-1.5f);
         warning = UiFactory.Label(transform,"",new Vector2(.5f,0),new Vector2(0,80),new Vector2(1100,45),22).gameObject.AddComponent<FadingMessageUI>();
         deck.Rejected += ShowWarning;
         presets.Changed += OnPresetsChanged; PlayerSession.StageCardsChanged += OnStageChanged; Refresh();
@@ -81,7 +122,7 @@ public sealed class DeckEditorUI : MonoBehaviour {
     private void OnStageChanged() {
         if(presets != null) presets.Changed -= OnPresetsChanged;
         presets = PlayerSession.Presets; presets.Changed += OnPresetsChanged;
-        presetButtons.Bind(presets); OnPresetsChanged();
+        OnPresetsChanged();
     }
     private void OnPresetsChanged() {
         if (deck != presets.ActiveDeck) {
@@ -124,7 +165,7 @@ public sealed class DeckEditorUI : MonoBehaviour {
         foreach (var pair in availableViews) pair.Value.gameObject.SetActive(visible.Contains(pair.Key));
         for (int i=0;i<available.Count;i++)
             availableViews[available[i]].anchoredPosition = new Vector2((i%3-1)*155,-90-i/3*175);
-        content.sizeDelta = new Vector2(530,Mathf.Max(450,Mathf.CeilToInt(available.Count/3f)*175));
+        content.sizeDelta = new Vector2(520,Mathf.Max(400,Mathf.CeilToInt(available.Count/3f)*175));
     }
     private void ShowWarning(string message) => warning.Show(message,3);
     private void OnDestroy() { PlayerSession.StageCardsChanged -= OnStageChanged; if (presets != null) presets.Changed -= OnPresetsChanged; if (deck != null) deck.Rejected -= ShowWarning; }

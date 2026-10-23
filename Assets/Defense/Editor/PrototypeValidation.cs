@@ -229,7 +229,7 @@ public static class PrototypeValidation {
     }
     private static void TestLobbyAndDeck() {
         var lobby=Find<LobbyUI>(); Check(lobby!=null,"Start Game opens Lobby");
-        Check(Find<LobbyDeckPreview>()!=null && PlayerSession.Deck.Slots.Count==6,"Lobby displays shared six-slot deck");
+        Check(Find<LobbyDeckPreview>()==null && PlayerSession.Deck.Slots.Count==6,"Lobby deck cards deleted as requested");
         for (int i=0;i<20;i++) PlayerSession.Selection.Move(1);
         lobby.Carousel.Advance(1);
         Check(PlayerSession.Selection.SelectedStageIndex==PlayerSession.Catalog.Stages.Count-1 && lobby.Carousel.IsSettled,"Carousel reaches the final catalog stage and clamps at right edge");
@@ -297,8 +297,7 @@ public static class PrototypeValidation {
         Click("Settings"); Click("Back"); Check(Find<DeckEditorUI>()!=null && PlayerSession.Deck.Slots.SequenceEqual(persistentSnapshot),"Deck Settings returns without losing deck");
         Click("Back to Lobby");
         Check(PlayerSession.Selection.SelectedStageIndex==1 && Find<LobbyUI>().Carousel.VisualIndex==1,"Deck return preserves carousel selection and position");
-        var preview=GameObject.Find("Deck Preview T3").GetComponentInChildren<Text>();
-        Check(preview.text.Contains(persistentSnapshot[2].DisplayName),"Lobby preview observes edited T3");
+        Check(GameObject.Find("Deck Preview T3")==null,"Lobby preview cards removed as requested");
         Click("Settings"); Click("Back");
         Check(PlayerSession.Selection.SelectedStageIndex==1 && Find<LobbyUI>()!=null,"Lobby Settings preserves selected stage");
         DeckPersistenceValidation.LobbyUI(Check);

@@ -83,7 +83,7 @@ public static class TopDownStage3Validation {
         return Hand.Cycle.Hand.ToList().FindIndex(c=>c.Definition==card);
     }
     private static void PrepareDeck(){
-        Click("Deck");if(PlayerSession.Presets.ActivePresetIndex!=1)Click("Preset 2");
+        Click("Deck");if(PlayerSession.Presets.ActivePresetIndex!=1)PlayerSession.Presets.SwitchPreset(1);
         var target=PlayerSession.Catalog.AvailableCards.OfType<TowerCardDefinition>().Take(4).Cast<CardDefinition>().Concat(PlayerSession.Catalog.AvailableCards.OfType<SkillCardDefinition>()).ToArray();
         var editor=new DeckEditorController(PlayerSession.Deck,PlayerSession.Catalog.AvailableCards);
         foreach(var card in target.Where(c=>!PlayerSession.Deck.Contains(c)).ToArray()){

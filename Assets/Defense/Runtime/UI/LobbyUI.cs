@@ -22,8 +22,6 @@ public sealed class LobbyUI : MonoBehaviour {
         Carousel.Initialize(PlayerSession.Catalog,PlayerSession.Selection,PlayerSession.Progression,skin);
         feedback = UiFactory.Label(transform,"A / D or click side cards   |   Enter: play",new Vector2(.5f,1),new Vector2(0,-405),new Vector2(850,48),21);
         var enterStageButton = UiFactory.Button(transform,"Enter Stage",new Vector2(0,-460),()=>TryEnter(),new Vector2(.5f,1),new Vector2(420,78));
-        var preview = UiFactory.Rect("Deck Preview",transform,new Vector2(.5f,0),new Vector2(0,145),new Vector2(960,110));
-        preview.gameObject.AddComponent<LobbyDeckPreview>().Initialize(PlayerSession.Presets);
         var deckButton = UiFactory.Button(transform,"Deck",new Vector2(0,50),()=>openDeck(),new Vector2(.5f,0),new Vector2(420,78));
         if (skin != null) {
             UiFactory.ApplyButtonSkin(enterStageButton,skin.LobbyEnterStage);

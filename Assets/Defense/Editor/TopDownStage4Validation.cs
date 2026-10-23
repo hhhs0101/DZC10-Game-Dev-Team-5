@@ -46,7 +46,7 @@ public static class TopDownStage4Validation {
     private static void Next(int next,double wait=.1){step=next;deadline=EditorApplication.timeSinceStartup+wait;}
     private static void TestStage(){while(PlayerSession.Selection.SelectedStageIndex>0)PlayerSession.Selection.MovePrevious();int target=PlayerSession.Catalog.Stages.ToList().FindIndex(s=>s.DisplayName=="Test Stage");for(int i=0;i<target;i++)PlayerSession.Selection.MoveNext();Find<LobbyUI>().Carousel.Advance(1);}
     private static void ConfigurePreset(){
-        Click("Deck");if(PlayerSession.Presets.ActivePresetIndex!=1)Click("Preset 2");
+        Click("Deck");if(PlayerSession.Presets.ActivePresetIndex!=1)PlayerSession.Presets.SwitchPreset(1);
         var edit=new DeckEditorController(PlayerSession.Deck,PlayerSession.Catalog.AvailableCards);
         foreach(var skill in PlayerSession.Catalog.AvailableCards.OfType<SkillCardDefinition>())if(!PlayerSession.Deck.Contains(skill)){
             int index=PlayerSession.Deck.Slots.ToList().FindLastIndex(c=>c is TowerCardDefinition);Check(edit.Replace(index,skill),"Preset 2 edit adds actual Skill through existing Deck Editor model");

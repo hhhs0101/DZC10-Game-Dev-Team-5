@@ -89,34 +89,32 @@ public static class DeckPersistenceValidation {
     public static void EditorUI(Action<bool,string> check) {
         var presets=PlayerSession.Presets; var catalog=PlayerSession.Catalog;
         var ui=UnityEngine.Object.FindFirstObjectByType<DeckEditorUI>();
-        var buttons=ui.GetComponentsInChildren<DeckPresetButtons>().Single().GetComponentsInChildren<Button>();
-        check(buttons.Length==3 && buttons.Select(b=>b.GetComponentInChildren<Text>().text).SequenceEqual(new[]{"Preset 1","Preset 2","Preset 3"}),"Deck Editor provides exactly the three requested preset buttons");
+        check(ui.GetComponentsInChildren<DeckPresetButtons>().Length==0,"Deck Editor preset buttons removed completely as requested");
         var original=presets.ActiveDeck.Slots.ToArray();
         var source=UnityEngine.Object.FindObjectsByType<DeckCardDrag>().First(c=>c.Definition==catalog.AvailableCards[13]);
         var pointer=new PointerEventData(EventSystem.current) { pointerDrag=source.gameObject,button=PointerEventData.InputButton.Left,position=new Vector2(200,200) };
         ExecuteEvents.Execute(source.gameObject,pointer,ExecuteEvents.beginDragHandler);
-        buttons[1].onClick.Invoke();
+        presets.SwitchPreset(1);
         var slots=ui.GetComponentsInChildren<DeckSlotDrop>().OrderBy(s=>s.name).ToArray();
         check(presets.ActivePresetIndex==1 && PlayerSession.Deck==presets.GetPreset(1) && !source.IsDragging,"Preset click immediately changes sole active deck and cancels an in-progress drag");
         ExecuteEvents.Execute(slots[0].gameObject,pointer,ExecuteEvents.dropHandler);
         check(presets.ActiveDeck.Slots.SequenceEqual(catalog.InitialDeck),"Stale drag from the previous preset cannot edit the new preset");
-        check(!buttons[1].interactable && buttons[0].interactable && buttons[1].image.color!=buttons[0].image.color,"Active preset has a distinct selected visual state");
         check(slots.Select((s,i)=>s.GetComponentInChildren<Text>().text.Contains(presets.ActiveDeck.Slots[i].DisplayName)).All(v=>v),"All six slot labels refresh immediately on preset switch");
         ExecuteEvents.Execute(source.gameObject,pointer,ExecuteEvents.beginDragHandler); ExecuteEvents.Execute(slots[0].gameObject,pointer,ExecuteEvents.dropHandler); ExecuteEvents.Execute(source.gameObject,pointer,ExecuteEvents.endDragHandler);
         check(presets.GetPreset(1).Slots[0]==source.Definition && presets.GetPreset(0).Slots.SequenceEqual(original),"Drop targets rebind to selected preset while preserving the previous preset");
         var available=UnityEngine.Object.FindObjectsByType<DeckCardDrag>();
         check(available.Length==11 && available.All(c=>!presets.ActiveDeck.Contains(c.Definition)),"Available UI excludes exactly the current preset after switch and edit");
-        buttons[2].onClick.Invoke();
+        presets.SwitchPreset(2);
         var distinct= catalog.AvailableCards[12]; new DeckEditorController(presets.ActiveDeck,catalog.AvailableCards).Replace(1,distinct);
-        buttons[0].onClick.Invoke();
+        presets.SwitchPreset(0);
         check(presets.ActiveDeck.Slots.SequenceEqual(original) && presets.GetPreset(1).Slots[0]==source.Definition && presets.GetPreset(2).Slots[1]==distinct,"UI switching keeps all three independently edited compositions");
         check(new DeckPersistence(presets.SavePath).Load().ActivePresetIndex==0,"Preset button persists its active index immediately");
-        buttons[2].onClick.Invoke(); // Choose the stage deck inside the Deck Editor, not the Lobby.
+        presets.SwitchPreset(2); // Choose the stage deck inside the Deck Editor, not the Lobby.
     }
     public static void LobbyUI(Action<bool,string> check) {
         var lobby=UnityEngine.Object.FindFirstObjectByType<LobbyUI>();
         check(lobby.GetComponentsInChildren<DeckPresetButtons>(true).Length==0 && !lobby.GetComponentsInChildren<Button>(true).Any(b=>b.GetComponentInChildren<Text>().text.StartsWith("Preset ")),"Main Lobby has no preset controls");
-        check(PlayerSession.Presets.ActivePresetIndex==2 && GameObject.Find("Deck Preview T2").GetComponentInChildren<Text>().text.Contains(PlayerSession.Deck.Slots[1].DisplayName),"Lobby preview preserves the preset selected in the Deck Editor");
+        check(PlayerSession.Presets.ActivePresetIndex==2 && GameObject.Find("Deck Preview T2")==null,"Lobby preview cards removed as requested");
         // Leave a non-default preset selected for the existing stage/retry regression.
         lastBattleSave=File.ReadAllText(PlayerSession.Presets.SavePath);
     }

@@ -56,11 +56,11 @@ public static class CondimentTowerValidation {
     private static void EditorChecks(){
         int selected=PlayerSession.Presets.ActivePresetIndex;
         for(int p=0;p<3;p++){
-            if(PlayerSession.Presets.ActivePresetIndex!=p)Click("Preset "+(p+1));
+            if(PlayerSession.Presets.ActivePresetIndex!=p)PlayerSession.Presets.SwitchPreset(p);
             for(int i=0;i<6;i++)CheckView(GameObject.Find("Deck Slot T"+(i+1)).transform,PlayerSession.Deck.Slots[i]);
             foreach(var available in UnityEngine.Object.FindObjectsByType<DeckCardDrag>())CheckView(available.transform,available.Definition);
         }
-        if(PlayerSession.Presets.ActivePresetIndex!=selected)Click("Preset "+(selected+1));ProfileUnchanged();
+        if(PlayerSession.Presets.ActivePresetIndex!=selected)PlayerSession.Presets.SwitchPreset(selected);ProfileUnchanged();
     }
     private static void ValidatePlaced(Turret turret,TowerCardDefinition card,TowerPlacementSlot slot){
         var visual=turret.GetComponentInChildren<SpriteRenderer>();
@@ -106,7 +106,7 @@ public static class CondimentTowerValidation {
         if(!EditorApplication.isPlaying||EditorApplication.isCompiling)return;
         if(phase==0){
             if(GameObject.Find("Start Game")==null)return;ModelChecks();Click("Start Game");
-            for(int i=0;i<6;i++)CheckView(GameObject.Find("Deck Preview T"+(i+1)).transform,PlayerSession.Deck.Slots[i]);
+            Check(GameObject.Find("Deck Preview T1")==null,"Lobby deck cards preview deleted");
             if(!restart){Click("Deck");EditorChecks();Click("Back to Lobby");}
             Click("Enter Stage");phase=1;
         }else if(phase==1){

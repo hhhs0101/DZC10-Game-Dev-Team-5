@@ -47,7 +47,7 @@ public sealed class StageCarouselView : MonoBehaviour {
     private void Retarget() { fromIndex = visualIndex; elapsed = 0; Render(); }
     private void Update() { Advance(Time.unscaledDeltaTime); }
     public void Advance(float delta) {
-        if (cards == null) return;
+        if (cards == null || selection == null) return;
         elapsed = Mathf.Min(duration,elapsed + delta);
         float t = Mathf.SmoothStep(0,1,elapsed/duration);
         visualIndex = Mathf.Lerp(fromIndex,selection.SelectedStageIndex,t); Render();
