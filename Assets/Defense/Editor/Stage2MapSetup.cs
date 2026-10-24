@@ -11,8 +11,8 @@ public static class Stage2MapSetup {
     public const string SceneName = "TopDownStage1_2";
     public const string ScenePath = "Assets/Defense/Scenes/TopDownStage1_2.unity";
     public const float PixelsPerUnit = 80f;
-    public const float BackgroundPixelsPerUnit = 28.125f;
-    public static readonly Vector3 BackgroundLocalPosition = new Vector3(88f / 45f, .5f, 0f);
+    public const float BackgroundPixelsPerUnit = 41.625f;
+    public static readonly Vector3 BackgroundLocalPosition = new Vector3(2.78f, .5f, 0f);
 
     public static readonly Vector2[] UpperBranchPixels = {
         new Vector2(179.1f,439.4f), new Vector2(218.6f,437.3f), new Vector2(266.1f,443.5f), new Vector2(313.6f,453.8f),

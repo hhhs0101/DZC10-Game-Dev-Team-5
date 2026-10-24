@@ -2278,7 +2278,7 @@ Camera:
   far clip plane: 50
   field of view: 60
   orthographic: 1
-  orthographic size: 6.4
+  orthographic size: 6.918919
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
@@ -2328,7 +2328,7 @@ Transform:
   m_GameObject: {fileID: 1366596567}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.9555556, y: 0.5, z: -10}
+  m_LocalPosition: {x: 2.78, y: 0.5, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3448,7 +3448,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 22.755556, y: 12.8}
+  m_Size: {x: 24.6006, y: 13.837838}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -3463,7 +3463,7 @@ Transform:
   m_GameObject: {fileID: 1710275788}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.9555556, y: 0.5, z: 0}
+  m_LocalPosition: {x: 2.78, y: 0.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

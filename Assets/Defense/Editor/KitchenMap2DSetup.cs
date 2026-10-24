@@ -8,8 +8,8 @@ public static class KitchenMap2DSetup {
     public const string ArtRoot = "Assets/Defense/Art/Kitchen2D";
     public const string ScenePath = TopDownStage3Setup.ScenePath;
     public const float PixelsPerUnit = 80;
-    public const float BackgroundPixelsPerUnit = 28.125f;
-    public static readonly Vector3 BackgroundLocalPosition = new Vector3(88f / 45f, .5f, 0f);
+    public const float BackgroundPixelsPerUnit = 41.625f;
+    public static readonly Vector3 BackgroundLocalPosition = new Vector3(2.78f, .5f, 0f);
     public static readonly Vector2[] CenterlinePixels = {
         new Vector2(210f,385f),
         new Vector2(268f,396f),
