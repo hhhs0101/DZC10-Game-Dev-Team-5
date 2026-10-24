@@ -11,6 +11,8 @@ public static class Stage2MapSetup {
     public const string SceneName = "TopDownStage1_2";
     public const string ScenePath = "Assets/Defense/Scenes/TopDownStage1_2.unity";
     public const float PixelsPerUnit = 80f;
+    public const float BackgroundPixelsPerUnit = 28.125f;
+    public static readonly Vector3 BackgroundLocalPosition = new Vector3(88f / 45f, .5f, 0f);
 
     public static readonly Vector2[] UpperBranchPixels = {
         new Vector2(179.1f,439.4f), new Vector2(218.6f,437.3f), new Vector2(266.1f,443.5f), new Vector2(313.6f,453.8f),
@@ -77,8 +79,8 @@ public static class Stage2MapSetup {
         for (int i = 0; i < SceneManager.sceneCount; i++)
             if (SceneManager.GetSceneAt(i).isDirty) throw new InvalidOperationException("Save open scene edits before applying a layout.");
 
-        Import("KitchenInterior.png");
-        Import(RouteSpriteFile);
+        Import("KitchenInterior.png", BackgroundPixelsPerUnit);
+        Import(RouteSpriteFile, PixelsPerUnit);
 
         if (AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath) == null) {
             if (!AssetDatabase.CopyAsset(TopDownStage3Setup.ScenePath, ScenePath))
@@ -90,11 +92,11 @@ public static class Stage2MapSetup {
         var root = map.transform;
 
         var background = Render("KitchenBackgroundSprite", root, "KitchenInterior.png", 0);
-        background.transform.localPosition = new Vector3(0f, .5f, 0f);
+        background.transform.localPosition = BackgroundLocalPosition;
         background.transform.localScale = Vector3.one;
 
         var route = Render("GinghamPathSprite", root, RouteSpriteFile, 10);
-        route.transform.localPosition = background.transform.localPosition;
+        route.transform.localPosition = new Vector3(0f, .5f, 0f);
         route.transform.localScale = Vector3.one;
 
         var old = root.Find("TabletopVisual");
@@ -220,14 +222,14 @@ public static class Stage2MapSetup {
         data.ApplyModifiedPropertiesWithoutUndo();
     }
 
-    private static void Import(string name) {
+    private static void Import(string name, float pixelsPerUnit = PixelsPerUnit) {
         string path = ArtRoot + "/" + name;
         AssetDatabase.ImportAsset(path);
         var importer = AssetImporter.GetAtPath(path) as TextureImporter;
         if (importer == null) throw new InvalidOperationException("Missing supplied artwork: " + path);
         importer.textureType = TextureImporterType.Sprite;
         importer.spriteImportMode = SpriteImportMode.Single;
-        importer.spritePixelsPerUnit = PixelsPerUnit;
+        importer.spritePixelsPerUnit = pixelsPerUnit;
         importer.filterMode = FilterMode.Point;
         importer.mipmapEnabled = false;
         importer.textureCompression = TextureImporterCompression.Uncompressed;

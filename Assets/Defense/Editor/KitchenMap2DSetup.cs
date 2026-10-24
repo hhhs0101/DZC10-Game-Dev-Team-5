@@ -8,6 +8,8 @@ public static class KitchenMap2DSetup {
     public const string ArtRoot = "Assets/Defense/Art/Kitchen2D";
     public const string ScenePath = TopDownStage3Setup.ScenePath;
     public const float PixelsPerUnit = 80;
+    public const float BackgroundPixelsPerUnit = 28.125f;
+    public static readonly Vector3 BackgroundLocalPosition = new Vector3(88f / 45f, .5f, 0f);
     public static readonly Vector2[] CenterlinePixels = {
         new Vector2(210f,385f),
         new Vector2(268f,396f),
@@ -64,13 +66,13 @@ public static class KitchenMap2DSetup {
     public static void Run() {
         if (EditorApplication.isPlaying) throw new InvalidOperationException("Exit Play Mode first.");
         for(int i=0;i<UnityEngine.SceneManagement.SceneManager.sceneCount;i++) if(UnityEngine.SceneManagement.SceneManager.GetSceneAt(i).isDirty) throw new InvalidOperationException("Save open scene edits before applying a layout.");
-        Import("KitchenInterior.png"); Import("GinghamRoute.png");
+        Import("KitchenInterior.png", BackgroundPixelsPerUnit); Import("GinghamRoute.png", PixelsPerUnit);
         var scene = EditorSceneManager.OpenScene(ScenePath);
         var map = UnityEngine.Object.FindFirstObjectByType<BattlefieldMap2D>(); var root = map.transform;
         var background = Render("KitchenBackgroundSprite", root, "KitchenInterior.png", 0);
-        background.transform.localPosition = new Vector3(0,.5f,0); background.transform.localScale = Vector3.one;
+        background.transform.localPosition = BackgroundLocalPosition; background.transform.localScale = Vector3.one;
         var route = Render("GinghamPathSprite", root, "GinghamRoute.png", 10);
-        route.transform.localPosition = background.transform.localPosition; route.transform.localScale = Vector3.one;
+        route.transform.localPosition = new Vector3(0,.5f,0); route.transform.localScale = Vector3.one;
         var old = root.Find("TabletopVisual"); if (old != null) old.gameObject.SetActive(false);
         var area = map.PlayableArea.GetComponent<BoxCollider2D>(); area.size = new Vector2(19.6f,7.5f); area.offset = Vector2.zero;
         area.transform.localPosition = new Vector3(0,-1.7f,0);
@@ -104,12 +106,12 @@ public static class KitchenMap2DSetup {
         EditorSceneManager.MarkSceneDirty(scene); EditorSceneManager.SaveScene(scene); AssetDatabase.SaveAssets();
         Debug.Log("KITCHEN_2D_READY: full left-to-right cloth centerline, editable anchors/slots, existing gameplay systems.");
     }
-    private static void Import(string name) {
+    private static void Import(string name, float pixelsPerUnit = PixelsPerUnit) {
         string path=ArtRoot+"/"+name; AssetDatabase.ImportAsset(path);
         var importer=AssetImporter.GetAtPath(path) as TextureImporter;
         if(importer==null) throw new InvalidOperationException("Missing supplied artwork: "+path);
         importer.textureType=TextureImporterType.Sprite; importer.spriteImportMode=SpriteImportMode.Single;
-        importer.spritePixelsPerUnit=PixelsPerUnit; importer.filterMode=FilterMode.Point; importer.mipmapEnabled=false;
+        importer.spritePixelsPerUnit=pixelsPerUnit; importer.filterMode=FilterMode.Point; importer.mipmapEnabled=false;
         importer.textureCompression=TextureImporterCompression.Uncompressed; importer.maxTextureSize=2048;
         importer.alphaSource=TextureImporterAlphaSource.FromInput; importer.alphaIsTransparency=true; importer.wrapMode=TextureWrapMode.Clamp;
         var settings=new TextureImporterSettings(); importer.ReadTextureSettings(settings); settings.spriteMeshType=SpriteMeshType.FullRect; settings.spriteAlignment=(int)SpriteAlignment.Center; importer.SetTextureSettings(settings);
