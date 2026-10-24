@@ -1,13 +1,24 @@
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 namespace Defense {
-public sealed class DeckCardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler {
+public sealed class DeckCardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler {
     public CardDefinition Definition { get; private set; }
     public bool IsDragging { get; private set; }
     private RectTransform ghost;
     private RectTransform canvas;
-    public void Initialize(CardDefinition definition, RectTransform canvasRoot) { Definition = definition; canvas = canvasRoot; }
+    private Action<CardDefinition> onClick;
+    public void Initialize(CardDefinition definition, RectTransform canvasRoot, Action<CardDefinition> clickCallback = null) {
+        Definition = definition;
+        canvas = canvasRoot;
+        onClick = clickCallback;
+    }
+    public void OnPointerClick(PointerEventData data) {
+        if (!isActiveAndEnabled || IsDragging || data.dragging || data.button != PointerEventData.InputButton.Left || Definition == null) return;
+        GameAudio.PlayButtonClick();
+        onClick?.Invoke(Definition);
+    }
     public void OnBeginDrag(PointerEventData data) {
         if (!isActiveAndEnabled || IsDragging || data.button != PointerEventData.InputButton.Left || Definition == null) return;
         IsDragging = true;
