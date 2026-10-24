@@ -42,32 +42,29 @@ public sealed class DeckEditorUI : MonoBehaviour {
             UiFactory.ApplyButtonSkin(backButton,skin.LobbyBack);
             UiFactory.ApplyButtonSkin(settingsButton,skin.LobbySettings);
         }
-        stageTitle = UiFactory.Label(transform,"Available Cards",new Vector2(.25f,1),new Vector2(0,-105),new Vector2(500,55),30);
-        var stageTitleOutline = stageTitle.gameObject.AddComponent<Outline>();
-        stageTitleOutline.effectColor = new Color(0f,0f,0f,.95f);
-        stageTitleOutline.effectDistance = new Vector2(1.5f,-1.5f);
-
-        var currentDeckLabel = UiFactory.Label(transform,"Current Deck",new Vector2(.75f,1),new Vector2(0,-105),new Vector2(500,55),30);
-        var currentDeckOutline = currentDeckLabel.gameObject.AddComponent<Outline>();
-        currentDeckOutline.effectColor = new Color(0f,0f,0f,.95f);
-        currentDeckOutline.effectDistance = new Vector2(1.5f,-1.5f);
-
-        var leftPanel = UiFactory.Rect("Tower Cards Wood Panel",transform,new Vector2(.25f,1),new Vector2(0,-325),new Vector2(580,442));
+        var leftPanel = UiFactory.Rect("Tower Cards Wood Panel",transform,new Vector2(.25f,1),new Vector2(0,-335),new Vector2(590,442));
         var leftPanelImage = leftPanel.gameObject.AddComponent<Image>();
         leftPanelImage.sprite = Resources.Load<Sprite>("UI/TowerCardsWoodPanel");
-        leftPanelImage.preserveAspect = true;
+        leftPanelImage.preserveAspect = false;
         leftPanelImage.raycastTarget = false;
 
-        var rightBoard = UiFactory.Rect("Six Card Cutting Board",transform,new Vector2(.75f,1),new Vector2(0,-325),new Vector2(590,442));
+        var rightBoard = UiFactory.Rect("Six Card Cutting Board",transform,new Vector2(.75f,1),new Vector2(0,-335),new Vector2(590,442));
         var rightBoardImage = rightBoard.gameObject.AddComponent<Image>();
         rightBoardImage.sprite = Resources.Load<Sprite>("UI/SixCardCuttingBoard");
         rightBoardImage.preserveAspect = true;
         rightBoardImage.raycastTarget = false;
 
-        var divider = UiFactory.Rect("Book Divider",transform,new Vector2(.5f,.5f),Vector2.zero,new Vector2(3,460));
-        divider.gameObject.AddComponent<Image>().color = new Color(.25f,.16f,.08f,.6f);
+        stageTitle = UiFactory.Label(transform,"Available Cards",new Vector2(.25f,1),new Vector2(0,-82),new Vector2(500,55),30);
+        var stageTitleOutline = stageTitle.gameObject.AddComponent<Outline>();
+        stageTitleOutline.effectColor = new Color(0f,0f,0f,.95f);
+        stageTitleOutline.effectDistance = new Vector2(1.5f,-1.5f);
 
-        var viewport = UiFactory.Rect("Available Cards List",transform,new Vector2(.25f,1),new Vector2(0,-325),new Vector2(520,400));
+        var currentDeckLabel = UiFactory.Label(transform,"Current Deck",new Vector2(.75f,1),new Vector2(0,-82),new Vector2(500,55),30);
+        var currentDeckOutline = currentDeckLabel.gameObject.AddComponent<Outline>();
+        currentDeckOutline.effectColor = new Color(0f,0f,0f,.95f);
+        currentDeckOutline.effectDistance = new Vector2(1.5f,-1.5f);
+
+        var viewport = UiFactory.Rect("Available Cards List",transform,new Vector2(.25f,1),new Vector2(0,-335),new Vector2(520,368));
         var viewportImage = viewport.gameObject.AddComponent<Image>();
         viewportImage.color = Color.clear;
         viewport.gameObject.AddComponent<RectMask2D>();
@@ -76,12 +73,12 @@ public sealed class DeckEditorUI : MonoBehaviour {
         emptyOutline.effectColor = new Color(0f,0f,0f,.95f);
         emptyOutline.effectDistance = new Vector2(1.2f,-1.2f);
         var scroll = viewport.gameObject.AddComponent<ScrollRect>();
-        content = UiFactory.Rect("Available Cards",viewport,new Vector2(.5f,1),Vector2.zero,new Vector2(520,Mathf.Max(400,Mathf.CeilToInt(editor.Available.Count/3f)*175)));
+        content = UiFactory.Rect("Available Cards",viewport,new Vector2(.5f,1),Vector2.zero,new Vector2(520,Mathf.Max(368,Mathf.CeilToInt(editor.Available.Count/3f)*175+18)));
         content.pivot = new Vector2(.5f,1); scroll.content = content; scroll.viewport = viewport; scroll.horizontal = false; scroll.movementType = ScrollRect.MovementType.Clamped;
         for (int i=0;i<PlayerSession.Catalog.AvailableCards.Count;i++) {
             var definition = PlayerSession.Catalog.AvailableCards[i];
             if (definition == null || availableViews.ContainsKey(definition)) continue;
-            var card = UiFactory.Rect("Available "+definition.DisplayName,content,new Vector2(.5f,1),new Vector2((i%3-1)*155,-90-i/3*175),new Vector2(106,164));
+            var card = UiFactory.Rect("Available "+definition.DisplayName,content,new Vector2(.5f,1),new Vector2((i%3-1)*155,-96-i/3*175),new Vector2(106,164));
             var cardImage = card.gameObject.AddComponent<Image>();
             cardImage.preserveAspect = true;
             bool hasCardSprite = definition.CardSprite != null;
@@ -99,7 +96,7 @@ public sealed class DeckEditorUI : MonoBehaviour {
             availableViews.Add(definition,card);
         }
         for (int i=0;i<6;i++) {
-            var card = UiFactory.Rect("Deck Slot T"+(i+1),transform,new Vector2(.75f,1),new Vector2((i%3-1)*150,-225-i/3*195),new Vector2(114,176));
+            var card = UiFactory.Rect("Deck Slot T"+(i+1),transform,new Vector2(.75f,1),new Vector2((i%3-1)*150,-235-i/3*195),new Vector2(114,176));
             slotImages[i] = card.gameObject.AddComponent<Image>();
             slotImages[i].preserveAspect = true;
             labels[i] = UiFactory.Label(card,"",new Vector2(.5f,.5f),new Vector2(0,-56),new Vector2(108,48),14);
@@ -164,8 +161,8 @@ public sealed class DeckEditorUI : MonoBehaviour {
         // Reuse views. Hiding a consumed source safely cancels its drag ghost during OnDrop.
         foreach (var pair in availableViews) pair.Value.gameObject.SetActive(visible.Contains(pair.Key));
         for (int i=0;i<available.Count;i++)
-            availableViews[available[i]].anchoredPosition = new Vector2((i%3-1)*155,-90-i/3*175);
-        content.sizeDelta = new Vector2(520,Mathf.Max(400,Mathf.CeilToInt(available.Count/3f)*175));
+            availableViews[available[i]].anchoredPosition = new Vector2((i%3-1)*155,-96-i/3*175);
+        content.sizeDelta = new Vector2(520,Mathf.Max(368,Mathf.CeilToInt(available.Count/3f)*175+18));
     }
     private void ShowWarning(string message) => warning.Show(message,3);
     private void OnDestroy() { PlayerSession.StageCardsChanged -= OnStageChanged; if (presets != null) presets.Changed -= OnPresetsChanged; if (deck != null) deck.Rejected -= ShowWarning; }
