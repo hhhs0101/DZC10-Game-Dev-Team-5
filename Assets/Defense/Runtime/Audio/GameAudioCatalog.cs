@@ -16,6 +16,9 @@ public sealed class GameAudioCatalog : ScriptableObject {
     public AudioClip paprika;
     public AudioClip pepper;
     public AudioClip salt;
+    public AudioClip enemyAliveReaching;
+    public AudioClip enemyDeadReaching;
+    public AudioClip enemyNoHp;
 }
 }
 

@@ -18,6 +18,8 @@ public static class GameAudio {
     private static AudioSource bgmSource;
     private static AudioSource sfxSource;
     private static AudioSource towerSfxSource;
+    private static AudioSource enemyDeathSfxSource;
+    private static AudioSource enemyReachSfxSource;
     private static float bgmVolume = -1f;
     private static float sfxVolume = -1f;
 
@@ -63,6 +65,8 @@ public static class GameAudio {
             PlayerPrefs.SetFloat(SfxVolumePrefKey, clamped);
             if (sfxSource != null) sfxSource.volume = clamped;
             if (towerSfxSource != null) towerSfxSource.volume = clamped;
+            if (enemyDeathSfxSource != null) enemyDeathSfxSource.volume = clamped;
+            if (enemyReachSfxSource != null) enemyReachSfxSource.volume = clamped;
         }
         VolumeChanged?.Invoke(category, clamped);
     }
@@ -70,7 +74,7 @@ public static class GameAudio {
     private static void EnsureSources() {
         if (!Application.isPlaying) return;
         EnsureAudioListener();
-        if (bgmSource != null && sfxSource != null && towerSfxSource != null) return;
+        if (bgmSource != null && sfxSource != null && towerSfxSource != null && enemyDeathSfxSource != null && enemyReachSfxSource != null) return;
         var host = new GameObject("GameAudio");
         UnityEngine.Object.DontDestroyOnLoad(host);
 
@@ -95,6 +99,18 @@ public static class GameAudio {
         towerSfxSource.spatialBlend = 0f;
         towerSfxSource.loop = false;
         towerSfxSource.volume = SfxVolume;
+
+        enemyDeathSfxSource = sfxGroup.AddComponent<AudioSource>();
+        enemyDeathSfxSource.playOnAwake = false;
+        enemyDeathSfxSource.spatialBlend = 0f;
+        enemyDeathSfxSource.loop = false;
+        enemyDeathSfxSource.volume = SfxVolume;
+
+        enemyReachSfxSource = sfxGroup.AddComponent<AudioSource>();
+        enemyReachSfxSource.playOnAwake = false;
+        enemyReachSfxSource.spatialBlend = 0f;
+        enemyReachSfxSource.loop = false;
+        enemyReachSfxSource.volume = SfxVolume;
     }
 
     private static void EnsureAudioListener() {
@@ -103,8 +119,12 @@ public static class GameAudio {
         if (cam != null) cam.gameObject.AddComponent<AudioListener>();
     }
 
-    private static AudioClip Resolve(AudioClip clip, string assetPath) {
+    private static AudioClip Resolve(AudioClip clip, string assetPath, string resourcePath = null) {
         if (clip != null) return clip;
+        if (!string.IsNullOrEmpty(resourcePath)) {
+            var resClip = Resources.Load<AudioClip>(resourcePath);
+            if (resClip != null) return resClip;
+        }
 #if UNITY_EDITOR
         return AssetDatabase.LoadAssetAtPath<AudioClip>(assetPath);
 #else
@@ -120,6 +140,12 @@ public static class GameAudio {
 
     public static void PlayButtonClick() => PlaySfx(Resolve(Catalog != null ? Catalog.buttonClick : null, "Assets/SFX/button_click.wav"));
     public static void PlayCardUse() => PlaySfx(Resolve(Catalog != null ? Catalog.cardUse : null, "Assets/SFX/card_use.wav"));
+    public static void PlayEnemyAliveReaching() =>
+        PlaySfx(Resolve(Catalog != null ? Catalog.enemyAliveReaching : null, "Assets/SFX/enemy_reach_alive.wav", "SFX/enemy_reach_alive"));
+    public static void PlayEnemyDeadReaching() =>
+        PlayCappedSfx(enemyReachSfxSource, Resolve(Catalog != null ? Catalog.enemyDeadReaching : null, "Assets/SFX/enemy_dead_reaching.mp3", "SFX/enemy_dead_reaching"), TowerSfxDuration, ref enemyReachSfxSource);
+    public static void PlayEnemyNoHp() =>
+        PlayCappedSfx(enemyDeathSfxSource, Resolve(Catalog != null ? Catalog.enemyNoHp : null, "Assets/SFX/enemy_no_hp.mp3", "SFX/enemy_no_hp"), TowerSfxDuration, ref enemyDeathSfxSource);
 
     public static void PlayTowerPlaced(TurretDefinition tower) {
         if (tower == null || string.IsNullOrEmpty(tower.DisplayName)) return;
@@ -155,16 +181,22 @@ public static class GameAudio {
         sfxSource.PlayOneShot(clip, SfxVolume);
     }
 
-    private static void PlayTowerSfx(AudioClip clip) {
+    private static void PlayTowerSfx(AudioClip clip) =>
+        PlayCappedSfx(towerSfxSource, clip, TowerSfxDuration, ref towerSfxSource);
+
+    private static void PlayCappedSfx(AudioSource _, AudioClip clip, float maxDuration, ref AudioSource targetSource) {
         if (!Application.isPlaying || clip == null) return;
         EnsureSources();
-        towerSfxSource.Stop();
-        towerSfxSource.clip = clip;
-        towerSfxSource.volume = SfxVolume;
-        towerSfxSource.time = 0f;
+        if (targetSource == null) return;
+        targetSource.Stop();
+        targetSource.clip = clip;
+        targetSource.loop = false;
+        targetSource.volume = SfxVolume;
+        targetSource.time = 0f;
         double startDsp = AudioSettings.dspTime;
-        towerSfxSource.PlayScheduled(startDsp);
-        towerSfxSource.SetScheduledEndTime(startDsp + TowerSfxDuration);
+        double playDuration = clip.length > 0f ? Math.Min(clip.length, maxDuration) : maxDuration;
+        targetSource.PlayScheduled(startDsp);
+        targetSource.SetScheduledEndTime(startDsp + playDuration);
     }
 }
 }

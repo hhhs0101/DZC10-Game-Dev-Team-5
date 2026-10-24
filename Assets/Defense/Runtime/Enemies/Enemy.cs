@@ -66,6 +66,7 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     protected virtual void Die() {
         if (!active) return;
         IsDead = true;
+        GameAudio.PlayEnemyNoHp();
         OnCombatDeath();
         RetireCombat();
         ApplyDeadTransparency();
@@ -73,11 +74,13 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     }
     private void ReachBase() {
         if (active) {
+            GameAudio.PlayEnemyAliveReaching();
             Retire();
             if (Definition != null && Definition.HasConfiguredBaseDamage && baseTarget != null)
                 baseTarget.ReceiveDamage(baseDamage);
             Destroy(gameObject);
         } else if (IsDead) {
+            GameAudio.PlayEnemyDeadReaching();
             if (movement != null) movement.Stop();
             Destroy(gameObject);
         }

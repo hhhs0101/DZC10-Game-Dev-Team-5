@@ -24,4 +24,6 @@ MonoBehaviour:
   paprika: {fileID: 8300000, guid: 88d32dff7f0643f3b6b64b85bdc68139, type: 3}
   pepper: {fileID: 8300000, guid: 2b7ed65568e3486684bca160e240bdb9, type: 3}
   salt: {fileID: 8300000, guid: cdbb6cb5d935481bb98b16f80d56f450, type: 3}
-
+  enemyAliveReaching: {fileID: 8300000, guid: a1112222333344445555666677778803, type: 3}
+  enemyDeadReaching: {fileID: 8300000, guid: a1112222333344445555666677778802, type: 3}
+  enemyNoHp: {fileID: 8300000, guid: a1112222333344445555666677778801, type: 3}
