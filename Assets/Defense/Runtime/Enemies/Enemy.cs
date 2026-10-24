@@ -4,6 +4,7 @@ namespace Defense {
 [RequireComponent(typeof(EnemyHealth), typeof(EnemyPathFollower))]
 public abstract class Enemy : MonoBehaviour, IDamageable {
     public const float DeadSpriteAlpha = 0.4f;
+    private static readonly Vector3 TunnelHiddenPosition = new Vector3(0f, -1000f, 0f);
     private EnemyHealth health;
     private EnemyPathFollower movement;
     private EnemyRegistry registry;
@@ -30,16 +31,25 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
         if(active) Retire();
         var effects = GetComponent<EnemyStatusEffects>(); if(effects != null) effects.Clear();
         if(health != null) health.Depleted -= Die;
-        if(movement != null) { movement.ReachedEnd -= ReachBase; movement.Moved -= OnMoved; }
+        if(movement != null) {
+            movement.ReachedEnd -= ReachBase;
+            movement.Moved -= OnMoved;
+            movement.EnteredTunnel -= OnEnteredTunnel;
+            movement.ExitedTunnel -= OnExitedTunnel;
+        }
         health = GetComponent<EnemyHealth>(); movement = GetComponent<EnemyPathFollower>();
         registry = enemies; baseTarget = target; baseDamage = data.BaseDamage;
         Definition = data; ResourceReward = data.ResourceReward;
         health.Initialize(data.Health, data.VegetableType == VegetableType.Corn ? data.SplitCount : 1);
-        health.Depleted += Die; movement.ReachedEnd += ReachBase;
+        health.Depleted += Die;
+        movement.ReachedEnd += ReachBase;
+        movement.EnteredTunnel += OnEnteredTunnel;
+        movement.ExitedTunnel += OnExitedTunnel;
         movement.Initialize(path, data.MovementSpeed);
         if(continuation != null) movement.ContinueFrom(continuation);
         movement.Moved += OnMoved;
         IsDead = false;
+        SetVisualVisibility(true);
         active = true; Initialized?.Invoke(data); registry.Register(this);
         roleAbility = EnemyRoleAbility.Configure(this,data,registry,roleAbility);
         if(!data.HasConfiguredBaseDamage) Debug.LogWarning(data.DisplayName+": endpoint damage is not configured (design says 'tower health'); Base arrival retires safely without damage or a kill reward.",this);
@@ -73,6 +83,23 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
         }
     }
     private void OnMoved() { if (active) registry.NotifyMoved(this); }
+    private void OnEnteredTunnel() {
+        transform.position = TunnelHiddenPosition;
+        SetVisualVisibility(false);
+        if (roleAbility != null) roleAbility.enabled = false;
+        if (active && registry != null) registry.NotifyMoved(this);
+    }
+    private void OnExitedTunnel() {
+        SetVisualVisibility(true);
+        if (active && roleAbility != null) roleAbility.enabled = true;
+        if (active && registry != null) registry.NotifyMoved(this);
+    }
+    private void SetVisualVisibility(bool visible) {
+        foreach (var sprite in GetComponentsInChildren<SpriteRenderer>(true))
+            sprite.enabled = visible;
+        var healthBar = GetComponent<EnemyHealthBar>();
+        if (healthBar != null) healthBar.enabled = visible && !IsDead;
+    }
     private void RetireCombat() {
         active = false;
         if (roleAbility != null) roleAbility.Shutdown();
@@ -101,7 +128,11 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     }
     protected virtual void OnDestroy() {
         if (health != null) health.Depleted -= Die;
-        if (movement != null) movement.ReachedEnd -= ReachBase;
+        if (movement != null) {
+            movement.ReachedEnd -= ReachBase;
+            movement.EnteredTunnel -= OnEnteredTunnel;
+            movement.ExitedTunnel -= OnExitedTunnel;
+        }
         if (registry != null) registry.Unregister(this);
     }
 }

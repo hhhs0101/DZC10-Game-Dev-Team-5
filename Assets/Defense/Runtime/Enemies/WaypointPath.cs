@@ -11,6 +11,10 @@ public sealed class WaypointPath : MonoBehaviour {
     [SerializeField, Tooltip("Ordered from spawn to Base; at least two points.")] private Transform[] points;
     public int Count => points == null ? 0 : points.Length;
     public Vector3 GetPoint(int index) => Constrain(points[index].position);
+    public void Configure(WaypointPlane waypointPlane, Transform[] waypoints) {
+        plane = waypointPlane;
+        points = waypoints;
+    }
     private void OnDrawGizmos() {
         if (points == null) return;
         Gizmos.color = Color.yellow;

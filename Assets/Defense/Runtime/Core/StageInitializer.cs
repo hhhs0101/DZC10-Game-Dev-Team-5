@@ -38,6 +38,9 @@ public sealed class StageInitializer : MonoBehaviour {
             issue = issue ?? "Stage '"+definition.DisplayName+"' is configured for 2D scene '"+definition.SceneName+"', not '"+gameObject.scene.name+"'.";
             Debug.LogError(issue,this); flow.FailConfiguration(issue); return;
         }
+        if (Stage3DivergingRouteConfig.IsStage3(definition)) {
+            Stage3DivergingRouteConfig.Apply(Object.FindFirstObjectByType<BattlefieldMap2D>(), GetComponent<EnemySpawner>());
+        }
         schedule.Configure(definition);
         var victory = GetComponent<StageVictoryController>() ?? gameObject.AddComponent<StageVictoryController>();
         victory.Initialize(flow,schedule,GetComponent<EnemyRegistry>(),definition,PlayerSession.Currency,()=>PlayerSession.CompleteActiveStage(),trackScheduledDefeats);

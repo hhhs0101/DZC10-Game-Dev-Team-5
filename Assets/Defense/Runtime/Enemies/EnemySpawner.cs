@@ -3,6 +3,9 @@ namespace Defense {
 public sealed class EnemySpawner : MonoBehaviour {
     [SerializeField] private WaypointPath path;
     [SerializeField, Tooltip("Optional multi-branch routes; when populated, each spawn cycles across branches.")] private WaypointPath[] branchPaths;
+    [SerializeField, Tooltip("Optional Stage 3 left diverging route leading off-screen before re-emerging on the right.")] private WaypointPath divergingEntryPath;
+    [SerializeField, Tooltip("Optional Stage 3 right re-emergence route leading back onto the main path to the destination.")] private WaypointPath divergingExitPath;
+    [SerializeField, Min(0f)] private float divergingHideSeconds = 3f;
     [SerializeField] private BaseHealth baseHealth;
     [SerializeField] private EnemyRegistry registry;
     [SerializeField] private GameFlow flow;
@@ -10,8 +13,36 @@ public sealed class EnemySpawner : MonoBehaviour {
     [SerializeField, Tooltip("Optional native 2D actor prefab. EnemyDefinition still owns stats/rewards.")] private Enemy spritePrefab;
     private int lastBranchIndex = -1;
     private int sameBranchStreak;
+    private int lastDivergeChoice = -1;
+    private int sameDivergeStreak;
     public bool CanSpawn => flow != null && flow.IsPlaying;
     internal GameFlow Flow => flow;
+    public void ConfigureDivergingRoute(WaypointPath entryPath, WaypointPath exitPath, float hideSeconds = 3f) {
+        divergingEntryPath = entryPath;
+        divergingExitPath = exitPath;
+        divergingHideSeconds = Mathf.Max(0f, hideSeconds);
+        lastDivergeChoice = -1;
+        sameDivergeStreak = 0;
+    }
+    private static bool IsBoss(EnemyDefinition definition) =>
+        definition != null && (definition.Role == EnemyRole.Boss || definition.VegetableType == VegetableType.Broccoli || (definition.Prefab != null && definition.Prefab is BossEnemy));
+    private bool ShouldUseDivergingRoute(EnemyDefinition definition) {
+        if (IsBoss(definition)) return false;
+        if (divergingEntryPath == null || divergingEntryPath.Count < 2 || divergingExitPath == null || divergingExitPath.Count < 2)
+            return false;
+        int chosen;
+        if (sameDivergeStreak >= 2 && (lastDivergeChoice == 0 || lastDivergeChoice == 1)) {
+            chosen = 1 - lastDivergeChoice;
+        } else {
+            chosen = UnityEngine.Random.Range(0, 2);
+        }
+        if (chosen == lastDivergeChoice) sameDivergeStreak++;
+        else {
+            lastDivergeChoice = chosen;
+            sameDivergeStreak = 1;
+        }
+        return chosen == 1;
+    }
     private WaypointPath SelectSpawnPath() {
         if ((branchPaths == null || branchPaths.Length == 0)) {
             var map = UnityEngine.Object.FindFirstObjectByType<BattlefieldMap2D>();
@@ -71,13 +102,16 @@ public sealed class EnemySpawner : MonoBehaviour {
     }
     public Enemy Spawn(EnemyDefinition definition) {
         if (!flow.IsPlaying) return null;
-        var activePath = SelectSpawnPath();
+        bool useDiverging = ShouldUseDivergingRoute(definition);
+        var activePath = useDiverging ? divergingEntryPath : (IsBoss(definition) ? path : SelectSpawnPath());
         if (definition == null || definition.Prefab == null || activePath == null || activePath.Count < 2) {
             Debug.LogError("EnemySpawner requires a prefab and at least two waypoints.", this); return null;
         }
         Enemy enemy = Instantiate(ActorPrefab(definition), activePath.GetPoint(0), Quaternion.identity, enemyRoot);
         enemy.Spawner = this;
         enemy.Initialize(definition, activePath, baseHealth, registry);
+        if (useDiverging && enemy.Movement != null)
+            enemy.Movement.SetContinuation(divergingExitPath, divergingHideSeconds);
         enemy.Died += OnEnemyDied;
         return enemy;
     }
