@@ -37,10 +37,10 @@ public sealed class GameplayUI : MonoBehaviour {
         bannerImage.preserveAspect = true;
         bannerImage.raycastTarget = false;
         bannerImage.color = bannerImage.sprite != null ? Color.white : new Color(.38f,.24f,.12f,.95f);
-        hpLabel = UiFactory.Label(bannerRect,"",new Vector2(.5f,.5f),new Vector2(-135,2),new Vector2(240,44),21);
-        AddOutline(hpLabel);
-        remainingEnemiesLabel = UiFactory.Label(bannerRect,"",new Vector2(.5f,.5f),new Vector2(135,2),new Vector2(260,44),21);
-        AddOutline(remainingEnemiesLabel);
+        hpLabel = UiFactory.Label(bannerRect,"",new Vector2(.5f,.5f),new Vector2(-140,1),new Vector2(260,48),25);
+        StyleBannerLabel(hpLabel);
+        remainingEnemiesLabel = UiFactory.Label(bannerRect,"",new Vector2(.5f,.5f),new Vector2(135,1),new Vector2(280,48),25);
+        StyleBannerLabel(remainingEnemiesLabel);
         pauseButton = UiFactory.Button(root,"Pause",new Vector2(-110,-34),flow.TogglePause,new Vector2(1,1),new Vector2(176,42));
         messageLabel = UiFactory.Label(root,"",new Vector2(.414f,0),new Vector2(0,22),new Vector2(760,38),20);
         AddOutline(messageLabel);
@@ -87,6 +87,14 @@ public sealed class GameplayUI : MonoBehaviour {
         baseHealth.Changed += UpdateHealth;
         flow.Changed += UpdateState; placement.Message += ShowMessage;
         UpdateHealth(baseHealth.Current); UpdateRemainingEnemies(); UpdateState(flow.State);
+    }
+    private static void StyleBannerLabel(Text text) {
+        text.font = UiFactory.BannerFont;
+        text.fontStyle = FontStyle.Bold;
+        text.color = new Color(.22f, .09f, .03f, 1f);
+        var highlight = text.gameObject.AddComponent<Shadow>();
+        highlight.effectColor = new Color(1f, .96f, .88f, .75f);
+        highlight.effectDistance = new Vector2(0f, -1.5f);
     }
     private static void AddOutline(Text text) {
         var outline = text.gameObject.AddComponent<Outline>();

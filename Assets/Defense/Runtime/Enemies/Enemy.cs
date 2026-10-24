@@ -3,6 +3,7 @@ using UnityEngine;
 namespace Defense {
 [RequireComponent(typeof(EnemyHealth), typeof(EnemyPathFollower))]
 public abstract class Enemy : MonoBehaviour, IDamageable {
+    public const float DeadSpriteAlpha = 0.4f;
     private EnemyHealth health;
     private EnemyPathFollower movement;
     private EnemyRegistry registry;
@@ -11,6 +12,7 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     private bool active;
     private EnemyRoleAbility roleAbility;
     public bool IsAlive => active && isActiveAndEnabled && health.Current > 0;
+    public bool IsDead { get; private set; }
     public float CurrentHealth => health != null ? health.Current : 0;
     public float MaximumHealth => health != null ? health.Maximum : 0;
     public EnemySpawner Spawner { get; internal set; }
@@ -37,6 +39,7 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
         movement.Initialize(path, data.MovementSpeed);
         if(continuation != null) movement.ContinueFrom(continuation);
         movement.Moved += OnMoved;
+        IsDead = false;
         active = true; Initialized?.Invoke(data); registry.Register(this);
         roleAbility = EnemyRoleAbility.Configure(this,data,registry,roleAbility);
         if(!data.HasConfiguredBaseDamage) Debug.LogWarning(data.DisplayName+": endpoint damage is not configured (design says 'tower health'); Base arrival retires safely without damage or a kill reward.",this);
@@ -52,19 +55,50 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     }
     protected virtual void Die() {
         if (!active) return;
+        IsDead = true;
         OnCombatDeath();
-        Retire(); Died?.Invoke(this); Destroy(gameObject);
+        RetireCombat();
+        ApplyDeadTransparency();
+        Died?.Invoke(this);
     }
     private void ReachBase() {
-        if (!active) return;
-        Retire(); if(Definition.HasConfiguredBaseDamage) baseTarget.ReceiveDamage(baseDamage); Destroy(gameObject);
+        if (active) {
+            Retire();
+            if (Definition != null && Definition.HasConfiguredBaseDamage && baseTarget != null)
+                baseTarget.ReceiveDamage(baseDamage);
+            Destroy(gameObject);
+        } else if (IsDead) {
+            if (movement != null) movement.Stop();
+            Destroy(gameObject);
+        }
     }
     private void OnMoved() { if (active) registry.NotifyMoved(this); }
-    private void Retire() {
-        active = false; if(roleAbility != null) roleAbility.Shutdown(); movement.Stop(); movement.Moved -= OnMoved; movement.Modifiers.Clear();
+    private void RetireCombat() {
+        active = false;
+        if (roleAbility != null) roleAbility.Shutdown();
+        var effects = GetComponent<EnemyStatusEffects>();
+        if (effects != null) effects.Clear();
+        if (movement != null) {
+            movement.Moved -= OnMoved;
+            movement.Modifiers.Clear();
+        }
         if (registry != null) registry.Unregister(this);
     }
-    protected virtual void OnDisable() { if (active) Retire(); }
+    private void Retire() {
+        RetireCombat();
+        if (movement != null) movement.Stop();
+    }
+    private void ApplyDeadTransparency() {
+        foreach (var sprite in GetComponentsInChildren<SpriteRenderer>(true)) {
+            var color = sprite.color;
+            color.a = DeadSpriteAlpha;
+            sprite.color = color;
+        }
+    }
+    protected virtual void OnDisable() {
+        if (active) Retire();
+        else if (movement != null) movement.Stop();
+    }
     protected virtual void OnDestroy() {
         if (health != null) health.Depleted -= Die;
         if (movement != null) movement.ReachedEnd -= ReachBase;
