@@ -3,22 +3,24 @@ using UnityEngine;
 using UnityEngine.UI;
 namespace Defense {
 // Pokémon-style dialogue between Mom and Jihoon, played once per launch when Start Game opens stage select.
-// Character art is loaded from Resources/Story/Mom and Resources/Story/Jihoon; placeholders are drawn until it exists.
+// Portraits are loaded from Resources/Story/{Mom|Jihoon}_{Face}; placeholders are drawn if the art is missing.
 public sealed class StoryIntroUI : MonoBehaviour {
     private enum Speaker { Mom, Jihoon }
     private readonly struct Line {
-        public readonly Speaker Speaker; public readonly bool Thought; public readonly string Korean; public readonly string English;
-        public Line(Speaker speaker, bool thought, string korean, string english) { Speaker = speaker; Thought = thought; Korean = korean; English = english; }
+        public readonly Speaker Speaker; public readonly bool Thought; public readonly string MomFace, JihoonFace, Korean, English;
+        public Line(Speaker speaker, bool thought, string momFace, string jihoonFace, string korean, string english) {
+            Speaker = speaker; Thought = thought; MomFace = momFace; JihoonFace = jihoonFace; Korean = korean; English = english;
+        }
     }
     private static readonly Line[] Script = {
-        new Line(Speaker.Mom,false,"지훈아! 저녁 다 됐다~ 오늘은 채소 듬뿍 넣은 국이야!","Jihoon! Dinner's ready~ Tonight it's soup packed with vegetables!"),
-        new Line(Speaker.Jihoon,false,"채… 채소?! 으악! 엄마, 나 배 안 고파…","Ve… vegetables?! Ugh! Mom, I'm not hungry…"),
-        new Line(Speaker.Mom,false,"또 그런다! 넌 왜 이렇게 입이 짧니?","Not again! Why is your mouth so short?"),
-        new Line(Speaker.Mom,false,"채소는 몸에 좋아. 오늘은 한 그릇 다 먹어야 해!","Vegetables are good for you. You're finishing the whole bowl today!"),
-        new Line(Speaker.Jihoon,false,"…네에. 알겠어요.","…Okaaay. Fine."),
-        new Line(Speaker.Jihoon,true,"(흐흐… 하지만 나한테는 비밀 작전이 있지!)","(Heh heh… but I've got a secret plan!)"),
-        new Line(Speaker.Jihoon,true,"(채소가 냄비에 들어가기 전에, 내가 먼저 맛있게 양념해 버릴 거야!)","(Before the veggies go into the pot, I'll season them first so they taste good!)"),
-        new Line(Speaker.Jihoon,true,"(소금, 간장, 매운 소스… 엄마는 절대 모를걸!)","(Salt, soy sauce, hot sauce… Mom will never know!)"),
+        new Line(Speaker.Mom,false,"Regular","Regular","지훈아! 저녁 다 됐다~ 오늘은 채소 듬뿍 넣은 국이야!","Jihoon! Dinner's ready~ Tonight it's soup packed with vegetables!"),
+        new Line(Speaker.Jihoon,false,"Regular","Regular","채… 채소?! 으악! 엄마, 나 배 안 고파…","Ve… vegetables?! Ugh! Mom, I'm not hungry…"),
+        new Line(Speaker.Mom,false,"Angry","Regular","또 그런다! 넌 왜 이렇게 입이 짧니?","Not again! Why is your mouth so short?"),
+        new Line(Speaker.Mom,false,"Angry","Regular","채소는 몸에 좋아. 오늘은 한 그릇 다 먹어야 해!","Vegetables are good for you. You're finishing the whole bowl today!"),
+        new Line(Speaker.Jihoon,false,"Angry","Regular","…네에. 알겠어요.","…Okaaay. Fine."),
+        new Line(Speaker.Jihoon,true,"Regular","Mischievous","(흐흐… 하지만 나한테는 비밀 작전이 있지!)","(Heh heh… but I've got a secret plan!)"),
+        new Line(Speaker.Jihoon,true,"Regular","Mischievous","(채소가 냄비에 들어가기 전에, 내가 먼저 맛있게 양념해 버릴 거야!)","(Before the veggies go into the pot, I'll season them first so they taste good!)"),
+        new Line(Speaker.Jihoon,true,"Regular","Happy","(소금, 간장, 매운 소스… 엄마는 절대 모를걸!)","(Salt, soy sauce, hot sauce… Mom will never know!)"),
     };
     private const float CharsPerSecond = 28f, FadeSeconds = .4f;
     private static readonly Color Ink = new Color(.16f,.12f,.1f), Dimmed = new Color(.45f,.45f,.5f,1f);
@@ -62,9 +64,11 @@ public sealed class StoryIntroUI : MonoBehaviour {
         thoughtTint = UiFactory.Panel("Thought Tint",transform,new Color(.35f,.15f,.55f,.35f)).GetComponent<Image>();
         thoughtTint.raycastTarget = false; thoughtTint.enabled = false;
 
-        // Mom stands on the left by the counter, Jihoon on the right; both sit just above the dialogue box.
-        mom = Character("Mom",new Vector2(.08f,.24f),new Vector2(.36f,.92f),new Color(.93f,.55f,.62f),out momRect);
-        jihoon = Character("Jihoon",new Vector2(.62f,.24f),new Vector2(.86f,.72f),new Color(.98f,.82f,.3f),out jihoonRect);
+        // Mom on the left, Jihoon on the right; the busts tuck behind the top of the dialogue box.
+        mom = Character("Mom",new Vector2(.03f,.2f),new Vector2(.4f,.97f),new Color(.93f,.55f,.62f),out momRect);
+        jihoon = Character("Jihoon",new Vector2(.62f,.2f),new Vector2(.95f,.88f),new Color(.98f,.82f,.3f),out jihoonRect);
+        // Mom's art looks to the left; mirror it so she faces Jihoon.
+        if (mom.sprite != null) momRect.localScale = new Vector3(-1,1,1);
         momBase = momRect.anchoredPosition; jihoonBase = jihoonRect.anchoredPosition;
 
         var frame = UiFactory.Panel("Dialogue Box",transform,new Color(.13f,.18f,.34f)).GetComponent<RectTransform>();
@@ -105,7 +109,7 @@ public sealed class StoryIntroUI : MonoBehaviour {
         Stretch(rect,min,max);
         var image = rect.gameObject.AddComponent<Image>();
         image.raycastTarget = false;
-        image.sprite = UiFactory.LoadSprite("Story/" + who);
+        image.sprite = UiFactory.LoadSprite("Story/" + who + "_Regular");
         if (image.sprite != null) { image.preserveAspect = true; return image; }
         // Placeholder figure: a coloured body and a head, so the scene reads correctly before art is added.
         image.color = Color.clear;
@@ -156,6 +160,8 @@ public sealed class StoryIntroUI : MonoBehaviour {
         typed = 0;
         var line = Script[index];
         bool momTalks = line.Speaker == Speaker.Mom;
+        SetFace(mom,"Mom",line.MomFace);
+        SetFace(jihoon,"Jihoon",line.JihoonFace);
         Tint(mom,momTalks);
         Tint(jihoon,!momTalks);
         thoughtTint.enabled = line.Thought;
@@ -164,6 +170,12 @@ public sealed class StoryIntroUI : MonoBehaviour {
         Stretch(nameTagRect,momTalks ? new Vector2(.05f,.27f) : new Vector2(.73f,.27f),momTalks ? new Vector2(.27f,.33f) : new Vector2(.95f,.33f));
     }
 
+    // Swaps the portrait to match the line's tone; keeps the current face if that expression is missing.
+    private static void SetFace(Image character, string who, string face) {
+        if (character.sprite == null) return;
+        var sprite = UiFactory.LoadSprite("Story/" + who + "_" + face);
+        if (sprite != null) character.sprite = sprite;
+    }
     private static void Tint(Image character, bool speaking) {
         var color = speaking ? Color.white : Dimmed;
         if (character.sprite != null) character.color = color;
