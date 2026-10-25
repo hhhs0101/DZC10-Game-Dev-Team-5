@@ -21,18 +21,18 @@ public sealed class CardEnergyBadge : MonoBehaviour {
         var badge = rect.gameObject.AddComponent<CardEnergyBadge>();
         // Center the number in the wide upper section of the lightning bolt.
         badge.number = UiFactory.Label(rect,"",new Vector2(.43f,.73f),Vector2.zero,
-            new Vector2(width*.82f,height*.42f),Mathf.RoundToInt(width*.62f));
+            new Vector2(width*1.05f,height*.54f),Mathf.RoundToInt(width*.80f));
         badge.number.name = "Energy Number";
         badge.number.color = Color.white;
-        badge.number.fontStyle = FontStyle.Bold;
+        badge.number.fontStyle = FontStyle.Normal;
         badge.number.resizeTextForBestFit = true;
-        badge.number.resizeTextMinSize = 12;
-        badge.number.resizeTextMaxSize = Mathf.RoundToInt(width*.62f);
+        badge.number.resizeTextMinSize = 14;
+        badge.number.resizeTextMaxSize = Mathf.RoundToInt(width*.80f);
         badge.number.horizontalOverflow = HorizontalWrapMode.Overflow;
         badge.number.verticalOverflow = VerticalWrapMode.Overflow;
         var outline = badge.number.gameObject.AddComponent<Outline>();
         outline.effectColor = Color.black;
-        outline.effectDistance = new Vector2(1.5f,-1.5f);
+        outline.effectDistance = new Vector2(0.6f,-0.6f);
         outline.useGraphicAlpha = true;
         return badge;
     }
