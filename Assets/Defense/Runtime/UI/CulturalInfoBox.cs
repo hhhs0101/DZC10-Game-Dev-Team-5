@@ -3,7 +3,7 @@ using UnityEngine.UI;
 namespace Defense {
 // Text for the "i" info buttons that explain Korean food culture around the game.
 public static class CulturalFacts {
-    public const string TitleHeading = "입이 짧다 · To Have a Short Mouth";
+    public const string TitleHeading = "입이 짧다 - To Have a Short Mouth";
     public const string TitleBody =
         "입이 짧다 (ib-i jjal-da) literally means \"the mouth is short.\" In Korean it describes someone who is a picky eater, "
         + "or who only eats a few bites before saying they are full.\n\n"

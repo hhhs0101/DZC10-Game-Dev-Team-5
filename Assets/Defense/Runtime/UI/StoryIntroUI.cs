@@ -14,13 +14,13 @@ public sealed class StoryIntroUI : MonoBehaviour {
     }
     private static readonly Line[] Script = {
         new Line(Speaker.Mom,false,"Regular","Regular","지훈아! 저녁 다 됐다~ 오늘은 채소 듬뿍 넣은 국이야!","Jihoon! Dinner's ready~ Tonight it's soup packed with vegetables!"),
-        new Line(Speaker.Jihoon,false,"Regular","Regular","채… 채소?! 으악! 엄마, 나 배 안 고파…","Ve… vegetables?! Ugh! Mom, I'm not hungry…"),
+        new Line(Speaker.Jihoon,false,"Regular","Regular","채... 채소?! 으악! 엄마, 나 배 안 고파...","Ve... vegetables?! Ugh! Mom, I'm not hungry..."),
         new Line(Speaker.Mom,false,"Angry","Regular","또 그런다! 넌 왜 이렇게 입이 짧니?","Not again! Why is your mouth so short?"),
         new Line(Speaker.Mom,false,"Angry","Regular","채소는 몸에 좋아. 오늘은 한 그릇 다 먹어야 해!","Vegetables are good for you. You're finishing the whole bowl today!"),
-        new Line(Speaker.Jihoon,false,"Angry","Regular","…네에. 알겠어요.","…Okaaay. Fine."),
-        new Line(Speaker.Jihoon,true,"Regular","Mischievous","(흐흐… 하지만 나한테는 비밀 작전이 있지!)","(Heh heh… but I've got a secret plan!)"),
+        new Line(Speaker.Jihoon,false,"Angry","Regular","...네에. 알겠어요.","...Okaaay. Fine."),
+        new Line(Speaker.Jihoon,true,"Regular","Mischievous","(흐흐... 하지만 나한테는 비밀 작전이 있지!)","(Heh heh... but I've got a secret plan!)"),
         new Line(Speaker.Jihoon,true,"Regular","Mischievous","(채소가 냄비에 들어가기 전에, 내가 먼저 맛있게 양념해 버릴 거야!)","(Before the veggies go into the pot, I'll season them first so they taste good!)"),
-        new Line(Speaker.Jihoon,true,"Regular","Happy","(소금, 간장, 매운 소스… 엄마는 절대 모를걸!)","(Salt, soy sauce, hot sauce… Mom will never know!)"),
+        new Line(Speaker.Jihoon,true,"Regular","Happy","(소금, 간장, 매운 소스... 엄마는 절대 모를걸!)","(Salt, soy sauce, hot sauce... Mom will never know!)"),
     };
     private const float CharsPerSecond = 28f, FadeSeconds = .4f;
     private static readonly Color Ink = new Color(.16f,.12f,.1f), Dimmed = new Color(.45f,.45f,.5f,1f);
@@ -93,7 +93,7 @@ public sealed class StoryIntroUI : MonoBehaviour {
         nameTag = Text(nameTagRect,Vector2.zero,Vector2.one,26,TextAnchor.MiddleCenter);
         nameTag.color = Color.white; nameTag.fontStyle = FontStyle.Bold;
 
-        var skip = UiFactory.Button(transform,"Skip ▶▶",new Vector2(-20,-20),Finish,new Vector2(1,1),new Vector2(150,44));
+        var skip = UiFactory.Button(transform,"Skip >>",new Vector2(-20,-20),Finish,new Vector2(1,1),new Vector2(150,44));
         ((RectTransform)skip.transform).pivot = new Vector2(1,1);
         skip.image.color = new Color(0,0,0,.45f);
 
@@ -165,7 +165,7 @@ public sealed class StoryIntroUI : MonoBehaviour {
         Tint(mom,momTalks);
         Tint(jihoon,!momTalks);
         thoughtTint.enabled = line.Thought;
-        nameTag.text = momTalks ? "엄마 · Mom" : "지훈 · Jihoon";
+        nameTag.text = momTalks ? "엄마 - Mom" : "지훈 - Jihoon";
         // The name tag sits on the dialogue box edge, on the side of whoever is speaking.
         Stretch(nameTagRect,momTalks ? new Vector2(.05f,.27f) : new Vector2(.73f,.27f),momTalks ? new Vector2(.27f,.33f) : new Vector2(.95f,.33f));
     }

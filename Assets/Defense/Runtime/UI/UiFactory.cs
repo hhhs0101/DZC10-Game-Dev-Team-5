@@ -6,8 +6,10 @@ namespace Defense {
 public static class UiFactory {
     private static Font cachedFont;
     private static Font cachedBannerFont;
-    private static Font Font => cachedFont != null ? cachedFont : (cachedFont = Font.CreateDynamicFontFromOSFont(new[] { "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans CJK KR", "Arial" },24));
-    public static Font BannerFont => cachedBannerFont != null ? cachedBannerFont : (cachedBannerFont = Font.CreateDynamicFontFromOSFont(new[] { "Trebuchet MS", "Verdana", "Segoe UI", "Arial" }, 26));
+    // Game-wide handwritten Korean/Latin font. It lacks "…", "·", "▶" and "•", so UI strings avoid those characters.
+    private const string CustomFontPath = "Fonts/GriunSobokhee-Regular";
+    private static Font Font => cachedFont != null ? cachedFont : (cachedFont = Resources.Load<Font>(CustomFontPath) ?? Font.CreateDynamicFontFromOSFont(new[] { "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans CJK KR", "Arial" },24));
+    public static Font BannerFont => cachedBannerFont != null ? cachedBannerFont : (cachedBannerFont = Resources.Load<Font>(CustomFontPath) ?? Font.CreateDynamicFontFromOSFont(new[] { "Trebuchet MS", "Verdana", "Segoe UI", "Arial" }, 26));
     public static RectTransform Rect(string name, Transform parent, Vector2 anchor, Vector2 position, Vector2 size) {
         var go = new GameObject(name, typeof(RectTransform));
         var rect = go.GetComponent<RectTransform>(); rect.SetParent(parent, false);
@@ -25,6 +27,8 @@ public static class UiFactory {
         var label = rect.gameObject.AddComponent<Text>();
         label.font = Font; label.text = text; label.fontSize = fontSize;
         label.color = Color.white; label.alignment = TextAnchor.MiddleCenter;
+        // The custom font has tall line spacing; let a line spill slightly rather than vanish in snug boxes.
+        label.verticalOverflow = VerticalWrapMode.Overflow;
         label.raycastTarget = false;
         return label;
     }

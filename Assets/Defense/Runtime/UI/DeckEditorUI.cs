@@ -232,28 +232,28 @@ public sealed class DeckEditorUI : MonoBehaviour {
             popupRoleText.text = GetTowerRoleTitle(t);
             if (t.TowerType == TowerType.Mayonnaise) {
                 popupStatsText.text =
-                    "• Energy Cost: " + card.ElixirCost + "\n" +
-                    "• Duration: " + lifetimeSeconds + "s\n" +
-                    "• Damage Buff: +" + Mathf.RoundToInt((t.DamageBoost - 1f) * 100f) + "%\n" +
-                    "• Cleanse Interval: " + t.CleanseInterval.ToString("0.##") + "s\n" +
-                    "• Support Range: " + t.AttackRange.ToString("0.##");
+                    "- Energy Cost: " + card.ElixirCost + "\n" +
+                    "- Duration: " + lifetimeSeconds + "s\n" +
+                    "- Damage Buff: +" + Mathf.RoundToInt((t.DamageBoost - 1f) * 100f) + "%\n" +
+                    "- Cleanse Interval: " + t.CleanseInterval.ToString("0.##") + "s\n" +
+                    "- Support Range: " + t.AttackRange.ToString("0.##");
             } else {
                 float dps = t.AttackCooldown > 0f ? t.Damage / t.AttackCooldown : 0f;
                 popupStatsText.text =
-                    "• Energy Cost: " + card.ElixirCost + "\n" +
-                    "• Duration: " + lifetimeSeconds + "s\n" +
-                    "• Damage: " + t.Damage.ToString("0.##") + "  (DPS: " + dps.ToString("0.1") + "/s)\n" +
-                    "• Attack Cooldown: " + t.AttackCooldown.ToString("0.##") + "s\n" +
-                    "• Attack Range: " + t.AttackRange.ToString("0.##");
+                    "- Energy Cost: " + card.ElixirCost + "\n" +
+                    "- Duration: " + lifetimeSeconds + "s\n" +
+                    "- Damage: " + t.Damage.ToString("0.##") + "  (DPS: " + dps.ToString("0.1") + "/s)\n" +
+                    "- Attack Cooldown: " + t.AttackCooldown.ToString("0.##") + "s\n" +
+                    "- Attack Range: " + t.AttackRange.ToString("0.##");
             }
             popupAbilityText.text = GetTowerAbilityDescription(t);
         } else if (card is SkillCardDefinition skillCard && skillCard.Skill != null) {
             var s = skillCard.Skill;
             popupRoleText.text = "Skill Card";
             popupStatsText.text =
-                "• Energy Cost: " + card.ElixirCost + "\n" +
-                "• Damage: " + s.Damage.ToString("0.##") + "\n" +
-                "• Radius: " + s.Radius.ToString("0.##");
+                "- Energy Cost: " + card.ElixirCost + "\n" +
+                "- Damage: " + s.Damage.ToString("0.##") + "\n" +
+                "- Radius: " + s.Radius.ToString("0.##");
             popupAbilityText.text = s.ActiveDuration > 0f
                 ? "Special Effect: Creates a slow zone for " + s.ActiveDuration.ToString("0.#") + "s in the target area."
                 : "Special Effect: Deals instant AoE damage to enemies in the target area.";
