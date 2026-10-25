@@ -151,6 +151,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Defense.MainMenuUI
   canvas: {fileID: 40682097}
   skin: {fileID: 11400000, guid: 3cd12e5f4cf7f4bb69708301a30d6ae7, type: 2}
+  storyBackground: {fileID: 21300000, guid: 1b9698aca7df64e5b9aa3119bf6a3f73, type: 3}
 --- !u!114 &14481026
 MonoBehaviour:
   m_ObjectHideFlags: 0

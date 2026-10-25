@@ -4,6 +4,7 @@ namespace Defense {
 public sealed class MainMenuUI : MonoBehaviour {
     [SerializeField] private Canvas canvas;
     [SerializeField, Tooltip("Shared menu background, logo and Normal / Highlighted / Pressed button sprites.")] private MainMenuSkin skin;
+    [SerializeField, Tooltip("Backdrop for the opening Mom and Jihoon dialogue.")] private Sprite storyBackground;
     private GameObject menu, lobby, deckEditor;
     private SettingsUI settings;
     private void Start() {
@@ -58,7 +59,7 @@ public sealed class MainMenuUI : MonoBehaviour {
             var image = logo.gameObject.AddComponent<UnityEngine.UI.Image>();
             image.sprite = skin.Logo; image.preserveAspect = true; image.raycastTarget = false;
         }
-        SkinButton("Start Game",skin.StartGame,.39f,.57f,()=>Show(lobby));
+        SkinButton("Start Game",skin.StartGame,.39f,.57f,StartGame);
         SkinButton("Settings",skin.Settings,.20f,.38f,()=>OpenSettings(menu));
         SkinButton("Exit",skin.Exit,.01f,.19f,Quit);
     }
@@ -83,6 +84,12 @@ public sealed class MainMenuUI : MonoBehaviour {
         menu.SetActive(panel==menu); lobby.SetActive(panel==lobby); deckEditor.SetActive(panel==deckEditor);
         if (panel == menu) GameAudio.PlayIntroBgm();
         else GameAudio.PlayHomeBgm();
+    }
+    // The Mom and Jihoon dialogue sets up the stages the first time the player enters stage select.
+    private void StartGame() {
+        if (!StoryIntroUI.ShouldPlay) { Show(lobby); return; }
+        menu.SetActive(false);
+        StoryIntroUI.Play(canvas.transform,storyBackground != null ? storyBackground : UiFactory.LoadSprite("UI/GameBackground"),()=>Show(lobby));
     }
     private void OpenSettings(GameObject origin) {
         origin.SetActive(false);

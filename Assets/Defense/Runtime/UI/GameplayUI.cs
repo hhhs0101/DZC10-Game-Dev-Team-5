@@ -41,6 +41,7 @@ public sealed class GameplayUI : MonoBehaviour {
         StyleBannerLabel(hpLabel);
         remainingEnemiesLabel = UiFactory.Label(bannerRect,"",new Vector2(.5f,.5f),new Vector2(135,1),new Vector2(280,48),25);
         StyleBannerLabel(remainingEnemiesLabel);
+        remainingEnemiesLabel.resizeTextForBestFit = true; remainingEnemiesLabel.resizeTextMinSize = 16; remainingEnemiesLabel.resizeTextMaxSize = 25;
         pauseButton = UiFactory.Button(root,"Pause",new Vector2(-110,-34),flow.TogglePause,new Vector2(1,1),new Vector2(176,42));
         messageLabel = UiFactory.Label(root,"",new Vector2(.414f,0),new Vector2(0,22),new Vector2(760,38),20);
         AddOutline(messageLabel);
@@ -120,7 +121,7 @@ public sealed class GameplayUI : MonoBehaviour {
         int remaining = unspawned + alive;
         if (remaining != lastRemainingEnemies) {
             lastRemainingEnemies = remaining;
-            remainingEnemiesLabel.text = "Remain Enemies: " + remaining;
+            remainingEnemiesLabel.text = "Remaining Enemies: " + remaining;
         }
     }
     private void UpdateHealth(int health) { hpLabel.text = "Base HP: " + health; }
