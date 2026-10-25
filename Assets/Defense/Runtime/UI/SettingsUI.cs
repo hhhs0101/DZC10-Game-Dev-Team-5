@@ -43,9 +43,6 @@ public sealed class SettingsUI : MonoBehaviour {
         var fillSprite = Resources.Load<Sprite>(SettingsResourcePrefix + "slider_fill");
         var handleSprite = Resources.Load<Sprite>(SettingsResourcePrefix + "slider_handle");
         var handlePressedSprite = Resources.Load<Sprite>(SettingsResourcePrefix + "slider_handle_pressed");
-        var backNormalSprite = Resources.Load<Sprite>(SettingsResourcePrefix + "back_normal");
-        var backHoverSprite = Resources.Load<Sprite>(SettingsResourcePrefix + "back_hover");
-        var backPressedSprite = Resources.Load<Sprite>(SettingsResourcePrefix + "back_pressed");
 
         if (GameAudio.BgmVolume > MuteEpsilon) lastUnmutedBgmVolume = GameAudio.BgmVolume;
         if (GameAudio.SfxVolume > MuteEpsilon) lastUnmutedSfxVolume = GameAudio.SfxVolume;
@@ -117,21 +114,10 @@ public sealed class SettingsUI : MonoBehaviour {
         RefreshDevLabel();
         UpdateVolumeVisuals();
 
-        var backButton = UiFactory.Button(panel.transform, "Back", new Vector2(0f, -148f), Close,
-            size: new Vector2(200f, 64f));
-        if (backNormalSprite != null) {
-            backButton.image.sprite = backNormalSprite;
-            backButton.image.color = Color.white;
-            backButton.image.preserveAspect = true;
-            backButton.transition = Selectable.Transition.SpriteSwap;
-            backButton.spriteState = new SpriteState {
-                highlightedSprite = backHoverSprite != null ? backHoverSprite : backNormalSprite,
-                selectedSprite = backHoverSprite != null ? backHoverSprite : backNormalSprite,
-                pressedSprite = backPressedSprite != null ? backPressedSprite : backNormalSprite
-            };
-            foreach (var label in backButton.GetComponentsInChildren<Text>()) label.enabled = false;
-        } else {
-            backButton.image.color = WoodButtonColor;
+        var closeButton = UiFactory.Button(panel.transform, "Back", new Vector2(0f, -148f), Close,
+            size: new Vector2(200f, 62f));
+        if (!UiFactory.ApplyCloseButtonSkin(closeButton)) {
+            closeButton.image.color = WoodButtonColor;
         }
 
         panel.SetActive(false);

@@ -28,6 +28,37 @@ public static class UiFactory {
         label.raycastTarget = false;
         return label;
     }
+    private static Sprite closeNormalSprite;
+    private static Sprite closeHoverSprite;
+    private static Sprite closePressedSprite;
+    private static Sprite LoadCloseSprite(ref Sprite cached, string resourcePath) {
+        if (cached != null) return cached;
+        cached = Resources.Load<Sprite>(resourcePath);
+        if (cached != null) return cached;
+        var tex = Resources.Load<Texture2D>(resourcePath);
+        if (tex == null) return null;
+        tex.filterMode = FilterMode.Point;
+        cached = Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height), new Vector2(.5f, .5f), 100f);
+        return cached;
+    }
+    public static bool ApplyCloseButtonSkin(UnityEngine.UI.Button button) {
+        var normal = LoadCloseSprite(ref closeNormalSprite, "UI/Settings/close_button_normal");
+        var hover = LoadCloseSprite(ref closeHoverSprite, "UI/Settings/close_button_hovered")
+            ?? LoadCloseSprite(ref closeHoverSprite, "UI/Settings/close_button_hover");
+        var pressed = LoadCloseSprite(ref closePressedSprite, "UI/Settings/close_button_pressed");
+        if (normal == null) return false;
+        button.image.sprite = normal;
+        button.image.color = Color.white;
+        button.image.preserveAspect = true;
+        button.transition = UnityEngine.UI.Selectable.Transition.SpriteSwap;
+        button.spriteState = new UnityEngine.UI.SpriteState {
+            highlightedSprite = hover != null ? hover : normal,
+            selectedSprite = hover != null ? hover : normal,
+            pressedSprite = pressed != null ? pressed : normal
+        };
+        foreach (var label in button.GetComponentsInChildren<UnityEngine.UI.Text>()) label.enabled = false;
+        return true;
+    }
     public static void ApplyButtonSkin(UnityEngine.UI.Button button, MainMenuSkin.ButtonSprites sprites) {
         button.image.sprite = sprites.Normal; button.image.color = Color.white; button.image.preserveAspect = true;
         button.transition = UnityEngine.UI.Selectable.Transition.SpriteSwap;

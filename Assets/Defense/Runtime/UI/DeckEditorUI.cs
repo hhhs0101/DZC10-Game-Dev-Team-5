@@ -205,8 +205,9 @@ public sealed class DeckEditorUI : MonoBehaviour {
         abilityOutline.effectColor = new Color(0f,0f,0f,.95f);
         abilityOutline.effectDistance = new Vector2(1.2f,-1.2f);
 
-        var closeBtn = UiFactory.Button(dialog,"Close",new Vector2(0,38),HideCardPopup,new Vector2(.5f,0f),new Vector2(160,42));
-        closeBtn.GetComponent<Image>().color = new Color(.55f,.24f,.14f,.95f);
+        var closeBtn = UiFactory.Button(dialog,"Close",new Vector2(0,36),HideCardPopup,new Vector2(.5f,0f),new Vector2(176,54));
+        if (!UiFactory.ApplyCloseButtonSkin(closeBtn))
+            closeBtn.GetComponent<Image>().color = new Color(.55f,.24f,.14f,.95f);
 
         popupOverlay.gameObject.SetActive(false);
     }
