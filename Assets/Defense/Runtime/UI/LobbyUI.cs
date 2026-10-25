@@ -9,6 +9,10 @@ public sealed class LobbyUI : MonoBehaviour {
     private readonly KeyRepeat repeat = new KeyRepeat();
     private Text feedback;
     private RectTransform unlockPopupOverlay;
+    private readonly Image[] unlockCardImages = new Image[3];
+    private readonly CardIconView[] unlockCardIcons = new CardIconView[3];
+    private readonly Text[] unlockCardLabels = new Text[3];
+    private readonly CardEnergyBadge[] unlockCardBadges = new CardEnergyBadge[3];
     public StageCarouselView Carousel { get; private set; }
     public void Initialize(Action openDeck, Action settings, Action back, MainMenuSkin skin = null) {
         UiFactory.Label(transform,"Lobby",new Vector2(.5f,1),new Vector2(0,-45),new Vector2(350,60),36);
@@ -69,26 +73,18 @@ public sealed class LobbyUI : MonoBehaviour {
         titleOutline.effectColor = new Color(0f,0f,0f,.95f);
         titleOutline.effectDistance = new Vector2(1.5f,-1.5f);
 
-        string[] targetNames = { "Ketchup", "Mustard", "Olive Oil" };
-        string[] targetIds = { "tower.test.11", "tower.test.9", "tower.test.2" };
-        for (int i = 0; i < targetNames.Length; i++) {
-            var card = FindCatalogCard(targetIds[i],targetNames[i]);
-            if (card == null) continue;
-            var cardRect = UiFactory.Rect("Unlocked Card "+card.DisplayName,dialog,new Vector2(.5f,.5f),new Vector2((i-1)*168f,18f),new Vector2(124,192));
-            var cardImage = cardRect.gameObject.AddComponent<Image>();
-            cardImage.preserveAspect = true;
-            cardImage.raycastTarget = false;
-            bool hasCardSprite = card.CardSprite != null;
-            cardImage.sprite = hasCardSprite ? card.CardSprite : null;
-            cardImage.color = hasCardSprite ? Color.white : new Color(.2f,.32f,.4f);
-            var iconView = CardIconView.Create(cardRect,new Vector2(0,14),new Vector2(62,96));
-            if (hasCardSprite) iconView.gameObject.SetActive(false); else iconView.Bind(card);
-            var label = UiFactory.Label(cardRect,card.DisplayName,new Vector2(.5f,.5f),new Vector2(0,-58),new Vector2(114,52),14);
-            var outline = label.gameObject.AddComponent<Outline>();
+        for (int i = 0; i < 3; i++) {
+            var cardRect = UiFactory.Rect("Unlocked Card Slot "+(i+1),dialog,new Vector2(.5f,.5f),new Vector2((i-1)*168f,18f),new Vector2(124,192));
+            unlockCardImages[i] = cardRect.gameObject.AddComponent<Image>();
+            unlockCardImages[i].preserveAspect = true;
+            unlockCardImages[i].raycastTarget = false;
+            unlockCardIcons[i] = CardIconView.Create(cardRect,new Vector2(0,14),new Vector2(62,96));
+            unlockCardLabels[i] = UiFactory.Label(cardRect,"",new Vector2(.5f,.5f),new Vector2(0,-58),new Vector2(114,52),14);
+            var outline = unlockCardLabels[i].gameObject.AddComponent<Outline>();
             outline.effectColor = new Color(0f,0f,0f,.95f);
             outline.effectDistance = new Vector2(1.2f,-1.2f);
-            CardTextBackdrop.Create(cardRect,label);
-            CardEnergyBadge.Create(cardRect).Bind(card);
+            CardTextBackdrop.Create(cardRect,unlockCardLabels[i]);
+            unlockCardBadges[i] = CardEnergyBadge.Create(cardRect);
         }
 
         var subText = UiFactory.Label(dialog,"Check deck page",new Vector2(.5f,0f),new Vector2(0,102),new Vector2(500,36),22);
@@ -114,8 +110,40 @@ public sealed class LobbyUI : MonoBehaviour {
         return null;
     }
     private void CheckUnlockPopup() {
-        if (unlockPopupOverlay == null || !PlayerSession.PendingTowerUnlockPopup) return;
-        PlayerSession.PendingTowerUnlockPopup = false;
+        int clearedStage = PlayerSession.PendingTowerUnlockStage;
+        if (unlockPopupOverlay == null || (clearedStage != 1 && clearedStage != 2)) return;
+        PlayerSession.PendingTowerUnlockStage = 0;
+
+        string[] targetNames = clearedStage == 1
+            ? new[] { "Ketchup", "Mustard", "Olive Oil" }
+            : new[] { "Hot Sauce", "Soy Sauce", "Mayonnaise" };
+        string[] targetIds = clearedStage == 1
+            ? new[] { "tower.test.11", "tower.test.9", "tower.test.2" }
+            : new[] { "tower.test.3", "tower.test.8", "tower.test.10" };
+
+        for (int i = 0; i < 3; i++) {
+            var card = FindCatalogCard(targetIds[i],targetNames[i]);
+            if (card == null) {
+                unlockCardImages[i].gameObject.SetActive(false);
+                continue;
+            }
+            unlockCardImages[i].gameObject.SetActive(true);
+            bool hasCardSprite = card.CardSprite != null;
+            unlockCardImages[i].sprite = hasCardSprite ? card.CardSprite : null;
+            unlockCardImages[i].color = hasCardSprite ? Color.white : new Color(.2f,.32f,.4f);
+            if (hasCardSprite) {
+                unlockCardIcons[i].gameObject.SetActive(false);
+            } else {
+                unlockCardIcons[i].Bind(card);
+            }
+            unlockCardLabels[i].text = card.DisplayName;
+            unlockCardBadges[i].Bind(card);
+        }
+
+        if (PlayerSession.Selection != null && PlayerSession.Catalog != null && clearedStage < PlayerSession.Catalog.Stages.Count) {
+            PlayerSession.Selection.Select(clearedStage);
+        }
+
         unlockPopupOverlay.SetAsLastSibling();
         unlockPopupOverlay.gameObject.SetActive(true);
     }
