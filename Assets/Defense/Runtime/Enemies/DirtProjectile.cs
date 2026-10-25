@@ -2,12 +2,12 @@ using UnityEngine;
 namespace Defense {
 public sealed class DirtProjectile : MonoBehaviour {
     private static Sprite dirtSprite;
-    private Turret target;
+    private Tower target;
     private object token;
     private float duration, elapsed;
     private Vector3 start;
     private GameFlow flow;
-    public static void Launch(Vector3 position, Turret target, object token, float duration, GameFlow flow) {
+    public static void Launch(Vector3 position, Tower target, object token, float duration, GameFlow flow) {
         var go = new GameObject("Thrown dirt");
         UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(go,target.gameObject.scene);
         var renderer = go.AddComponent<SpriteRenderer>();

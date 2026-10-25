@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 namespace Defense.Editor {
 // Explicit additive authoring; does not rebuild maps or reset configured gameplay content.
 public static class PlacedTowerInspectionSetup {
-    public const string PrefabPath="Assets/Defense/Prefabs/TopDown2D/BasicTurret2D.prefab";
+    public const string PrefabPath="Assets/Defense/Prefabs/TopDown2D/BasicTower2D.prefab";
     public static void Run() {
         if(EditorApplication.isPlaying)throw new InvalidOperationException("Exit Play Mode first.");
         for(int i=0;i<SceneManager.sceneCount;i++)if(SceneManager.GetSceneAt(i).isDirty)throw new InvalidOperationException("Save open scene edits before authoring inspection dependencies.");

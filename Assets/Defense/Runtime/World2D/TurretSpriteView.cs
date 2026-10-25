@@ -1,7 +1,7 @@
 using UnityEngine;
 namespace Defense {
 // Optional observer on the shared 2D prefab. Only the visual child changes.
-[DisallowMultipleComponent, RequireComponent(typeof(Turret))]
+[DisallowMultipleComponent, RequireComponent(typeof(Tower))]
 public sealed class TurretSpriteView : MonoBehaviour {
     public enum AttackMotionStyle {
         Squeeze,
@@ -13,7 +13,7 @@ public sealed class TurretSpriteView : MonoBehaviour {
     private const float MayoPulseInterval = 1.6f;
 
     [SerializeField] private SpriteRenderer appearance;
-    private Turret turret;
+    private Tower turret;
     private Sprite originalSprite;
     private Color originalColor;
     private Vector3 originalScale, originalPosition;
@@ -24,7 +24,7 @@ public sealed class TurretSpriteView : MonoBehaviour {
     private float mayoPulseTimer;
 
     private void Awake() {
-        turret = GetComponent<Turret>();
+        turret = GetComponent<Tower>();
         originalSprite = appearance.sprite; originalColor = appearance.color;
         originalScale = appearance.transform.localScale; originalPosition = appearance.transform.localPosition;
         baseScale = originalScale; basePosition = originalPosition;

@@ -22,9 +22,9 @@ public static class EnemyRolesValidation {
         var e=spawner.Spawn(Asset<EnemyDefinition>("Data/Enemies/Veggies/"+name+"Enemy.asset"));
         Check(e!=null,"Spawn "+name);e.Movement.Stop();e.transform.position=position;registry.NotifyMoved(e);return e;
     }
-    private static Turret Tower(int index,Vector3 position) {
+    private static Tower Tower(int index,Vector3 position) {
         var slot=Child("Test slot").AddComponent<TowerPlacementSlot>();slot.transform.position=position;
-        var prefab=Asset<GameObject>("Prefabs/TopDown2D/BasicTurret2D.prefab").GetComponent<Turret>();
+        var prefab=Asset<GameObject>("Prefabs/TopDown2D/BasicTower2D.prefab").GetComponent<Tower>();
         var tower=UnityEngine.Object.Instantiate(prefab,position,Quaternion.identity,slot.transform);
         tower.Initialize(Asset<TurretDefinition>("Data/TestTurret"+index+".asset"),registry);
         Check(slot.TryOccupy(tower),"Occupy test slot");tower.StartLifetime(slot,flow,3);return tower;
@@ -114,7 +114,7 @@ public static class EnemyRolesValidation {
     private static void TestDisruption() {
         var potato=Spawn("Potato",Vector3.zero);Check(potato is DisruptorEnemy,"Actual disruptor subclass");
         var one=Tower(6,Vector3.right);var two=Tower(4,Vector3.left);var far=Tower(8,Vector3.right*10);
-        var ability=potato.GetComponent<TowerDisruptionAbility>();var picked=new System.Collections.Generic.HashSet<Turret>();UnityEngine.Random.InitState(123);
+        var ability=potato.GetComponent<TowerDisruptionAbility>();var picked=new System.Collections.Generic.HashSet<Tower>();UnityEngine.Random.InitState(123);
         for(int i=0;i<40;i++) { Check(ability.TryDisruptRandom(),"Dirt throw succeeds");picked.Add(ability.LastTarget); }
         Check(picked.Contains(one)&&picked.Contains(two)&&!picked.Contains(far),"Random selection covers in-range towers only");
         foreach(var shot in UnityEngine.Object.FindObjectsByType<DirtProjectile>().Where(s=>s.gameObject.scene==root.scene))shot.Advance(.25f);
@@ -137,7 +137,7 @@ public static class EnemyRolesValidation {
         var wallet=root.AddComponent<ResourceWallet>();wallet.Initialize(300);
         var elixir=root.AddComponent<ElixirSystem>();elixir.Initialize(flow);elixir.Advance(100);
         var placement=root.AddComponent<TurretPlacementController>();Set(placement,"flow",flow);Set(placement,"registry",registry);Set(placement,"wallet",wallet);
-        Set(placement,"spritePrefab",Asset<GameObject>("Prefabs/TopDown2D/BasicTurret2D.prefab").GetComponent<Turret>());
+        Set(placement,"spritePrefab",Asset<GameObject>("Prefabs/TopDown2D/BasicTower2D.prefab").GetComponent<Tower>());
         var hand=root.GetComponent<GameplayHand>();var cards=new[]{2,3,4,6,9,11}.Select(i=>(CardDefinition)Asset<TowerCardDefinition>("Data/TowerCard"+i+".asset")).ToArray();
         hand.Initialize(new PlayerDeck(cards),placement,flow);hand.Select(0);var card=hand.SelectedCard;
         var slot=Child("Purchase slot").AddComponent<TowerPlacementSlot>();

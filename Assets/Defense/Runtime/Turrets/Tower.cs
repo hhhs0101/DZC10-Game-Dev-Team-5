@@ -1,6 +1,6 @@
 using UnityEngine;
 namespace Defense {
-public abstract class Turret : MonoBehaviour, IDamageable {
+public abstract class Tower : MonoBehaviour, IDamageable {
     [SerializeField, Tooltip("Attack implementation on this prefab.")] private AttackBehaviour attack;
     private TurretDefinition definition;
     private EnemyRegistry registry;
@@ -38,14 +38,14 @@ public abstract class Turret : MonoBehaviour, IDamageable {
         CurrentHealth = data.MaximumHealth; cleanseClock = 0;
         Initialized?.Invoke(data); HealthChanged?.Invoke(CurrentHealth,MaximumHealth);
     }
-    private void Update() {
+    protected virtual void Update() {
         if (definition == null || CurrentHealth <= 0 || Time.deltaTime <= 0) return;
         var flow = registry.GetComponent<GameFlow>(); if(flow != null && !flow.IsPlaying) return;
         if (lifetime != null && !lifetime.Advance(Time.deltaTime)) return;
         AttackStatus.Advance(Time.deltaTime);
         cooldown = Mathf.Max(0, cooldown - Time.deltaTime);
         if (AttackDisabled) return;
-        if (TowerType == TowerType.Mayonnaise) { AdvanceSupport(Time.deltaTime); return; }
+        if (IsSupportTower) { AdvanceSupport(Time.deltaTime); return; }
         if (cooldown > 0) return;
         // Re-evaluate every shot so Closest remains physical nearest, even if targets cross.
         Enemy target = FindTarget();
@@ -71,42 +71,17 @@ public abstract class Turret : MonoBehaviour, IDamageable {
         if(!isActiveAndEnabled || CurrentHealth <= 0 || AttackDisabled || target == null || !target.IsAlive || definition == null) return;
         var flow = registry.GetComponent<GameFlow>(); if(flow != null && !flow.IsPlaying) return;
         float damage = EffectiveDamage;
-        switch(TowerType) {
-            case TowerType.Ketchup:
-                var center = target.transform.position;
-                // Death can split and mutate the registry; only enemies present at impact are hit.
-                var victims = new System.Collections.Generic.List<Enemy>(registry.Enemies);
-                foreach(var enemy in victims) if(enemy != null && enemy.IsAlive && PlanarSpace.SqrDistance(center,enemy.transform.position,registry.Plane) <= definition.SplashRadius*definition.SplashRadius) enemy.ReceiveDamage(damage);
-                break;
-            case TowerType.Mustard: target.ReceiveDamage(damage,true); break;
-            case TowerType.HotSauce:
-                target.ReceiveDamage(damage);
-                if(target.IsAlive) target.StatusEffects.ApplyBurn(burnToken,definition.BurnDamagePerSecond * (definition.Damage > 0 ? damage / definition.Damage : 1),definition.BurnDuration);
-                break;
-            case TowerType.Oil:
-                target.ReceiveDamage(damage);
-                if(target.IsAlive) target.StatusEffects.ApplySlow(burnToken,definition.SlowMultiplier,definition.SlowDuration);
-                break;
-            case TowerType.Mayonnaise: break;
-            default: if(attack != null) attack.Attack(target,damage); else target.ReceiveDamage(damage); break;
-        }
+        PerformAttack(target,damage);
         Attacked?.Invoke(target);
     }
-    public void AdvanceSupport(float deltaTime) {
-        if(definition == null || !isActiveAndEnabled || TowerType != TowerType.Mayonnaise || AttackDisabled || deltaTime <= 0 || float.IsNaN(deltaTime) || float.IsInfinity(deltaTime)) return;
-        var flow = registry.GetComponent<GameFlow>(); if(flow != null && !flow.IsPlaying) return;
-        cleanseClock += deltaTime;
-        if(cleanseClock < definition.CleanseInterval) return;
-        cleanseClock %= definition.CleanseInterval;
-        Attacked?.Invoke(null);
-        var choices = new System.Collections.Generic.List<Turret>();
-        foreach(var slot in Object.FindObjectsByType<TowerPlacementSlot>()) {
-            var tower = slot.Occupant;
-            if(tower != null && tower != this && tower.isActiveAndEnabled && tower.AttackDisabled && tower.gameObject.scene == gameObject.scene &&
-                PlanarSpace.SqrDistance(transform.position,tower.transform.position,registry.Plane) <= EffectiveAttackRange*EffectiveAttackRange) choices.Add(tower);
-        }
-        if(choices.Count > 0) choices[Random.Range(0,choices.Count)].AttackStatus.Clear();
-    }
+    // The public entry points preserve all original guards, timing and event ordering.
+    protected virtual bool IsSupportTower => false;
+    protected abstract void PerformAttack(Enemy target, float damage);
+    internal EnemyRegistry CombatRegistry => registry;
+    internal AttackBehaviour AttackComponent => attack;
+    internal object StatusToken => burnToken;
+    internal void NotifySupportAttack() => Attacked?.Invoke(null);
+    public void AdvanceSupport(float deltaTime) => SupportTower.Advance(this,deltaTime,ref cleanseClock);
     protected virtual void OnDrawGizmosSelected() {
         if (definition == null) return;
         Gizmos.color = Color.cyan;

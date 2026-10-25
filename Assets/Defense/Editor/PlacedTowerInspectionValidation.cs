@@ -15,7 +15,7 @@ public static class PlacedTowerInspectionValidation {
     private static int phase,checks,frame,invoked;
     private static Button probe;
     private static double started;
-    private static Turret a,b;
+    private static Tower a,b;
     private static TurretDefinition original,clone;
     private static Vector3 originalPosition;
     private static UnityEngine.Object[] retired;
@@ -42,19 +42,19 @@ public static class PlacedTowerInspectionValidation {
     private static void OnLog(string m,string trace,LogType type){if(trace.Contains("UnityEditor.Search.SearchDatabase")&&!trace.Contains("Defense."))return;if(type==LogType.Error||type==LogType.Exception||type==LogType.Assert)Finish(false,m+"\n"+trace);}
     private static void Check(bool pass,string message){if(!pass)throw new Exception(message);checks++;Debug.Log("PLACED RANGE PASS: "+message);}
     private static Vector2 Screen(Vector3 point)=>Camera.main.WorldToScreenPoint(point);
-    private static Vector3 Hit(Turret tower)=>tower.transform.position+Vector3.up*.6f;
+    private static Vector3 Hit(Tower tower)=>tower.transform.position+Vector3.up*.6f;
     private static void ClickWorld(Vector3 point){Physics2D.SyncTransforms();Placement.ProcessPointer(Screen(point),true);}
     private static int Bring(CardDefinition card){
         Hand.CancelSelection();for(int i=0;i<6&&!Hand.Cycle.Hand.Any(c=>c.Definition==card);i++)Hand.Cycle.Use(Hand.Cycle.Hand[0]);Hand.CancelSelection();
         return Hand.Cycle.Hand.ToList().FindIndex(c=>c.Definition==card);
     }
-    private static Turret Place(int slotIndex,TowerCardDefinition card){
+    private static Tower Place(int slotIndex,TowerCardDefinition card){
         var index=Bring(card);Hand.Select(index);Find<ResourceWallet>().Initialize(10000);Find<ElixirSystem>().Advance(100);
         var slot=Map.PlacementSlots[slotIndex];Physics2D.SyncTransforms();
         Check(Placement.ProcessPointer(Screen(slot.PlacementPoint.position),true)&&slot.IsOccupied,"Production Card/Physics2D path places "+card.DisplayName);
         Check(Hand.SelectedCard==null&&Inspection.InspectedTower==null&&!Ring.enabled,"Successful placement never automatically inspects its newly placed Tower");return slot.Occupant;
     }
-    private static void AssertRing(Turret tower){
+    private static void AssertRing(Tower tower){
         var line=Ring;float range=tower.EffectiveAttackRange;var center=tower.transform.position;
         Check(Inspection.InspectedTower==tower&&line.enabled&&line.loop&&line.positionCount==96&&line.useWorldSpace,"One reused world-space ring belongs to the inspected runtime Tower");
         Check(Enumerable.Range(0,line.positionCount).All(i=>Mathf.Abs(PlanarSpace.SqrDistance(center,line.GetPosition(i),WaypointPlane.XY)-range*range)<.003f&&Mathf.Abs(line.GetPosition(i).z-center.z)<.001f),"Every circle vertex matches actual effective XY targeting radius");
@@ -65,8 +65,8 @@ public static class PlacedTowerInspectionValidation {
     private sealed class Snapshot {
         private readonly RuntimeCard[] hand=Hand.Cycle.Hand.ToArray(),queue=Hand.Cycle.UpcomingQueue.ToArray();
         private readonly float energy=Find<ElixirSystem>().Current;
-        private readonly int balance=Find<ResourceWallet>().Balance,towers=UnityEngine.Object.FindObjectsByType<Turret>().Length,pending=Casting.PendingCastCount,spawns=Find<FixedIntervalSpawner>().SpawnedCount;
-        public void Unchanged(string reason)=>Check(Hand.Cycle.Hand.SequenceEqual(hand)&&Hand.Cycle.UpcomingQueue.SequenceEqual(queue)&&Find<ElixirSystem>().Current==energy&&Find<ResourceWallet>().Balance==balance&&UnityEngine.Object.FindObjectsByType<Turret>().Length==towers&&Casting.PendingCastCount==pending&&Find<FixedIntervalSpawner>().SpawnedCount==spawns,reason+": inspection spends nothing, performs no Card action and preserves Hand/queue");
+        private readonly int balance=Find<ResourceWallet>().Balance,towers=UnityEngine.Object.FindObjectsByType<Tower>().Length,pending=Casting.PendingCastCount,spawns=Find<FixedIntervalSpawner>().SpawnedCount;
+        public void Unchanged(string reason)=>Check(Hand.Cycle.Hand.SequenceEqual(hand)&&Hand.Cycle.UpcomingQueue.SequenceEqual(queue)&&Find<ElixirSystem>().Current==energy&&Find<ResourceWallet>().Balance==balance&&UnityEngine.Object.FindObjectsByType<Tower>().Length==towers&&Casting.PendingCastCount==pending&&Find<FixedIntervalSpawner>().SpawnedCount==spawns,reason+": inspection spends nothing, performs no Card action and preserves Hand/queue");
     }
     private static void Mouse(PointerEventData pointer,Vector2 point,PointerEventData.FramePressState state){
         pointer.position=point;var hits=new List<RaycastResult>();EventSystem.current.RaycastAll(pointer,hits);pointer.pointerCurrentRaycast=hits.FirstOrDefault();

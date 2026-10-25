@@ -45,7 +45,7 @@ public static class TopDownStage2Setup {
         if(EditorApplication.isPlaying || scene.path!=ScenePath)throw new InvalidOperationException("Open the Stage 2 scene in Edit Mode first.");
         // Opening a different scene may unload assets held only by authoring locals: resolve after scene load.
         var enemy=AssetDatabase.LoadAssetAtPath<GameObject>(Prefabs+"/BasicEnemy2D.prefab").GetComponent<Enemy>();
-        var turret=AssetDatabase.LoadAssetAtPath<GameObject>(Prefabs+"/BasicTurret2D.prefab").GetComponent<Turret>();
+        var turret=AssetDatabase.LoadAssetAtPath<GameObject>(Prefabs+"/BasicTower2D.prefab").GetComponent<Tower>();
         if(enemy==null || turret==null)throw new InvalidOperationException("2D actor prefab components are missing.");
         Set(UnityEngine.Object.FindFirstObjectByType<EnemySpawner>(),"spritePrefab",enemy);
         Set(UnityEngine.Object.FindFirstObjectByType<TurretPlacementController>(),"spritePrefab",turret);
@@ -61,11 +61,11 @@ public static class TopDownStage2Setup {
             return PrefabUtility.SaveAsPrefabAsset(root,Prefabs+"/BasicEnemy2D.prefab").GetComponent<Enemy>();
         }finally {UnityEngine.Object.DestroyImmediate(root);}
     }
-    private static Turret CreateTurret() {
+    private static Tower CreateTurret() {
         var source=AssetDatabase.LoadAssetAtPath<GameObject>(Prefabs+"/TowerSpritePlaceholder.prefab");var root=(GameObject)PrefabUtility.InstantiatePrefab(source);
         try {
-            root.name="BasicTurret2D";var turret=root.AddComponent<BasicTurret>();Set(turret,"attack",root.AddComponent<DirectDamageAttack>());
-            return PrefabUtility.SaveAsPrefabAsset(root,Prefabs+"/BasicTurret2D.prefab").GetComponent<Turret>();
+            root.name="BasicTower2D";var turret=root.AddComponent<BasicTower>();Set(turret,"attack",root.AddComponent<DirectDamageAttack>());
+            return PrefabUtility.SaveAsPrefabAsset(root,Prefabs+"/BasicTower2D.prefab").GetComponent<Tower>();
         }finally {UnityEngine.Object.DestroyImmediate(root);}
     }
 }

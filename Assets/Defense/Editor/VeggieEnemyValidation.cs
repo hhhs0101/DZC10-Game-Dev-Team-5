@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 namespace Defense.Editor {
-// Uses actual EnemySpawner/Turret/Skill/reward implementations with isolated temporary currency.
+// Uses actual EnemySpawner/Tower/Skill/reward implementations with isolated temporary currency.
 [InitializeOnLoad]
 public static class VeggieEnemyValidation {
     private const string Key="Defense.VeggieValidation.Running";
@@ -14,7 +14,7 @@ public static class VeggieEnemyValidation {
     private static float sampleTime;
     private static Vector3 samplePosition;
     private static Enemy probe;
-    private static Turret turret;
+    private static Tower turret;
     private static bool shot;
     private static double sample=.05;
     private static EnemyDefinition[] definitions;
@@ -66,15 +66,15 @@ public static class VeggieEnemyValidation {
     private static void BeginTower(){
         var data=definitions[index];Check(probe.transform.position.x<samplePosition.x&&Mathf.Abs(probe.transform.position.z)<.001f&&Mathf.Abs(Vector3.Distance(probe.transform.position,samplePosition)-data.MovementSpeed*(Time.time-sampleTime))<.03f,"Actual advancing-frame XY movement uses configured speed: "+data.DisplayName);
         probe.Movement.Stop();probe.ReceiveDamage(5);Check(probe.CurrentHealth==data.Health-5&&Mathf.Abs(probe.GetComponent<EnemyHealthBar>().NormalizedHealth-probe.CurrentHealth/data.Health)<.001f,"Damage API and existing HP bar update: "+data.DisplayName);
-        var towerData=AssetDatabase.LoadAssetAtPath<TurretDefinition>("Assets/Defense/Data/BasicTurret.asset");
-        var prefab=AssetDatabase.LoadAssetAtPath<GameObject>(TopDownStage2Setup.Prefabs+"/BasicTurret2D.prefab").GetComponent<Turret>();
+        var towerData=AssetDatabase.LoadAssetAtPath<TurretDefinition>("Assets/Defense/Data/BasicTower.asset");
+        var prefab=AssetDatabase.LoadAssetAtPath<GameObject>(TopDownStage2Setup.Prefabs+"/BasicTower2D.prefab").GetComponent<Tower>();
         turret=UnityEngine.Object.Instantiate(prefab,probe.transform.position+Vector3.left*.5f,Quaternion.identity);turret.Initialize(towerData,Registry);
         probe.GetComponent<EnemyHealth>().Changed+=(current,max)=>{if(current<data.Health-5){shot=true;turret.enabled=false;}};
         Check(towerData.Targeting.Select(turret.transform.position,towerData.AttackRange,Registry.Enemies,Registry.Plane)==probe,"Existing Closest targeting selects veggie actor: "+data.DisplayName);
     }
     private static void TestCombatAndRewards(){
-        var definition=definitions[index];var towerData=AssetDatabase.LoadAssetAtPath<TurretDefinition>("Assets/Defense/Data/BasicTurret.asset");
-        Check(probe.CurrentHealth==definition.Health-5-towerData.Damage,"Actual Turret Update attacks the veggie through common damage behavior: "+definition.DisplayName);
+        var definition=definitions[index];var towerData=AssetDatabase.LoadAssetAtPath<TurretDefinition>("Assets/Defense/Data/BasicTower.asset");
+        Check(probe.CurrentHealth==definition.Health-5-towerData.Damage,"Actual Tower Update attacks the veggie through common damage behavior: "+definition.DisplayName);
         var skills=AssetDatabase.FindAssets("t:SkillCardDefinition").Select(g=>AssetDatabase.LoadAssetAtPath<SkillCardDefinition>(AssetDatabase.GUIDToAssetPath(g))).ToArray();
         var toy=skills.First(s=>s.Skill.Effect is CircularDamageSkill).Skill;var slow=skills.First(s=>s.Skill.Effect is SlowAreaSkill).Skill;
         var configured=UnityEngine.Object.Instantiate(definition);Set(configured,"candyDropChance",.5f);var so=new SerializedObject(configured);so.FindProperty("candyDropAmount").intValue=index+2;so.ApplyModifiedPropertiesWithoutUndo();

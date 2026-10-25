@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ece03ce4e599d4ad1950bc8ec284347c, type: 3}
   m_Name: TestTurret12
   m_EditorClassIdentifier: Assembly-CSharp::Defense.TurretDefinition
-  displayName: Test Turret 12
-  prefab: {fileID: 2061435135399564034, guid: 03bbcf2016563478f886bb7d357e254f, type: 3}
+  displayName: Test Tower 12
+  prefab: {fileID: 2061435135399564034, guid: 34e6e2aa757c4baca8f7f42e984392f6, type: 3}
   cost: 0
   damage: 70.0
   attackRange: 3.8

@@ -19,13 +19,13 @@ public static class PrototypeValidation {
     private static int retryStageIndex;
     private static Enemy[] failedEnemies;
     private static PersistentSlowArea[] failedAreas;
-    private static Turret[] failedTurrets;
+    private static Tower[] failedTurrets;
     private static bool[] progressionBeforeRetry;
     private static Enemy pausedEnemy, combatEnemy;
     private static Vector3 pausedPosition;
     private static float pausedHP;
     private static int pausedCount, balanceBeforeBase;
-    private static Turret combatTurret;
+    private static Tower combatTurret;
     private static EnemyDefinition durableEnemy;
     private static readonly List<float> hits = new List<float>();
     private static readonly List<float> healths = new List<float>();
@@ -89,7 +89,7 @@ public static class PrototypeValidation {
                     TestPlacementCycle(); TestRewardsAndHealth();
                     DeckPersistenceValidation.VerifyBattle(Check,false);
                     CardSkillValidation.Gameplay(Check);
-                    foreach (var turret in UnityEngine.Object.FindObjectsByType<Turret>()) turret.enabled=false;
+                    foreach (var turret in UnityEngine.Object.FindObjectsByType<Tower>()) turret.enabled=false;
                     pausedEnemy=Find<EnemySpawner>().Spawn(PlayerSession.Catalog.Stages[0].Enemy);
                     Click("Pause");
                     pausedPosition=pausedEnemy.transform.position; pausedHP=pausedEnemy.CurrentHealth; pausedCount=Find<EnemyRegistry>().Enemies.Count;
@@ -119,7 +119,7 @@ public static class PrototypeValidation {
                     Find<FixedIntervalSpawner>().enabled=false;
                     BeginCombat(); Wait(5,.3); break;
                 case 5:
-                    Check(combatEnemy.CurrentHealth==1000,"Turret excludes enemy beyond configured range");
+                    Check(combatEnemy.CurrentHealth==1000,"Tower excludes enemy beyond configured range");
                     combatEnemy.transform.position=combatTurret.transform.position+Vector3.right*(PlayerSession.Catalog.AvailableTowers[turretIndex].AttackRange-.1f);
                     Wait(6,.01); break;
                 case 6:
@@ -291,7 +291,7 @@ public static class PrototypeValidation {
             Check(PlayerSession.Deck.Slots[2]==incoming && PlayerSession.Deck.Slots.Distinct().Count()==6 && visible.Any(c=>c.Definition==outgoing)
                 && visible.All(c=>!PlayerSession.Deck.Contains(c.Definition)),"Repeated drag/drop refresh keeps Available and Deck disjoint");
         }
-        Check(UnityEngine.Object.FindObjectsByType<Turret>().Length==0,"Deck UI creates no combat objects");
+        Check(UnityEngine.Object.FindObjectsByType<Tower>().Length==0,"Deck UI creates no combat objects");
         DeckPersistenceValidation.EditorUI(Check);
         persistentSnapshot=PlayerSession.Deck.Slots.ToArray();
         Click("Settings"); Click("Back"); Check(Find<DeckEditorUI>()!=null && PlayerSession.Deck.Slots.SequenceEqual(persistentSnapshot),"Deck Settings returns without losing deck");
@@ -385,7 +385,7 @@ public static class PrototypeValidation {
         failedAreas = UnityEngine.Object.FindObjectsByType<PersistentSlowArea>();
         Check(failedAreas.Any(a=>a.IsActive) && enemy.Movement.Modifiers.SourceCount>0,"Retry fixture includes an active slow area affecting an enemy");
         failedEnemies = UnityEngine.Object.FindObjectsByType<Enemy>();
-        failedTurrets = UnityEngine.Object.FindObjectsByType<Turret>();
+        failedTurrets = UnityEngine.Object.FindObjectsByType<Tower>();
         failedRun = Find<GameplayHand>().Cycle;
         Find<ResourceWallet>().Initialize(1);
         Find<ElixirSystem>().TrySpend(Find<ElixirSystem>().Current);
@@ -395,7 +395,7 @@ public static class PrototypeValidation {
         DeckPersistenceValidation.VerifyBattle(Check,true);
         Check(PlayerSession.ActiveStage==retryStage && PlayerSession.Selection.SelectedStageIndex==retryStageIndex && SceneManager.GetActiveScene().name==retryStage.SceneName,"Retry preserves same stage and selected index");
         Check(Find<GameFlow>().IsPlaying && Time.timeScale==1 && Find<BaseHealth>().Current==retryStage.BaseHealth && Find<ResourceWallet>().Balance==retryStage.StartingResources,"Retry resets HP, resources, state and time scale");
-        Check(failedEnemies.All(e=>e==null) && failedTurrets.All(t=>t==null) && Find<EnemyRegistry>().Enemies.Count==0 && UnityEngine.Object.FindObjectsByType<Turret>().Length==0 && Slots().All(s=>!s.IsOccupied),"Retry destroys old enemies/turrets and clears slots/registry");
+        Check(failedEnemies.All(e=>e==null) && failedTurrets.All(t=>t==null) && Find<EnemyRegistry>().Enemies.Count==0 && UnityEngine.Object.FindObjectsByType<Tower>().Length==0 && Slots().All(s=>!s.IsOccupied),"Retry destroys old enemies/turrets and clears slots/registry");
         Check(failedAreas.All(a=>a==null) && UnityEngine.Object.FindObjectsByType<PersistentSlowArea>().Length==0,"Retry destroys previous slow areas and their modifier sources with the old enemies");
         Check(Find<FixedIntervalSpawner>().enabled,"Retry restores spawn scheduler");
         Check(Find<ElixirSystem>().Current >= 3 && Find<ElixirSystem>().Current < 3.5f,"Retry restores starting Elixir with only elapsed regeneration");

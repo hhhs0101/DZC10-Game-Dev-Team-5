@@ -8,7 +8,7 @@ public sealed class PlacedTowerInspectionController : MonoBehaviour {
     [SerializeField] private BattlefieldPointer2D pointer2D;
     [SerializeField] private SkillAreaVisual rangeIndicator;
     [SerializeField] private Color rangeColor = new Color(.15f,.9f,1,.9f);
-    public Turret InspectedTower { get; private set; }
+    public Tower InspectedTower { get; private set; }
     private void Awake() {
         if (hand == null) hand = GetComponent<GameplayHand>();
         if (flow == null) flow = GetComponent<GameFlow>();
@@ -29,7 +29,7 @@ public sealed class PlacedTowerInspectionController : MonoBehaviour {
         if (tower == null || tower == InspectedTower) { ClearInspection(); return false; }
         return InspectTower(tower);
     }
-    public bool InspectTower(Turret tower) {
+    public bool InspectTower(Tower tower) {
         if (!isActiveAndEnabled || !flow.IsPlaying || hand.SelectedCard != null ||
             tower == null || !tower.isActiveAndEnabled || tower.Definition == null ||
             tower.gameObject.scene != gameObject.scene) { ClearInspection(); return false; }

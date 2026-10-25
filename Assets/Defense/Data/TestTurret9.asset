@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TestTurret9
   m_EditorClassIdentifier: Assembly-CSharp::Defense.TurretDefinition
   displayName: Mustard
-  prefab: {fileID: 2061435135399564034, guid: 03bbcf2016563478f886bb7d357e254f, type: 3}
+  prefab: {fileID: 2061435135399564034, guid: 65501c8b37c849f0954e9353fb4c493a, type: 3}
   cost: 0
   damage: 54
   attackRange: 4

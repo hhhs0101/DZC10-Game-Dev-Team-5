@@ -44,7 +44,7 @@ public static class TopDownStage1Validation {
         slot.SetHovered(true);Check(spriteView.CurrentColor!=original && slot.IsHovered,"Highlight observes common TowerPlacementSlot state");slot.SetHovered(false);
         var temporary=new GameObject("Stage 1 verification fixture");
         try {
-            var turret=temporary.AddComponent<BasicTurret>();turret.enabled=false;
+            var turret=temporary.AddComponent<BasicTower>();turret.enabled=false;
             Check(slot.TryOccupy(turret) && spriteView.CurrentColor!=original,"Occupied presentation observes real slot occupancy without combat");
             spriteView.enabled=false;Check(slot.IsOccupied,"Disabling slot presentation leaves slot state intact");spriteView.enabled=true;
             var colliderObject=new GameObject("Polygon shape fixture");colliderObject.transform.SetParent(temporary.transform,false);colliderObject.transform.position=new Vector3(50,50,0);

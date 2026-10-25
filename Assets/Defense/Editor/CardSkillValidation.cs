@@ -48,7 +48,7 @@ public static class CardSkillValidation {
         var hand=Find<GameplayHand>(); var flow=Find<GameFlow>(); var elixir=Find<ElixirSystem>();
         var placement=Find<TurretPlacementController>(); var casting=Find<SkillCastingController>();
         var registry=Find<EnemyRegistry>(); var spawner=Find<EnemySpawner>(); var wallet=Find<ResourceWallet>();
-        foreach(var turret in UnityEngine.Object.FindObjectsByType<Turret>()) turret.enabled=false;
+        foreach(var turret in UnityEngine.Object.FindObjectsByType<Tower>()) turret.enabled=false;
         elixir.Initialize(flow); check(elixir.Current==3,"Fresh Elixir starts at exactly three");
         elixir.Advance(2); check(elixir.Current==4,"Playing regenerates one integer point every two seconds");
         flow.TogglePause(); float paused=elixir.Current; elixir.Advance(100); check(elixir.Current==paused,"Pause stops Elixir regeneration");

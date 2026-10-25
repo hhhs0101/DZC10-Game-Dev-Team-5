@@ -7,7 +7,7 @@ namespace Defense.Editor {
 // Explicit one-time authoring operation. Never runs on import, scene load or Play Mode.
 public static class CondimentTowerSetup {
     public const string ArtRoot = "Assets/Defense/Art/Condiments";
-    public const string SharedPrefab = "Assets/Defense/Prefabs/TopDown2D/BasicTurret2D.prefab";
+    public const string SharedPrefab = "Assets/Defense/Prefabs/TopDown2D/BasicTower2D.prefab";
     public const float PixelsPerUnit = 128;
     public const float VisibleHeight = 1.35f;
     public static readonly string[] Names = {"Vinegar","Olive Oil","Hot Sauce","Black Pepper","Paprika Powder","Salt","Brown Sauce","Soy Sauce","Mustard","Mayonnaise","Ketchup"};

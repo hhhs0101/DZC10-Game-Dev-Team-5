@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TestTurret10
   m_EditorClassIdentifier: Assembly-CSharp::Defense.TurretDefinition
   displayName: Mayonnaise
-  prefab: {fileID: 2061435135399564034, guid: 03bbcf2016563478f886bb7d357e254f, type: 3}
+  prefab: {fileID: 2061435135399564034, guid: 0f95419f14af4de6974b182e59822326, type: 3}
   cost: 0
   damage: 0
   attackRange: 4.5

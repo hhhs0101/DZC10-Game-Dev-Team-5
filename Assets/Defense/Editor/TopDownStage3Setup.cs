@@ -35,7 +35,7 @@ public static class TopDownStage3Setup {
         Set(ui,"resultSkin",AssetDatabase.LoadAssetAtPath<ResultMenuSkin>("Assets/Defense/Data/ResultMenuSkin.asset"));
         // Resolve prefabs after opening the copied scene so references survive scene asset unloading.
         Set(systems.GetComponent<EnemySpawner>(),"spritePrefab",AssetDatabase.LoadAssetAtPath<GameObject>(TopDownStage2Setup.Prefabs+"/BasicEnemy2D.prefab").GetComponent<Enemy>());
-        Set(systems.GetComponent<TurretPlacementController>(),"spritePrefab",AssetDatabase.LoadAssetAtPath<GameObject>(TopDownStage2Setup.Prefabs+"/BasicTurret2D.prefab").GetComponent<Turret>());
+        Set(systems.GetComponent<TurretPlacementController>(),"spritePrefab",AssetDatabase.LoadAssetAtPath<GameObject>(TopDownStage2Setup.Prefabs+"/BasicTower2D.prefab").GetComponent<Tower>());
         EditorSceneManager.MarkSceneDirty(scene);EditorSceneManager.SaveScene(scene);
         // Preserve the existing 2D startup scenes; append this integrated battlefield if missing.
         if (!EditorBuildSettings.scenes.Any(s=>s.path==ScenePath))

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TestTurret11
   m_EditorClassIdentifier: Assembly-CSharp::Defense.TurretDefinition
   displayName: Ketchup
-  prefab: {fileID: 2061435135399564034, guid: 03bbcf2016563478f886bb7d357e254f, type: 3}
+  prefab: {fileID: 2061435135399564034, guid: c4f64885a96d4423b5feca7217425bdf, type: 3}
   cost: 0
   damage: 40.5
   attackRange: 4

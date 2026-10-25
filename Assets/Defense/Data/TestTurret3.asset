@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TestTurret3
   m_EditorClassIdentifier: Assembly-CSharp::Defense.TurretDefinition
   displayName: Hot Sauce
-  prefab: {fileID: 2061435135399564034, guid: 03bbcf2016563478f886bb7d357e254f, type: 3}
+  prefab: {fileID: 2061435135399564034, guid: 203c7234f54d4cd8ab3c55e1302bb997, type: 3}
   cost: 0
   damage: 10.8
   attackRange: 4

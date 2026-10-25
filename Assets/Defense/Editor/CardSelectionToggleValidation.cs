@@ -58,8 +58,8 @@ public static class CardSelectionToggleValidation {
     private sealed class Snapshot {
         private readonly RuntimeCard[] hand=Hand.Cycle.Hand.ToArray(),queue=Hand.Cycle.UpcomingQueue.ToArray();
         private readonly float elixir=Elixir.Current;
-        private readonly int resources=Wallet.Balance,towers=UnityEngine.Object.FindObjectsByType<Turret>().Length,areas=UnityEngine.Object.FindObjectsByType<PersistentSlowArea>().Length,pending=Casting.PendingCastCount;
-        public void Unchanged(string why)=>Check(Hand.Cycle.Hand.SequenceEqual(hand)&&Hand.Cycle.UpcomingQueue.SequenceEqual(queue)&&Elixir.Current==elixir&&Wallet.Balance==resources&&UnityEngine.Object.FindObjectsByType<Turret>().Length==towers&&UnityEngine.Object.FindObjectsByType<PersistentSlowArea>().Length==areas&&Casting.PendingCastCount==pending,why+": no spending, world action or Hand/queue mutation");
+        private readonly int resources=Wallet.Balance,towers=UnityEngine.Object.FindObjectsByType<Tower>().Length,areas=UnityEngine.Object.FindObjectsByType<PersistentSlowArea>().Length,pending=Casting.PendingCastCount;
+        public void Unchanged(string why)=>Check(Hand.Cycle.Hand.SequenceEqual(hand)&&Hand.Cycle.UpcomingQueue.SequenceEqual(queue)&&Elixir.Current==elixir&&Wallet.Balance==resources&&UnityEngine.Object.FindObjectsByType<Tower>().Length==towers&&UnityEngine.Object.FindObjectsByType<PersistentSlowArea>().Length==areas&&Casting.PendingCastCount==pending,why+": no spending, world action or Hand/queue mutation");
     }
     private static void Verify(){
         Find<FixedIntervalSpawner>().enabled=false;foreach(var enemy in Find<EnemyRegistry>().Enemies.ToArray())UnityEngine.Object.DestroyImmediate(enemy.gameObject);

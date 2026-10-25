@@ -16,7 +16,7 @@ public static class TowerLifetimeValidation {
             var slotObject = new GameObject("Slot"); slotObject.transform.SetParent(root.transform);
             var slot = slotObject.AddComponent<TowerPlacementSlot>();
             var actor = new GameObject("Tower"); actor.transform.SetParent(slot.transform);
-            var turret = actor.AddComponent<BasicTurret>();
+            var turret = actor.AddComponent<BasicTower>();
             Check(slot.TryOccupy(turret), "Placement");
             turret.StartLifetime(slot, flow, 3);
             var timer = actor.GetComponent<TowerLifetime>();
@@ -34,7 +34,7 @@ public static class TowerLifetimeValidation {
             timer.Advance(100);
             Check(changes == 1, "Expiry is idempotent");
             var replacement = new GameObject("Replacement"); replacement.transform.SetParent(slot.transform);
-            var second = replacement.AddComponent<BasicTurret>();
+            var second = replacement.AddComponent<BasicTower>();
             Check(slot.TryOccupy(second), "Expired slot can be reused");
             slot.Release(turret);
             Check(slot.Occupant == second, "Old cleanup cannot release replacement");

@@ -18,13 +18,13 @@ public sealed class BattlefieldPointer2D : MonoBehaviour {
         if (!map.PlayableArea.Contains(hit)) return false;
         world = new Vector3(hit.x,hit.y,Depth); return true;
     }
-    public Turret GetPlacedTower(Vector3 point) {
+    public Tower GetPlacedTower(Vector3 point) {
         // Separate query: overlapping slot/decorative colliders never mask a Tower's hit area.
         var filter = new ContactFilter2D { useTriggers=true };
         hits.Clear(); Physics2D.OverlapPoint(point,filter,hits);
-        Turret nearest = null; float distance = float.PositiveInfinity;
+        Tower nearest = null; float distance = float.PositiveInfinity;
         foreach (var hit in hits) {
-            var tower = hit.GetComponentInParent<Turret>();
+            var tower = hit.GetComponentInParent<Tower>();
             if (tower == null || !tower.isActiveAndEnabled || tower.Definition == null) continue;
             float candidate = PlanarSpace.SqrDistance(point,tower.transform.position,WaypointPlane.XY);
             if (candidate < distance) { nearest = tower; distance = candidate; }

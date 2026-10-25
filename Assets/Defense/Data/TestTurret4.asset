@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TestTurret4
   m_EditorClassIdentifier: Assembly-CSharp::Defense.TurretDefinition
   displayName: Black Pepper
-  prefab: {fileID: 2061435135399564034, guid: 03bbcf2016563478f886bb7d357e254f, type: 3}
+  prefab: {fileID: 2061435135399564034, guid: 34e6e2aa757c4baca8f7f42e984392f6, type: 3}
   cost: 0
   damage: 28.8
   attackRange: 3

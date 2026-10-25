@@ -7,7 +7,7 @@ public sealed class TowerLifetime : MonoBehaviour {
     public const float MinimumLifetime = 17.5f;
     // Preserve the team's current lifetime balance independently of Energy recovery.
     public const float LifetimeReferenceRegeneration = .34f;
-    private Turret tower;
+    private Tower tower;
     private TowerPlacementSlot slot;
     private GameFlow flow;
     private RectTransform display;
@@ -22,7 +22,7 @@ public sealed class TowerLifetime : MonoBehaviour {
             energyCost = 0;
         return Mathf.Max(MinimumLifetime, RechargeCycles * energyCost / LifetimeReferenceRegeneration);
     }
-    public void Initialize(Turret owner, TowerPlacementSlot placementSlot, GameFlow gameFlow, float energyCost) {
+    public void Initialize(Tower owner, TowerPlacementSlot placementSlot, GameFlow gameFlow, float energyCost) {
         tower = owner; slot = placementSlot; flow = gameFlow;
         Duration = Remaining = DurationForCost(energyCost);
         display = UiFactory.Rect("Tower countdown", transform, new Vector2(.5f,.5f), Vector2.zero, new Vector2(100,32));

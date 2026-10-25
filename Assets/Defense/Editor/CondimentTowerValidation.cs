@@ -41,7 +41,7 @@ public static class CondimentTowerValidation {
                 Check(card.DisplayName==names[i-1]&&card.Tower.DisplayName==names[i-1]&&card.Icon==card.Tower.Sprite&&card.Icon!=null,"Exact numeric name/art mapping: "+i+" -> "+names[i-1]);
                 var path=AssetDatabase.GetAssetPath(card.Icon);var importer=(TextureImporter)AssetImporter.GetAtPath(path);
                 Check(Path.GetFileNameWithoutExtension(path)==names[i-1].Replace(" ","")&&importer.spriteImportMode==SpriteImportMode.Single&&importer.filterMode==FilterMode.Point&&importer.textureCompression==TextureImporterCompression.Uncompressed&&!importer.mipmapEnabled&&importer.spritePixelsPerUnit==128&&importer.alphaIsTransparency,"Single/Point/uncompressed/alpha Sprite uses exact named mapping: "+names[i-1]);
-            }else Check(card.DisplayName=="Test Turret "+i&&card.Tower.Sprite==null&&card.Icon==null,"Unmapped Tower retains its existing name and placeholder: "+i);
+            }else Check(card.DisplayName=="Test Tower "+i&&card.Tower.Sprite==null&&card.Icon==null,"Unmapped Tower retains its existing name and placeholder: "+i);
         }
         Check(PlayerSession.Catalog.AvailableCards.OfType<SkillCardDefinition>().All(c=>c.Icon==null),"Skill cards retain their existing presentation");
         var saved=JsonUtility.FromJson<DeckSaveData>(deckBytes);
@@ -62,7 +62,7 @@ public static class CondimentTowerValidation {
         }
         if(PlayerSession.Presets.ActivePresetIndex!=selected)PlayerSession.Presets.SwitchPreset(selected);ProfileUnchanged();
     }
-    private static void ValidatePlaced(Turret turret,TowerCardDefinition card,TowerPlacementSlot slot){
+    private static void ValidatePlaced(Tower turret,TowerCardDefinition card,TowerPlacementSlot slot){
         var visual=turret.GetComponentInChildren<SpriteRenderer>();
         Check(turret.Definition==card.Tower&&visual.sprite==card.Icon&&visual.color==Color.white&&turret.GetComponent<TurretSpriteView>()!=null,"Actually placed Tower uses shared presentation observer and correct art: "+card.DisplayName);
         Check(turret.transform.position==slot.PlacementPoint.position&&turret.transform.localScale==Vector3.one&&slot.GetComponent<BoxCollider2D>().size==Vector2.one&&turret.transform.Find("ProjectileOrigin").localPosition==new Vector3(0,.55f,0),"Logical placement/root/collider/attack anchor preserved: "+card.DisplayName);
@@ -96,7 +96,7 @@ public static class CondimentTowerValidation {
         }
         var prefab=AssetDatabase.LoadAssetAtPath<GameObject>(CondimentTowerSetup.SharedPrefab);
         foreach(int n in Enumerable.Range(12,4)){
-            var root=UnityEngine.Object.Instantiate(prefab);try{root.GetComponent<Turret>().Initialize(Card(n).Tower,Find<EnemyRegistry>());var visual=root.GetComponentInChildren<SpriteRenderer>();Check(visual.sprite==prefab.GetComponentInChildren<SpriteRenderer>().sprite&&visual.color==prefab.GetComponentInChildren<SpriteRenderer>().color,"Shared view retains placeholder for Tower "+n);}finally{UnityEngine.Object.DestroyImmediate(root);}
+            var root=UnityEngine.Object.Instantiate(prefab);try{root.GetComponent<Tower>().Initialize(Card(n).Tower,Find<EnemyRegistry>());var visual=root.GetComponentInChildren<SpriteRenderer>();Check(visual.sprite==prefab.GetComponentInChildren<SpriteRenderer>().sprite&&visual.color==prefab.GetComponentInChildren<SpriteRenderer>().color,"Shared view retains placeholder for Tower "+n);}finally{UnityEngine.Object.DestroyImmediate(root);}
         }
         hand.Initialize(PlayerSession.Deck,placement,flow);ProfileUnchanged();
         DeckPersistenceValidation.Models(PlayerSession.Catalog,Check);

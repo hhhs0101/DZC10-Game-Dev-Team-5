@@ -5,7 +5,7 @@ public sealed class TowerDisruptionAbility : EnemyRoleAbility {
     public const float InitialDelay = 7f;
     private float cooldown;
     private bool attempted;
-    public Turret LastTarget { get; private set; }
+    public Tower LastTarget { get; private set; }
     public float CooldownRemaining => cooldown;
     protected override void ResetState() { sourceToken = new object(); cooldown = InitialDelay; attempted = false; LastTarget = null; }
     private void Update() => Advance(Time.deltaTime);
@@ -20,7 +20,7 @@ public sealed class TowerDisruptionAbility : EnemyRoleAbility {
     public bool TryDisruptRandom() {
         if(attempted || cooldown > 0 || !IsOperational || (Flow != null && !Flow.IsPlaying)) return false;
         attempted = true;
-        Turret nearest = null; int candidates = 0;
+        Tower nearest = null; int candidates = 0;
         foreach(var slot in Object.FindObjectsByType<TowerPlacementSlot>()) {
             var tower = slot.Occupant;
             if(tower == null || !tower.isActiveAndEnabled || tower.Definition == null || tower.gameObject.scene != Owner.gameObject.scene) continue;

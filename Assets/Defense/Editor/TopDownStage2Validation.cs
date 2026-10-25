@@ -15,7 +15,7 @@ public static class TopDownStage2Validation {
     private static float sampledTime;
     private static Vector3 sampledPosition;
     private static Enemy probe,combatEnemy,farEnemy;
-    private static Turret combatTurret;
+    private static Tower combatTurret;
     private static TurretDefinition combatData;
     private static readonly List<float> hits=new List<float>();
     private static CardDefinition[] deck;
@@ -86,7 +86,7 @@ public static class TopDownStage2Validation {
         Check(Placement.ProcessPointer(screen,false)==false&&slot.IsHovered,"2D child collider highlights owning slot without consuming card");
         Check(slotView.CurrentColor!=availableColor&&slotRenderer.sprite.name=="WoodenPlate","Actual pointer hover highlights the same wooden Sprite");
         Placement.ProcessPointer(Screen(Vector3.zero),false);Check(!slot.IsHovered&&slotView.CurrentColor==availableColor,"Pointer exit restores available plate color without consuming a card");
-        Check(Placement.ProcessPointer(screen,true)&&slot.IsOccupied&&slot.Occupant.GetComponentInChildren<SpriteRenderer>()!=null&&slot.Occupant.GetComponentInChildren<MeshRenderer>()==null,"Valid 2D slot click places common Turret with sprite presentation");
+        Check(Placement.ProcessPointer(screen,true)&&slot.IsOccupied&&slot.Occupant.GetComponentInChildren<SpriteRenderer>()!=null&&slot.Occupant.GetComponentInChildren<MeshRenderer>()==null,"Valid 2D slot click places common Tower with sprite presentation");
         Check(slotView.CurrentColor==availableColor&&slotRenderer.color==Color.white&&slot.Occupant.GetComponentInChildren<SpriteRenderer>().sortingOrder>slotRenderer.sortingOrder,"Occupied plate retains original wooden colors and the Tower renders above it");
         slot.Occupant.enabled=false;combatTurret=slot.Occupant;combatData=card.Tower;
         Check(Vector3.Distance(slot.Occupant.transform.position,slot.PlacementPoint.position)<.001f,"2D placement uses configured independent PlacementPoint");

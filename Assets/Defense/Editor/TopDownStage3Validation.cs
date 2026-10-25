@@ -68,7 +68,7 @@ public static class TopDownStage3Validation {
             var slot=Find<BattlefieldMap2D>().PlacementSlots.First(s=>!s.IsOccupied);int balance=Find<ResourceWallet>().Balance;
             Check(Placement.ProcessPointer(Camera.main.WorldToScreenPoint(slot.PlacementPoint.position),true),"Real screen-to-slot input places persistent-deck Tower");
             Check(Find<ResourceWallet>().Balance==balance-tower.Tower.Cost,"Placement pays selected Tower's resource cost once");
-            Check(slot.Occupant.GetComponentInChildren<SpriteRenderer>()!=null,"Real Turret abstraction uses native 2D presentation");slot.Occupant.enabled=false;
+            Check(slot.Occupant.GetComponentInChildren<SpriteRenderer>()!=null,"Real Tower abstraction uses native 2D presentation");slot.Occupant.enabled=false;
         }else{
             var casting=Find<SkillCastingController>();var point=Camera.main.WorldToScreenPoint(new Vector3(skillPoint.x,skillPoint.y,0));
             casting.ProcessPointer(point,true,false);Check(casting.IsAiming,"Actual Skill pointer press begins XY aiming");
@@ -101,7 +101,7 @@ public static class TopDownStage3Validation {
         Check(SceneManager.GetActiveScene().name==PlayerSession.TopDownSceneName&&PlayerSession.ActiveStage==stage,"Same authoritative StageDefinition is routed to 2D scene");
         Check(Flow.IsPlaying&&Registry.AliveEnemyCount==0&&Schedule.SpawnedCount==0&&Victory.GoldEarned==0&&Victory.DefeatedCount==0,"Retry resets state, registry, spawn and victory counters");
         Check(Find<BaseHealth>().Current==stage.BaseHealth&&Find<ResourceWallet>().Balance==stage.StartingResources&&Mathf.Abs(Elixir.Current-3)<.1f,"Retry restores configured HP/resources and starting Elixir");
-        Check(Find<Turret>()==null&&Find<PersistentSlowArea>()==null&&Find<BattlefieldMap2D>().PlacementSlots.All(s=>!s.IsOccupied),"Retry removes Towers, slow zones and slot occupancy");
+        Check(Find<Tower>()==null&&Find<PersistentSlowArea>()==null&&Find<BattlefieldMap2D>().PlacementSlots.All(s=>!s.IsOccupied),"Retry removes Towers, slow zones and slot occupancy");
         Check(!ReferenceEquals(previousCycle,Hand.Cycle)&&Hand.SelectedCard==null&&Hand.Cycle.Hand.Count==3&&Hand.Cycle.UpcomingQueue.Count==3,"Retry creates a fresh three-plus-three runtime cycle");
         if(retiredObjects!=null)Check(retiredObjects.All(o=>o==null),"Scene reload destroys all captured old stage actors/effects");
         VerifyDeck();
@@ -168,7 +168,7 @@ public static class TopDownStage3Validation {
                 foreach(var e in Registry.Enemies)e.Movement.Stop();
                 Check(Registry.Enemies.All(e=>e.GetComponent<Collider2D>()!=null&&e.GetComponent<EnemyHealthBar>()!=null),"Scheduled BasicEnemy instances use sprite actors and reusable HP bars");
                 KillAll();Check(Victory.DefeatedCount==5&&PlayerSession.Currency.Candy==startCandy+5,"Repeated lethal damage counts each actual death and Candy drop once");
-                retiredObjects=UnityEngine.Object.FindObjectsByType<Turret>().Cast<UnityEngine.Object>().Concat(UnityEngine.Object.FindObjectsByType<PersistentSlowArea>()).ToArray();Next(5);break;
+                retiredObjects=UnityEngine.Object.FindObjectsByType<Tower>().Cast<UnityEngine.Object>().Concat(UnityEngine.Object.FindObjectsByType<PersistentSlowArea>()).ToArray();Next(5);break;
             case 5:
                 CheckVictory(1);Check(retiredObjects.Length>0,"Replay fixture contains actual old Towers/slow effects");Click("Replay");Next(6,.02);break;
             case 6:

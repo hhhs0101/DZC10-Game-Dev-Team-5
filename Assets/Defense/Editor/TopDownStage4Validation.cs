@@ -60,7 +60,7 @@ public static class TopDownStage4Validation {
     private static void Kill(){foreach(var e in Registry.Enemies.ToArray())e.ReceiveDamage(100000);}
     private static void Fresh(){
         Schedule.enabled=false;Check(Flow.IsPlaying&&Schedule.SpawnedCount==0&&Registry.AliveEnemyCount==0&&Victory.DefeatedCount==0&&Victory.GoldEarned==0,"Reload resets state, actors, schedule and reward/death counters");
-        Check(Find<Turret>()==null&&Find<PersistentSlowArea>()==null&&Map.PlacementSlots.All(s=>!s.IsOccupied)&&Find<SkillCastingController>().PendingCastCount==0,"Reload clears Towers, slots, active/fading zones and pending casts");
+        Check(Find<Tower>()==null&&Find<PersistentSlowArea>()==null&&Map.PlacementSlots.All(s=>!s.IsOccupied)&&Find<SkillCastingController>().PendingCastCount==0,"Reload clears Towers, slots, active/fading zones and pending casts");
         Check(Find<BaseHealth>().Current==3&&Mathf.Abs(Find<ElixirSystem>().Current-3)<.1f&&Find<ResourceWallet>().Balance==300,"Fresh Test Stage restores existing HP, Elixir and combat resources");
         if(oldObjects!=null)Check(oldObjects.All(o=>o==null),"No captured old scene actors or slow effects survive Retry");VerifyProfile();
     }
@@ -78,7 +78,7 @@ public static class TopDownStage4Validation {
         Find<ResourceWallet>().Initialize(10000);
         for(int n=0;n<4&&!Hand.Cycle.Hand.Any(c=>c.Definition is SkillCardDefinition);n++){
             Hand.Select(0);Check(Find<TurretPlacementController>().TryPlace(Map.PlacementSlots.First(s=>!s.IsOccupied)),"Production placement brings a Skill into random Hand");
-            foreach(var t in UnityEngine.Object.FindObjectsByType<Turret>())t.enabled=false;
+            foreach(var t in UnityEngine.Object.FindObjectsByType<Tower>())t.enabled=false;
         }
         int index=Hand.Cycle.Hand.ToList().FindIndex(c=>c.Definition is SkillCardDefinition);Check(index>=0&&Hand.Select(index),"Actual persistent Hand selects a Skill for spatial aiming probes");
     }
@@ -137,7 +137,7 @@ public static class TopDownStage4Validation {
                 var frame=Map.WorldCamera.GetComponent<TopDownCameraFrame>();var config=new SerializedObject(frame);config.FindProperty("minimumSize").floatValue=zooms[zoomIndex];config.ApplyModifiedPropertiesWithoutUndo();frame.Refresh();Spatial();
                 if(++zoomIndex<zooms.Length){Next(2);break;}
                 var slow=PlayerSession.Deck.Slots.OfType<SkillCardDefinition>().First(c=>c.Skill.Effect is SlowAreaSkill).Skill;
-                var fade=Area(slow,Vector3.zero);fade.Advance(slow.ActiveDuration+.01f);Area(slow,Vector3.right);oldObjects=UnityEngine.Object.FindObjectsByType<PersistentSlowArea>().Cast<UnityEngine.Object>().Concat(UnityEngine.Object.FindObjectsByType<Turret>()).ToArray();Flow.GameOver();fade.Advance(100);Check(fade.VisualOpacity==0&&!fade.GetComponentInChildren<SkillAreaVisual>().IsVisible&&oldObjects.OfType<PersistentSlowArea>().All(a=>!a.IsActive&&a.AffectedCount==0),"Terminal state clears active/fading skill markers and slow sources before Retry");Click("Retry");Next(3,.02);break;
+                var fade=Area(slow,Vector3.zero);fade.Advance(slow.ActiveDuration+.01f);Area(slow,Vector3.right);oldObjects=UnityEngine.Object.FindObjectsByType<PersistentSlowArea>().Cast<UnityEngine.Object>().Concat(UnityEngine.Object.FindObjectsByType<Tower>()).ToArray();Flow.GameOver();fade.Advance(100);Check(fade.VisualOpacity==0&&!fade.GetComponentInChildren<SkillAreaVisual>().IsVisible&&oldObjects.OfType<PersistentSlowArea>().All(a=>!a.IsActive&&a.AffectedCount==0),"Terminal state clears active/fading skill markers and slow sources before Retry");Click("Retry");Next(3,.02);break;
             case 3:
                 if(GameObject.Find("Hand Card 1")==null)return;Fresh();startGold=PlayerSession.Currency.Gold;startCandy=PlayerSession.Currency.Candy;Fill();Registry.Enemies.First().ReceiveDamage(100000);
                 Check(PlayerSession.Currency.Candy==startCandy+1,"Required restart sequence earns Candy automatically from a legitimate death");

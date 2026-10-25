@@ -1,10 +1,10 @@
 using UnityEngine;
 namespace Defense {
 public enum TowerType { Basic, Salt, BlackPepper, Ketchup, Mustard, Mayonnaise, HotSauce, SoySauce, Oil }
-[CreateAssetMenu(menuName="Defense/Turret Definition")]
+[CreateAssetMenu(menuName="Defense/Tower Definition")]
 public sealed class TurretDefinition : ScriptableObject {
-    [SerializeField] private string displayName = "Basic Turret";
-    [SerializeField] private Turret prefab;
+    [SerializeField] private string displayName = "Basic Tower";
+    [SerializeField] private Tower prefab;
     [SerializeField, Min(0)] private int cost = 0;
     [SerializeField, Min(0.01f)] private float damage = 10;
     [SerializeField, Min(0.01f)] private float attackRange = 3;
@@ -37,7 +37,7 @@ public sealed class TurretDefinition : ScriptableObject {
     public float SpriteScale => spriteScale;
     public Vector2 SpriteOffset => spriteOffset;
     public string DisplayName => displayName;
-    public Turret Prefab => prefab;
+    public Tower Prefab => prefab;
     public int Cost => cost;
     public float Damage => damage;
     public float AttackRange => attackRange;

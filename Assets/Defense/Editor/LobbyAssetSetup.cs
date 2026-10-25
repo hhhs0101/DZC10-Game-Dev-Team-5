@@ -41,7 +41,7 @@ public static class LobbyAssetSetup {
                 tower = Object.Instantiate(AssetDatabase.LoadAssetAtPath<TurretDefinition>("Assets/Defense/Data/TestTurret1.asset"));
                 tower.name = "TestTurret"+(i+1);
                 var data = new SerializedObject(tower);
-                data.FindProperty("displayName").stringValue = "Test Turret "+(i+1);
+                data.FindProperty("displayName").stringValue = "Test Tower "+(i+1);
                 data.FindProperty("damage").floatValue = stats[i,0];
                 data.FindProperty("attackRange").floatValue = stats[i,1];
                 data.FindProperty("attackCooldown").floatValue = stats[i,2];

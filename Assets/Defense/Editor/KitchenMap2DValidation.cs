@@ -58,7 +58,7 @@ public static class KitchenMap2DValidation {
         var hand=Find<GameplayHand>();int towerIndex=hand.Cycle.Hand.ToList().FindIndex(c=>c.Definition is TowerCardDefinition);Check(towerIndex>=0&&hand.Select(towerIndex),"Real runtime Hand selects a Tower");
         Find<ResourceWallet>().Initialize(10000);Find<ElixirSystem>().Advance(100);var slot=Map.PlacementSlots[0];
         Check(Find<TurretPlacementController>().ProcessPointer(Map.WorldCamera.WorldToScreenPoint(slot.PlacementPoint.position),true)&&slot.IsOccupied,"Production screen/Physics2D/card path places Tower on new configured slot");
-        slot.GetComponentInChildren<Turret>().enabled=false;
+        slot.GetComponentInChildren<Tower>().enabled=false;
         var toy=PlayerSession.Catalog.AvailableCards.OfType<SkillCardDefinition>().Single(c=>c.Skill.Effect is CircularDamageSkill).Skill;
         var slow=PlayerSession.Catalog.AvailableCards.OfType<SkillCardDefinition>().Single(c=>c.Skill.Effect is SlowAreaSkill).Skill;
         var enemy=Find<EnemySpawner>().Spawn(probe.Definition);enemy.Movement.Stop();enemy.transform.position=Map.Path.GetPoint(20);Find<EnemyRegistry>().NotifyMoved(enemy);

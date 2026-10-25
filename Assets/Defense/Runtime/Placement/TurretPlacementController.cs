@@ -8,7 +8,7 @@ public sealed class TurretPlacementController : MonoBehaviour {
     [SerializeField] private ResourceWallet wallet;
     [SerializeField] private EnemyRegistry registry;
     [SerializeField, Tooltip("Required 2D map and slot input.")] private BattlefieldPointer2D pointer2D;
-    [SerializeField, Tooltip("Optional 2D actor prefab; selected definition still supplies all combat/cost data.")] private Turret spritePrefab;
+    [SerializeField, Tooltip("Optional 2D actor prefab; selected definition still supplies all combat/cost data.")] private Tower spritePrefab;
     [SerializeField, Tooltip("Optional read-only placed-Tower inspection for native 2D scenes.")] private PlacedTowerInspectionController inspection;
     private TurretDefinition selected;
     private TowerPlacementSlot hoveredSlot;
@@ -50,7 +50,7 @@ public sealed class TurretPlacementController : MonoBehaviour {
         var hand = GetComponent<GameplayHand>();
         var card = hand.SelectedCard;
         if (!hand.CanUse(card)) return false;
-        Turret turret = Instantiate(spritePrefab != null ? spritePrefab : selected.Prefab, slot.PlacementPoint.position, slot.PlacementPoint.rotation, slot.transform);
+        Tower turret = Instantiate(selected.Prefab, slot.PlacementPoint.position, slot.PlacementPoint.rotation, slot.transform);
         turret.Initialize(selected, registry);
         if (!slot.TryOccupy(turret)) { Destroy(turret.gameObject); return Fail("A turret is already placed here."); }
         turret.StartLifetime(slot, flow, card.Definition.ElixirCost);
@@ -58,7 +58,7 @@ public sealed class TurretPlacementController : MonoBehaviour {
         hand.CompleteUse(card, CardUseResult.Success);
         GameAudio.PlayTowerPlaced(used);
         Placed?.Invoke(used);
-        Message?.Invoke("Turret placed."); return true;
+        Message?.Invoke("Tower placed."); return true;
     }
     private bool Fail(string message) { Message?.Invoke(message); return false; }
 }
