@@ -8,6 +8,7 @@ public sealed class LobbyUI : MonoBehaviour {
     [SerializeField, Min(.01f)] private float repeatInterval = .15f;
     private readonly KeyRepeat repeat = new KeyRepeat();
     private Text feedback;
+    private RectTransform unlockPopupOverlay;
     public StageCarouselView Carousel { get; private set; }
     public void Initialize(Action openDeck, Action settings, Action back, MainMenuSkin skin = null) {
         UiFactory.Label(transform,"Lobby",new Vector2(.5f,1),new Vector2(0,-45),new Vector2(350,60),36);
@@ -27,8 +28,102 @@ public sealed class LobbyUI : MonoBehaviour {
             UiFactory.ApplyButtonSkin(enterStageButton,skin.LobbyEnterStage);
             UiFactory.ApplyButtonSkin(deckButton,skin.LobbyDeck);
         }
+        BuildUnlockPopup();
+        CheckUnlockPopup();
+    }
+    private void OnEnable() {
+        CheckUnlockPopup();
+    }
+    private void BuildUnlockPopup() {
+        unlockPopupOverlay = UiFactory.Rect("Unlock Towers Popup Overlay",transform,new Vector2(.5f,.5f),Vector2.zero,Vector2.zero);
+        unlockPopupOverlay.anchorMin = Vector2.zero;
+        unlockPopupOverlay.anchorMax = Vector2.one;
+        unlockPopupOverlay.offsetMin = unlockPopupOverlay.offsetMax = Vector2.zero;
+        var dimmerImage = unlockPopupOverlay.gameObject.AddComponent<Image>();
+        dimmerImage.color = new Color(0f,0f,0f,.68f);
+        var dimmerButton = unlockPopupOverlay.gameObject.AddComponent<Button>();
+        dimmerButton.transition = Selectable.Transition.None;
+        dimmerButton.onClick.AddListener(GameAudio.PlayButtonClick);
+        dimmerButton.onClick.AddListener(HideUnlockPopup);
+
+        var dialog = UiFactory.Rect("Unlock Towers Dialog",unlockPopupOverlay,new Vector2(.5f,.5f),Vector2.zero,new Vector2(680,440));
+        var dialogBg = dialog.gameObject.AddComponent<Image>();
+        var woodSprite = Resources.Load<Sprite>("UI/TowerCardsWoodPanel");
+        if (woodSprite != null) {
+            dialogBg.sprite = woodSprite;
+            dialogBg.color = Color.white;
+        } else {
+            dialogBg.color = new Color(.22f,.15f,.1f,.98f);
+        }
+        dialogBg.raycastTarget = true;
+
+        var innerPanel = UiFactory.Rect("Inner Content Backdrop",dialog,new Vector2(.5f,.5f),new Vector2(0,16),new Vector2(620,336));
+        var innerImage = innerPanel.gameObject.AddComponent<Image>();
+        innerImage.color = new Color(.12f,.08f,.05f,.82f);
+        innerImage.raycastTarget = false;
+
+        var titleText = UiFactory.Label(dialog,"New towers unlocked!",new Vector2(.5f,1f),new Vector2(0,-58),new Vector2(580,48),34);
+        titleText.fontStyle = FontStyle.Bold;
+        titleText.color = new Color(1f,.92f,.65f);
+        var titleOutline = titleText.gameObject.AddComponent<Outline>();
+        titleOutline.effectColor = new Color(0f,0f,0f,.95f);
+        titleOutline.effectDistance = new Vector2(1.5f,-1.5f);
+
+        string[] targetNames = { "Ketchup", "Mustard", "Olive Oil" };
+        string[] targetIds = { "tower.test.11", "tower.test.9", "tower.test.2" };
+        for (int i = 0; i < targetNames.Length; i++) {
+            var card = FindCatalogCard(targetIds[i],targetNames[i]);
+            if (card == null) continue;
+            var cardRect = UiFactory.Rect("Unlocked Card "+card.DisplayName,dialog,new Vector2(.5f,.5f),new Vector2((i-1)*168f,18f),new Vector2(124,192));
+            var cardImage = cardRect.gameObject.AddComponent<Image>();
+            cardImage.preserveAspect = true;
+            cardImage.raycastTarget = false;
+            bool hasCardSprite = card.CardSprite != null;
+            cardImage.sprite = hasCardSprite ? card.CardSprite : null;
+            cardImage.color = hasCardSprite ? Color.white : new Color(.2f,.32f,.4f);
+            var iconView = CardIconView.Create(cardRect,new Vector2(0,14),new Vector2(62,96));
+            if (hasCardSprite) iconView.gameObject.SetActive(false); else iconView.Bind(card);
+            var label = UiFactory.Label(cardRect,card.DisplayName,new Vector2(.5f,.5f),new Vector2(0,-58),new Vector2(114,52),14);
+            var outline = label.gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0f,0f,0f,.95f);
+            outline.effectDistance = new Vector2(1.2f,-1.2f);
+            CardTextBackdrop.Create(cardRect,label);
+            CardEnergyBadge.Create(cardRect).Bind(card);
+        }
+
+        var subText = UiFactory.Label(dialog,"Check deck page",new Vector2(.5f,0f),new Vector2(0,102),new Vector2(500,36),22);
+        subText.color = new Color(.92f,.95f,1f);
+        var subOutline = subText.gameObject.AddComponent<Outline>();
+        subOutline.effectColor = new Color(0f,0f,0f,.95f);
+        subOutline.effectDistance = new Vector2(1.2f,-1.2f);
+
+        var closeBtn = UiFactory.Button(dialog,"Close",new Vector2(0,38),HideUnlockPopup,new Vector2(.5f,0f),new Vector2(176,54));
+        if (!UiFactory.ApplyCloseButtonSkin(closeBtn))
+            closeBtn.GetComponent<Image>().color = new Color(.55f,.24f,.14f,.95f);
+
+        unlockPopupOverlay.gameObject.SetActive(false);
+    }
+    private static CardDefinition FindCatalogCard(string cardId, string displayName) {
+        if (PlayerSession.Catalog == null || PlayerSession.Catalog.AvailableCards == null) return null;
+        var list = PlayerSession.Catalog.AvailableCards;
+        for (int i = 0; i < list.Count; i++) {
+            var c = list[i];
+            if (c != null && (c.CardId == cardId || string.Equals(c.DisplayName,displayName,StringComparison.OrdinalIgnoreCase)))
+                return c;
+        }
+        return null;
+    }
+    private void CheckUnlockPopup() {
+        if (unlockPopupOverlay == null || !PlayerSession.PendingTowerUnlockPopup) return;
+        PlayerSession.PendingTowerUnlockPopup = false;
+        unlockPopupOverlay.SetAsLastSibling();
+        unlockPopupOverlay.gameObject.SetActive(true);
+    }
+    private void HideUnlockPopup() {
+        if (unlockPopupOverlay != null) unlockPopupOverlay.gameObject.SetActive(false);
     }
     private void Update() {
+        if (unlockPopupOverlay != null && unlockPopupOverlay.gameObject.activeSelf) return;
         int direction = (Input.GetKey(KeyCode.D) ? 1 : 0) - (Input.GetKey(KeyCode.A) ? 1 : 0);
         HandleNavigation(direction,Time.unscaledTime);
         if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) TryEnter();

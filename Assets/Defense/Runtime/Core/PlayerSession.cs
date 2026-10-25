@@ -19,9 +19,10 @@ public static class PlayerSession {
     public const string TopDownSceneName = "TopDownStage3";
     public static string ActiveBattleScene => ActiveStage != null ? ActiveStage.SceneName : null;
     public static bool ReturnToLobby { get; set; }
+    public static bool PendingTowerUnlockPopup { get; set; }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void Reset() { foreach(var manager in stagePresets.Values) manager.Dispose(); stagePresets.Clear();
-        DevMode = false; StageCardsChanged = null; CardStage = null; Presets = null; Currency = null; Catalog = null; Progression = null; Selection = null; ActiveStage = null; ReturnToLobby = false; }
+        DevMode = false; StageCardsChanged = null; CardStage = null; Presets = null; Currency = null; Catalog = null; Progression = null; Selection = null; ActiveStage = null; ReturnToLobby = false; PendingTowerUnlockPopup = false; }
     public static void Ensure() {
         if (Catalog != null) return;
         Catalog = Resources.Load<GameCatalog>("GameCatalog");
@@ -70,6 +71,9 @@ public static class PlayerSession {
     // Idempotent progression only. Victory reward policy is deliberately separate.
     public static bool CompleteActiveStage() {
         Ensure();
+        if (ActiveStage != null && (ActiveStage.name == "Stage1_2" || ActiveStage.DisplayName == "Stage 2" || ActiveStage.name == "Stage1_3" || ActiveStage.DisplayName == "Stage 3")) {
+            PendingTowerUnlockPopup = true;
+        }
         for (int i=0;i<Catalog.Stages.Count;i++) if (Catalog.Stages[i] == ActiveStage) return Progression.Complete(i);
         return false;
     }
