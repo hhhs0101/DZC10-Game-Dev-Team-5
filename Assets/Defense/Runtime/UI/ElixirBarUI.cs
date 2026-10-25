@@ -17,9 +17,9 @@ public sealed class ElixirBarUI : MonoBehaviour {
         var frameSprite = Resources.Load<Sprite>("UI/EnergyBarFrame");
         var segmentSprite = Resources.Load<Sprite>("UI/EnergySegment");
         if (frameSprite == null || segmentSprite == null) throw new System.InvalidOperationException("Segmented Energy UI sprites are missing from Resources/UI.");
-        const float width = 88;
+        const float width = 70;
         float height = width * frameSprite.rect.height / frameSprite.rect.width;
-        var background = UiFactory.Rect("Energy Bar",parent,new Vector2(1,.5f),new Vector2(-168,-15),new Vector2(width,height));
+        var background = UiFactory.Rect("Energy Bar",parent,new Vector2(1,.5f),new Vector2(-158,-15),new Vector2(width,height));
         var image = background.gameObject.AddComponent<Image>();
         image.sprite = frameSprite; image.preserveAspect = true; image.raycastTarget = false;
         // Revised source-frame crop is (222,97,294,1342); the dark interior is
@@ -40,9 +40,9 @@ public sealed class ElixirBarUI : MonoBehaviour {
         // A final sibling draws over every segment, including a full bar.
         var boltSprite = Resources.Load<Sprite>("UI/EnergyBarBolt") ?? Resources.Load<Sprite>("UI/EnergyIcon");
         if (boltSprite != null) {
-            const float boltWidth = 60;
+            const float boltWidth = 48;
             float boltHeight = boltWidth * boltSprite.rect.height / boltSprite.rect.width;
-            var bolt = UiFactory.Rect("Energy Bolt Overlay",background,new Vector2(.5f,1),new Vector2(0,-12),
+            var bolt = UiFactory.Rect("Energy Bolt Overlay",background,new Vector2(.5f,1),new Vector2(0,-10),
                 new Vector2(boltWidth,boltHeight));
             var boltImage = bolt.gameObject.AddComponent<Image>();
             boltImage.sprite = boltSprite; boltImage.preserveAspect = true; boltImage.raycastTarget = false;
