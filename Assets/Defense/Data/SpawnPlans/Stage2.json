@@ -19,63 +19,78 @@
     },
     {
       "enemyId": "enemy_bellpepper",
-      "delay": 8.0
+      "delay": 8.0,
+      "routeGroup": "stage2_support_01"
     },
     {
       "enemyId": "enemy_eggplant",
-      "delay": 0.45
+      "delay": 0.45,
+      "routeGroup": "stage2_support_01"
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 0.45
+      "delay": 0.45,
+      "routeGroup": "stage2_support_01"
     },
     {
       "enemyId": "enemy_garlic",
-      "delay": 9.1
+      "delay": 9.1,
+      "routeGroup": "stage2_support_02"
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 0.45
+      "delay": 0.45,
+      "routeGroup": "stage2_support_02"
     },
     {
       "enemyId": "enemy_tomato",
-      "delay": 0.45
+      "delay": 0.45,
+      "routeGroup": "stage2_support_02"
     },
     {
       "enemyId": "enemy_eggplant",
-      "delay": 13.1
+      "delay": 13.1,
+      "routeGroup": "stage2_support_03"
     },
     {
       "enemyId": "enemy_bellpepper",
-      "delay": 0.4
+      "delay": 0.4,
+      "routeGroup": "stage2_support_03"
     },
     {
       "enemyId": "enemy_eggplant",
-      "delay": 0.4
+      "delay": 0.4,
+      "routeGroup": "stage2_support_03"
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 0.4
+      "delay": 0.4,
+      "routeGroup": "stage2_support_03"
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 0.4
+      "delay": 0.4,
+      "routeGroup": "stage2_support_03"
     },
     {
       "enemyId": "enemy_garlic",
-      "delay": 10.4
+      "delay": 10.4,
+      "routeGroup": "stage2_support_04"
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 0.5
+      "delay": 0.5,
+      "routeGroup": "stage2_support_04"
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 0.5
+      "delay": 0.5,
+      "routeGroup": "stage2_support_04"
     },
     {
       "enemyId": "enemy_tomato",
-      "delay": 0.5
+      "delay": 0.5,
+      "routeGroup": "stage2_support_04"
     },
     {
       "enemyId": "enemy_corn",
@@ -91,39 +106,48 @@
     },
     {
       "enemyId": "enemy_eggplant",
-      "delay": 7.0
+      "delay": 7.0,
+      "routeGroup": "stage2_support_05"
     },
     {
       "enemyId": "enemy_bellpepper",
-      "delay": 0.4
+      "delay": 0.4,
+      "routeGroup": "stage2_support_05"
     },
     {
       "enemyId": "enemy_eggplant",
-      "delay": 0.4
+      "delay": 0.4,
+      "routeGroup": "stage2_support_05"
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 0.4
+      "delay": 0.4,
+      "routeGroup": "stage2_support_05"
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 0.4
+      "delay": 0.4,
+      "routeGroup": "stage2_support_05"
     },
     {
       "enemyId": "enemy_garlic",
-      "delay": 10.4
+      "delay": 10.4,
+      "routeGroup": "stage2_support_06"
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 0.5
+      "delay": 0.5,
+      "routeGroup": "stage2_support_06"
     },
     {
       "enemyId": "enemy_corn",
-      "delay": 0.5
+      "delay": 0.5,
+      "routeGroup": "stage2_support_06"
     },
     {
       "enemyId": "enemy_tomato",
-      "delay": 0.5
+      "delay": 0.5,
+      "routeGroup": "stage2_support_06"
     },
     {
       "enemyId": "enemy_carrot",
@@ -139,39 +163,48 @@
     },
     {
       "enemyId": "enemy_eggplant",
-      "delay": 7.0
+      "delay": 7.0,
+      "routeGroup": "stage2_support_07"
     },
     {
       "enemyId": "enemy_bellpepper",
-      "delay": 0.4
+      "delay": 0.4,
+      "routeGroup": "stage2_support_07"
     },
     {
       "enemyId": "enemy_eggplant",
-      "delay": 0.4
+      "delay": 0.4,
+      "routeGroup": "stage2_support_07"
     },
     {
       "enemyId": "enemy_corn",
-      "delay": 0.4
+      "delay": 0.4,
+      "routeGroup": "stage2_support_07"
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 0.4
+      "delay": 0.4,
+      "routeGroup": "stage2_support_07"
     },
     {
       "enemyId": "enemy_garlic",
-      "delay": 10.4
+      "delay": 10.4,
+      "routeGroup": "stage2_support_08"
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 0.5
+      "delay": 0.5,
+      "routeGroup": "stage2_support_08"
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 0.5
+      "delay": 0.5,
+      "routeGroup": "stage2_support_08"
     },
     {
       "enemyId": "enemy_tomato",
-      "delay": 0.5
+      "delay": 0.5,
+      "routeGroup": "stage2_support_08"
     },
     {
       "enemyId": "enemy_carrot",
@@ -187,39 +220,48 @@
     },
     {
       "enemyId": "enemy_eggplant",
-      "delay": 7.0
+      "delay": 7.0,
+      "routeGroup": "stage2_support_09"
     },
     {
       "enemyId": "enemy_bellpepper",
-      "delay": 0.4
+      "delay": 0.4,
+      "routeGroup": "stage2_support_09"
     },
     {
       "enemyId": "enemy_eggplant",
-      "delay": 0.4
+      "delay": 0.4,
+      "routeGroup": "stage2_support_09"
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 0.4
+      "delay": 0.4,
+      "routeGroup": "stage2_support_09"
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 0.4
+      "delay": 0.4,
+      "routeGroup": "stage2_support_09"
     },
     {
       "enemyId": "enemy_garlic",
-      "delay": 10.4
+      "delay": 10.4,
+      "routeGroup": "stage2_support_10"
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 0.5
+      "delay": 0.5,
+      "routeGroup": "stage2_support_10"
     },
     {
       "enemyId": "enemy_corn",
-      "delay": 0.5
+      "delay": 0.5,
+      "routeGroup": "stage2_support_10"
     },
     {
       "enemyId": "enemy_tomato",
-      "delay": 0.5
+      "delay": 0.5,
+      "routeGroup": "stage2_support_10"
     },
     {
       "enemyId": "enemy_carrot",
@@ -235,35 +277,43 @@
     },
     {
       "enemyId": "enemy_eggplant",
-      "delay": 5.0
+      "delay": 5.0,
+      "routeGroup": "stage2_support_11"
     },
     {
       "enemyId": "enemy_bellpepper",
-      "delay": 0.4
+      "delay": 0.4,
+      "routeGroup": "stage2_support_11"
     },
     {
       "enemyId": "enemy_eggplant",
-      "delay": 0.4
+      "delay": 0.4,
+      "routeGroup": "stage2_support_11"
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 0.4
+      "delay": 0.4,
+      "routeGroup": "stage2_support_11"
     },
     {
       "enemyId": "enemy_garlic",
-      "delay": 7.3
+      "delay": 7.3,
+      "routeGroup": "stage2_support_12"
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 0.5
+      "delay": 0.5,
+      "routeGroup": "stage2_support_12"
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 0.5
+      "delay": 0.5,
+      "routeGroup": "stage2_support_12"
     },
     {
       "enemyId": "enemy_tomato",
-      "delay": 0.5
+      "delay": 0.5,
+      "routeGroup": "stage2_support_12"
     }
   ]
 }

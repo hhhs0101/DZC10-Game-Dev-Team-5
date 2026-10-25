@@ -16,7 +16,7 @@ public static class SpawnPlanLoader {
             for(int i=0;i<events.Length;i++) {
                 var entry=dto.spawns[i];
                 if(!lookup.TryGetValue(entry.enemyId,out var enemy))throw new FormatException("Event ["+i+"] has unknown enemyId '"+entry.enemyId+"'.");
-                events[i]=new ResolvedSpawnEvent(enemy,entry.delay);
+                events[i]=new ResolvedSpawnEvent(enemy,entry.delay,entry.routeGroup);
             }
             plan=new ResolvedSpawnPlan(dto.stageId,events);return true;
         } catch(FormatException exception) {
@@ -56,16 +56,17 @@ public static class SpawnPlanLoader {
             Need('[');var entries=new List<SpawnEventData>();
             if(Take(']'))return entries.ToArray();
             do {
-                eventIndex=entries.Count;Need('{');string id=null;float delay=0;bool hasId=false,hasDelay=false;
+                eventIndex=entries.Count;Need('{');string id=null,routeGroup=null;float delay=0;bool hasId=false,hasDelay=false,hasGroup=false;
                 if(!Take('}'))do {
                     string key=String();Need(':');
                     if(key=="enemyId") {if(hasId)Fail("Duplicate enemyId.");hasId=true;id=String();if(string.IsNullOrWhiteSpace(id))Fail("enemyId must be nonblank.");}
                     else if(key=="delay") {if(hasDelay)Fail("Duplicate delay.");hasDelay=true;delay=Delay();}
+                    else if(key=="routeGroup") {if(hasGroup)Fail("Duplicate routeGroup.");hasGroup=true;routeGroup=String();if(string.IsNullOrWhiteSpace(routeGroup))Fail("routeGroup must be nonblank when present.");}
                     else Fail("Unknown event field '"+key+"'.");
                     if(Take('}'))break;Need(',');
                 }while(true);
                 if(!hasId)Fail("Required enemyId is missing.");if(!hasDelay)Fail("Required numeric delay is missing.");
-                entries.Add(new SpawnEventData{enemyId=id,delay=delay});eventIndex=-1;
+                entries.Add(new SpawnEventData{enemyId=id,delay=delay,routeGroup=routeGroup});eventIndex=-1;
                 if(Take(']'))break;Need(',');
             }while(true);
             return entries.ToArray();

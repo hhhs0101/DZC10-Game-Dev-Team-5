@@ -2,7 +2,7 @@ using UnityEngine;
 namespace Defense {
 public sealed class EnemySpawner : MonoBehaviour {
     [SerializeField] private WaypointPath path;
-    [SerializeField, Tooltip("Optional multi-branch routes; when populated, each spawn cycles across branches.")] private WaypointPath[] branchPaths;
+    [SerializeField, Tooltip("Optional multi-branch routes; when populated, each ungrouped spawn or new group chooses a branch.")] private WaypointPath[] branchPaths;
     [SerializeField, Tooltip("Optional Stage 3 left diverging route leading off-screen before re-emerging on the right.")] private WaypointPath divergingEntryPath;
     [SerializeField, Tooltip("Optional Stage 3 right re-emergence route leading back onto the main path to the destination.")] private WaypointPath divergingExitPath;
     [SerializeField, Min(0f)] private float divergingHideSeconds = 3f;
@@ -15,9 +15,20 @@ public sealed class EnemySpawner : MonoBehaviour {
     private int sameBranchStreak;
     private int lastDivergeChoice = -1;
     private int sameDivergeStreak;
+    // Store route values, not an enemy reference: a group survives its leader's death.
+    private readonly System.Collections.Generic.Dictionary<string, SpawnRoute> groupRoutes = new System.Collections.Generic.Dictionary<string, SpawnRoute>();
+    private readonly struct SpawnRoute {
+        public readonly WaypointPath Path, Continuation;
+        public readonly float HideSeconds;
+        public SpawnRoute(WaypointPath path, WaypointPath continuation, float hideSeconds) {
+            Path=path;Continuation=continuation;HideSeconds=hideSeconds;
+        }
+    }
+    public void ResetSpawnGroups() => groupRoutes.Clear();
     public bool CanSpawn => flow != null && flow.IsPlaying;
     internal GameFlow Flow => flow;
     public void ConfigureDivergingRoute(WaypointPath entryPath, WaypointPath exitPath, float hideSeconds = 3f) {
+        ResetSpawnGroups();
         divergingEntryPath = entryPath;
         divergingExitPath = exitPath;
         divergingHideSeconds = Mathf.Max(0f, hideSeconds);
@@ -58,7 +69,7 @@ public sealed class EnemySpawner : MonoBehaviour {
                     validIndices.Add(i);
             }
             if (validIndices.Count > 1) {
-                // Prevent long single-lane streaks while keeping each spawn unpredictable.
+                // Prevent long single-lane streaks while keeping each independent route choice unpredictable.
                 if (sameBranchStreak >= 2 && validIndices.Contains(lastBranchIndex)) {
                     validIndices.Remove(lastBranchIndex);
                 }
@@ -100,18 +111,27 @@ public sealed class EnemySpawner : MonoBehaviour {
         // Children count toward Victory through the registry, but do not farm resources/Candy.
         return child;
     }
-    public Enemy Spawn(EnemyDefinition definition) {
-        if (!flow.IsPlaying) return null;
-        bool useDiverging = ShouldUseDivergingRoute(definition);
-        var activePath = useDiverging ? divergingEntryPath : (IsBoss(definition) ? path : SelectSpawnPath());
+    public Enemy Spawn(EnemyDefinition definition) => Spawn(definition,null);
+    public Enemy Spawn(EnemyDefinition definition, string routeGroup) {
+        if (!CanSpawn) return null;
+        // Bosses keep their existing main-route rule, even if a plan supplies a group.
+        bool grouped = !string.IsNullOrEmpty(routeGroup) && !IsBoss(definition);
+        SpawnRoute route;
+        if(!grouped || !groupRoutes.TryGetValue(routeGroup,out route)) {
+            bool useDiverging = ShouldUseDivergingRoute(definition);
+            var chosenPath = useDiverging ? divergingEntryPath : (IsBoss(definition) ? path : SelectSpawnPath());
+            route = new SpawnRoute(chosenPath,useDiverging ? divergingExitPath : null,divergingHideSeconds);
+        }
+        var activePath = route.Path;
         if (definition == null || definition.Prefab == null || activePath == null || activePath.Count < 2) {
             Debug.LogError("EnemySpawner requires a prefab and at least two waypoints.", this); return null;
         }
+        if(grouped) groupRoutes[routeGroup] = route;
         Enemy enemy = Instantiate(ActorPrefab(definition), activePath.GetPoint(0), Quaternion.identity, enemyRoot);
         enemy.Spawner = this;
         enemy.Initialize(definition, activePath, baseHealth, registry);
-        if (useDiverging && enemy.Movement != null)
-            enemy.Movement.SetContinuation(divergingExitPath, divergingHideSeconds);
+        if (route.Continuation != null && enemy.Movement != null)
+            enemy.Movement.SetContinuation(route.Continuation, route.HideSeconds);
         enemy.Died += OnEnemyDied;
         return enemy;
     }

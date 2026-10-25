@@ -33,7 +33,7 @@ MonoBehaviour:
   vegetableType: 8
   splitCount: 5
   summonCount: 3
-  summonInterval: 5
+  summonInterval: 7
   towerAttackRange: 3
   towerAttackInterval: 5
   towerDamageFraction: 0.66

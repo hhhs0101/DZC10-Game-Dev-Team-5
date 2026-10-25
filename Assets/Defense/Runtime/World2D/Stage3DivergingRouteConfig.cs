@@ -45,6 +45,8 @@ public static class Stage3DivergingRouteConfig {
         new Vector2(1423f, 382f)
     };
 
+    public const string RightPlacementSlotName = "Slot 9 (Stage 3 Right)";
+    public static readonly Vector3 RightPlacementSlotPosition = new Vector3(6.8f,-1.4f,0f);
     private static Sprite cachedRouteSprite;
 
     public static bool IsStage3(StageDefinition definition) =>
@@ -66,6 +68,7 @@ public static class Stage3DivergingRouteConfig {
 
     public static void Apply(BattlefieldMap2D map, EnemySpawner spawner) {
         if (map == null) return;
+        EnsureRightPlacementSlot(map);
         var root = map.transform;
         var routeTransform = root.Find("GinghamPathSprite");
         if (routeTransform != null) {
@@ -81,6 +84,22 @@ public static class Stage3DivergingRouteConfig {
         var rightPath = BuildOrUpdatePath(root, RightEmergenceObjectName, RightEmergencePixels, null, map.BaseDestination);
         if (spawner != null)
             spawner.ConfigureDivergingRoute(leftPath, rightPath, HideDurationSeconds);
+    }
+
+    private static void EnsureRightPlacementSlot(BattlefieldMap2D map) {
+        if(map.PlacementSlots == null || map.PlacementSlots.Count == 0) return;
+        var template = map.PlacementSlots[0];
+        if(template == null || template.transform.parent == null) return;
+        var parent = template.transform.parent;
+        var existing = parent.Find(RightPlacementSlotName);
+        if(existing != null) {
+            map.RegisterPlacementSlot(existing.GetComponent<TowerPlacementSlot>());
+            return;
+        }
+        // Clone the authored plate, collider, layer, anchor and hover view together.
+        var slot = Object.Instantiate(template,RightPlacementSlotPosition,template.transform.rotation,parent);
+        slot.gameObject.name = RightPlacementSlotName;
+        map.RegisterPlacementSlot(slot);
     }
 
     private static WaypointPath BuildOrUpdatePath(Transform root, string objectName, Vector2[] pixels, Transform firstAnchor, Transform lastAnchor) {
