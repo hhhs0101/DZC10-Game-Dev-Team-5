@@ -15,6 +15,7 @@ public sealed class BuildMenuUI : MonoBehaviour {
     private readonly Text[] labels = new Text[3];
     private readonly CardIconView[] icons = new CardIconView[3];
     private readonly CardEnergyBadge[] energyBadges = new CardEnergyBadge[3];
+    private readonly HandCardDrag[] drags = new HandCardDrag[3];
 
     private RectTransform nextHeaderRect;
     private Button nextCardView;
@@ -25,9 +26,13 @@ public sealed class BuildMenuUI : MonoBehaviour {
 
     public void Initialize(Transform parent) {
         hand = placement.GetComponent<GameplayHand>();
+        var canvasRect = parent as RectTransform;
         for (int i = 0; i < 3; i++) {
             int index = i;
-            cards[i] = UiFactory.Button(parent, "", new Vector2(-62f, 190f - i * 138f), () => hand.ToggleSelection(index), new Vector2(1f, .5f), HandCardSize);
+            cards[i] = UiFactory.Button(parent, "", new Vector2(-62f, 190f - i * 138f), () => {
+                if (drags[index] != null && drags[index].WasDragging) return;
+                hand.ToggleSelection(index);
+            }, new Vector2(1f, .5f), HandCardSize);
             cards[i].name = "Hand Card " + (i + 1);
             cards[i].image.preserveAspect = true;
             labels[i] = cards[i].GetComponentInChildren<Text>();
@@ -37,6 +42,9 @@ public sealed class BuildMenuUI : MonoBehaviour {
             icons[i] = CardIconView.Create(cards[i].transform, new Vector2(0f, 8f), HandIconSize);
             CardTextBackdrop.Create((RectTransform)cards[i].transform, labels[i]);
             energyBadges[i] = CardEnergyBadge.Create((RectTransform)cards[i].transform);
+
+            drags[i] = cards[i].gameObject.AddComponent<HandCardDrag>();
+            drags[i].Initialize(index, hand, placement, canvasRect);
         }
 
         var nextHeaderText = UiFactory.Label(parent, "NEXT", new Vector2(1f, .5f), new Vector2(-62f, -169f), new Vector2(90f, 22f), 14);
@@ -98,6 +106,7 @@ public sealed class BuildMenuUI : MonoBehaviour {
             labels[i].text = def.DisplayName;
             energyBadges[i].Bind(def);
             cards[i].interactable = interactive;
+            if (drags[i] != null) drags[i].enabled = interactive;
         }
 
         if (nextHeaderRect != null) nextHeaderRect.gameObject.SetActive(hasUpcoming);
@@ -121,7 +130,13 @@ public sealed class BuildMenuUI : MonoBehaviour {
         }
     }
 
-    public void SetInteractionEnabled(bool enabled) { interactive = enabled; Refresh(); }
+    public void SetInteractionEnabled(bool enabled) {
+        interactive = enabled;
+        for (int i = 0; i < 3; i++) {
+            if (drags[i] != null) drags[i].enabled = enabled;
+        }
+        Refresh();
+    }
     private void OnDestroy() {
         if (hand != null) hand.Changed -= Refresh;
         if (boundCycle != null) boundCycle.Changed -= Refresh;
