@@ -32,6 +32,7 @@ public abstract class Turret : MonoBehaviour, IDamageable {
     // Shared runtime source for target eligibility, gizmos and read-only inspection.
     public float EffectiveAttackRange => definition != null ? definition.AttackRange : 0;
     public event System.Action<TurretDefinition> Initialized;
+    public event System.Action<Enemy> Attacked;
     public void Initialize(TurretDefinition data, EnemyRegistry enemies) {
         definition = data; registry = enemies; targeting = data.Targeting; cooldown = 0; AttackStatus.Clear();
         CurrentHealth = data.MaximumHealth; cleanseClock = 0;
@@ -89,6 +90,7 @@ public abstract class Turret : MonoBehaviour, IDamageable {
             case TowerType.Mayonnaise: break;
             default: if(attack != null) attack.Attack(target,damage); else target.ReceiveDamage(damage); break;
         }
+        Attacked?.Invoke(target);
     }
     public void AdvanceSupport(float deltaTime) {
         if(definition == null || !isActiveAndEnabled || TowerType != TowerType.Mayonnaise || AttackDisabled || deltaTime <= 0 || float.IsNaN(deltaTime) || float.IsInfinity(deltaTime)) return;
@@ -96,6 +98,7 @@ public abstract class Turret : MonoBehaviour, IDamageable {
         cleanseClock += deltaTime;
         if(cleanseClock < definition.CleanseInterval) return;
         cleanseClock %= definition.CleanseInterval;
+        Attacked?.Invoke(null);
         var choices = new System.Collections.Generic.List<Turret>();
         foreach(var slot in Object.FindObjectsByType<TowerPlacementSlot>()) {
             var tower = slot.Occupant;
