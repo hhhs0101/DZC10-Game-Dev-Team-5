@@ -37,7 +37,8 @@ public sealed class DeckEditorUI : MonoBehaviour {
         bg.offsetMin = bg.offsetMax = Vector2.zero;
         bg.SetAsFirstSibling();
         var bgImage = bg.gameObject.AddComponent<Image>();
-        var bgSprite = Resources.Load<Sprite>("UI/DeckBackground");
+        var bgSprite = UiFactory.LoadSprite("UI/GameBackground");
+        if (bgSprite == null) bgSprite = Resources.Load<Sprite>("UI/DeckBackground");
         bgImage.sprite = bgSprite;
         bgImage.preserveAspect = true;
         bgImage.raycastTarget = false;

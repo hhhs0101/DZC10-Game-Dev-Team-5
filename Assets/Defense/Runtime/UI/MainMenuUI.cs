@@ -18,24 +18,46 @@ public sealed class MainMenuUI : MonoBehaviour {
         lobby.AddComponent<LobbyUI>().Initialize(()=>Show(deckEditor),()=>OpenSettings(lobby),()=>Show(menu),skin);
         deckEditor.AddComponent<DeckEditorUI>().Initialize((RectTransform)canvas.transform,()=>Show(lobby),()=>OpenSettings(deckEditor),skin);
         settings = GetComponent<SettingsUI>(); settings.Initialize(canvas.transform);
-        Show(PlayerSession.ReturnToLobby ? lobby : menu);
+        if (!PlayerSession.ReturnToLobby && IntroVideoUI.ShouldPlay) {
+            menu.SetActive(false); lobby.SetActive(false); deckEditor.SetActive(false);
+            IntroVideoUI.Play(canvas.transform,()=>Show(menu));
+        }
+        else Show(PlayerSession.ReturnToLobby ? lobby : menu);
     }
     private void BuildBackground() {
-        if (skin == null || skin.Background == null) throw new System.InvalidOperationException("Assign the Main Menu Skin background sprite.");
+        // Lobby and settings share this background; the start screen draws its own titled page on top.
+        var background = UiFactory.LoadSprite("UI/GameBackground");
+        if (background == null) background = skin != null ? skin.Background : null;
+        if (background == null) throw new System.InvalidOperationException("Assign the Main Menu Skin background sprite.");
         var rect = UiFactory.Rect("Menu Background",canvas.transform,new Vector2(.5f,.5f),Vector2.zero,Vector2.zero);
         rect.SetAsFirstSibling();
         var image = rect.gameObject.AddComponent<UnityEngine.UI.Image>();
-        image.sprite = skin.Background; image.preserveAspect = true; image.raycastTarget = false;
+        image.sprite = background; image.preserveAspect = true; image.raycastTarget = false;
         var fit = rect.gameObject.AddComponent<UnityEngine.UI.AspectRatioFitter>();
-        fit.aspectRatio = skin.Background.rect.width / skin.Background.rect.height;
+        fit.aspectRatio = background.rect.width / background.rect.height;
         fit.aspectMode = UnityEngine.UI.AspectRatioFitter.AspectMode.EnvelopeParent;
     }
     private void BuildStartScreen() {
         if (skin == null) throw new System.InvalidOperationException("Assign Main Menu Skin on MainMenuUI.");
-        var logo = UiFactory.Rect("Food Defense Logo",menu.transform,Vector2.zero,Vector2.zero,Vector2.zero);
-        Stretch(logo,new Vector2(.1f,.59f),new Vector2(.9f,.97f));
-        var image = logo.gameObject.AddComponent<UnityEngine.UI.Image>();
-        image.sprite = skin.Logo; image.preserveAspect = true; image.raycastTarget = false;
+        // The start screen art has the title painted in, so it replaces the shared background and logo here only.
+        var page = Resources.Load<Sprite>("UI/MainMenuPage");
+        if (page != null) {
+            var pageRect = UiFactory.Rect("Start Screen Page",menu.transform,new Vector2(.5f,.5f),Vector2.zero,Vector2.zero);
+            pageRect.SetAsFirstSibling();
+            var pageImage = pageRect.gameObject.AddComponent<UnityEngine.UI.Image>();
+            pageImage.sprite = page; pageImage.preserveAspect = true; pageImage.raycastTarget = false;
+            var fit = pageRect.gameObject.AddComponent<UnityEngine.UI.AspectRatioFitter>();
+            fit.aspectRatio = page.rect.width / page.rect.height;
+            fit.aspectMode = UnityEngine.UI.AspectRatioFitter.AspectMode.EnvelopeParent;
+            // Anchored to the art so the button stays beside the painted "TO HAVE A SHORT MOUTH" line.
+            CulturalInfoBox.Create(pageRect,menu.transform,new Vector2(.71f,.565f),new Vector2(.77f,.645f),
+                CulturalFacts.TitleHeading,CulturalFacts.TitleBody);
+        } else {
+            var logo = UiFactory.Rect("Food Defense Logo",menu.transform,Vector2.zero,Vector2.zero,Vector2.zero);
+            Stretch(logo,new Vector2(.1f,.59f),new Vector2(.9f,.97f));
+            var image = logo.gameObject.AddComponent<UnityEngine.UI.Image>();
+            image.sprite = skin.Logo; image.preserveAspect = true; image.raycastTarget = false;
+        }
         SkinButton("Start Game",skin.StartGame,.39f,.57f,()=>Show(lobby));
         SkinButton("Settings",skin.Settings,.20f,.38f,()=>OpenSettings(menu));
         SkinButton("Exit",skin.Exit,.01f,.19f,Quit);

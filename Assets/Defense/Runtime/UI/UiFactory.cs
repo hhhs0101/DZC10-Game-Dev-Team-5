@@ -33,13 +33,17 @@ public static class UiFactory {
     private static Sprite closePressedSprite;
     private static Sprite LoadCloseSprite(ref Sprite cached, string resourcePath) {
         if (cached != null) return cached;
-        cached = Resources.Load<Sprite>(resourcePath);
-        if (cached != null) return cached;
+        cached = LoadSprite(resourcePath);
+        return cached;
+    }
+    // Loads a Resources image as a Sprite even when it was imported as a plain texture.
+    public static Sprite LoadSprite(string resourcePath) {
+        var sprite = Resources.Load<Sprite>(resourcePath);
+        if (sprite != null) return sprite;
         var tex = Resources.Load<Texture2D>(resourcePath);
         if (tex == null) return null;
         tex.filterMode = FilterMode.Point;
-        cached = Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height), new Vector2(.5f, .5f), 100f);
-        return cached;
+        return Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height), new Vector2(.5f, .5f), 100f);
     }
     public static bool ApplyCloseButtonSkin(UnityEngine.UI.Button button) {
         var normal = LoadCloseSprite(ref closeNormalSprite, "UI/Settings/close_button_normal");
