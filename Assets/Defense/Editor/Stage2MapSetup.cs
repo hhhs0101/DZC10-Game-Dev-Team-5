@@ -170,6 +170,13 @@ public static class Stage2MapSetup {
         spawnerBranchesProp.arraySize = builtBranches.Length;
         for (int b = 0; b < builtBranches.Length; b++)
             spawnerBranchesProp.GetArrayElementAtIndex(b).objectReferenceValue = builtBranches[b];
+        var weights = spawnerData.FindProperty("branchWeights");
+        weights.arraySize = 3;
+        weights.GetArrayElementAtIndex(0).floatValue = 4f;
+        weights.GetArrayElementAtIndex(1).floatValue = 4f;
+        weights.GetArrayElementAtIndex(2).floatValue = 1f;
+        spawnerData.FindProperty("openingPreferredBranches").intValue = 2;
+        spawnerData.FindProperty("openingPreferredChoices").intValue = 2;
         spawnerData.ApplyModifiedPropertiesWithoutUndo();
 
         for (int i = 0; i < map.PlacementSlots.Count; i++)

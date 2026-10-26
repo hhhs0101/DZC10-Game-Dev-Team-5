@@ -16,7 +16,7 @@ MonoBehaviour:
   prefab: {fileID: 2061435135399564034, guid: 34e6e2aa757c4baca8f7f42e984392f6, type: 3}
   cost: 0
   damage: 36.0
-  attackRange: 4.0
+  attackRange: 3
   attackCooldown: 0.96
   targeting: {fileID: 11400000, guid: 352398aa511754b47a79b53950a3b3b4, type: 2}
   sprite: {fileID: 21300000, guid: 3cce507597f854e85bccb25a613d7c62, type: 3}

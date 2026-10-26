@@ -22,7 +22,7 @@ MonoBehaviour:
   baseDamageUnconfigured: 0
   role: 1
   supportArea: 3
-  speedIncrease: 1.5
+  speedIncrease: 1.65
   shieldValue: 0.6
   disruptionRange: 4
   disruptionCooldown: 5

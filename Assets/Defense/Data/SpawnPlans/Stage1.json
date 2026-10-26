@@ -3,235 +3,279 @@
   "spawns": [
     {
       "enemyId": "enemy_carrot",
-      "delay": 8.0
+      "delay": 6
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 5.0
+      "delay": 4.4
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 5.0
+      "delay": 4.4
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 5.0
+      "delay": 3.3
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 7.0
-    },
-    {
-      "enemyId": "enemy_carrot",
-      "delay": 2
+      "delay": 2.2
     },
     {
       "enemyId": "enemy_tomato",
-      "delay": 2
-    },
-    {
-      "enemyId": "enemy_eggplant",
-      "delay": 2
+      "delay": 2.2
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 2
+      "delay": 2.2
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 7
+      "delay": 4.4
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 2
+      "delay": 1.65
     },
     {
       "enemyId": "enemy_tomato",
-      "delay": 2
-    },
-    {
-      "enemyId": "enemy_eggplant",
-      "delay": 2
+      "delay": 1.65
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 2
+      "delay": 1.65
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 7
-    },
-    {
-      "enemyId": "enemy_carrot",
-      "delay": 2
+      "delay": 1.65
     },
     {
       "enemyId": "enemy_tomato",
-      "delay": 2
-    },
-    {
-      "enemyId": "enemy_eggplant",
-      "delay": 2
+      "delay": 1.1
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 2
+      "delay": 1.1
     },
     {
       "enemyId": "enemy_eggplant",
-      "delay": 10.0
+      "delay": 1.1
+    },
+    {
+      "enemyId": "enemy_eggplant",
+      "delay": 1.32
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 1.8
+      "delay": 1.32
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 1.32
+    },
+    {
+      "enemyId": "enemy_eggplant",
+      "delay": 1.32
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 1.32
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 1.32
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 1.32
     },
     {
       "enemyId": "enemy_tomato",
-      "delay": 1.8
-    },
-    {
-      "enemyId": "enemy_carrot",
-      "delay": 1.8
-    },
-    {
-      "enemyId": "enemy_eggplant",
-      "delay": 1.8
+      "delay": 1.32
     },
     {
       "enemyId": "enemy_tomato",
-      "delay": 1.8
-    },
-    {
-      "enemyId": "enemy_eggplant",
-      "delay": 7.0
+      "delay": 1.32
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 1.8
+      "delay": 1.32
     },
     {
       "enemyId": "enemy_tomato",
-      "delay": 1.8
-    },
-    {
-      "enemyId": "enemy_carrot",
-      "delay": 1.8
+      "delay": 1.32
     },
     {
       "enemyId": "enemy_eggplant",
-      "delay": 1.8
-    },
-    {
-      "enemyId": "enemy_tomato",
-      "delay": 1.8
+      "delay": 4.18
     },
     {
       "enemyId": "enemy_eggplant",
-      "delay": 7.0
+      "delay": 1.32
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 1.8
-    },
-    {
-      "enemyId": "enemy_tomato",
-      "delay": 1.8
-    },
-    {
-      "enemyId": "enemy_carrot",
-      "delay": 1.8
+      "delay": 1.32
     },
     {
       "enemyId": "enemy_eggplant",
-      "delay": 1.8
-    },
-    {
-      "enemyId": "enemy_tomato",
-      "delay": 1.8
+      "delay": 1.32
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 9.0
-    },
-    {
-      "enemyId": "enemy_eggplant",
-      "delay": 1.5
-    },
-    {
-      "enemyId": "enemy_tomato",
-      "delay": 1.5
+      "delay": 1.32
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 1.5
-    },
-    {
-      "enemyId": "enemy_tomato",
-      "delay": 1.5
+      "delay": 1.32
     },
     {
       "enemyId": "enemy_eggplant",
-      "delay": 1.5
+      "delay": 1.32
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 8.5
-    },
-    {
-      "enemyId": "enemy_eggplant",
-      "delay": 1.5
+      "delay": 1.32
     },
     {
       "enemyId": "enemy_tomato",
-      "delay": 1.5
+      "delay": 1.32
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 1.32
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 1.5
+      "delay": 1.32
     },
     {
       "enemyId": "enemy_tomato",
-      "delay": 1.5
+      "delay": 1.32
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 1.32
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 1.32
     },
     {
       "enemyId": "enemy_eggplant",
-      "delay": 1.5
+      "delay": 2.16
+    },
+    {
+      "enemyId": "enemy_eggplant",
+      "delay": 0.9
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 8.5
+      "delay": 0.9
     },
     {
       "enemyId": "enemy_eggplant",
-      "delay": 1.5
-    },
-    {
-      "enemyId": "enemy_tomato",
-      "delay": 1.5
+      "delay": 0.9
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 1.5
-    },
-    {
-      "enemyId": "enemy_tomato",
-      "delay": 1.5
-    },
-    {
-      "enemyId": "enemy_eggplant",
-      "delay": 1.5
+      "delay": 0.9
     },
     {
       "enemyId": "enemy_carrot",
-      "delay": 8.5
+      "delay": 0.9
     },
     {
       "enemyId": "enemy_tomato",
-      "delay": 2
+      "delay": 0.9
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 0.9
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 0.9
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 0.9
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 2.7
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 0.9
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 0.9
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 0.9
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 0.9
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 0.9
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 0.9
     },
     {
       "enemyId": "enemy_eggplant",
-      "delay": 2
+      "delay": 3.6
+    },
+    {
+      "enemyId": "enemy_eggplant",
+      "delay": 0.981
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 0.981
+    },
+    {
+      "enemyId": "enemy_eggplant",
+      "delay": 0.981
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 0.981
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 0.981
+    },
+    {
+      "enemyId": "enemy_eggplant",
+      "delay": 0.99
+    },
+    {
+      "enemyId": "enemy_carrot",
+      "delay": 0.981
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 0.981
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 0.981
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 0.981
+    },
+    {
+      "enemyId": "enemy_tomato",
+      "delay": 0.981
     }
   ]
 }

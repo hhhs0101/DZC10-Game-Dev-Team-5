@@ -15,8 +15,8 @@ MonoBehaviour:
   displayName: Paprika Powder
   prefab: {fileID: 2061435135399564034, guid: 34e6e2aa757c4baca8f7f42e984392f6, type: 3}
   cost: 0
-  damage: 81
-  attackRange: 5.5
+  damage: 384
+  attackRange: 3
   attackCooldown: 2.4
   targeting: {fileID: 11400000, guid: 352398aa511754b47a79b53950a3b3b4, type: 2}
   sprite: {fileID: 21300000, guid: 594c912ac0f0948c8b80c1380931187e, type: 3}

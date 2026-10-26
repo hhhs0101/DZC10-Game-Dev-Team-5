@@ -11,12 +11,23 @@ public sealed class EnemySpawner : MonoBehaviour {
     [SerializeField] private GameFlow flow;
     [SerializeField] private Transform enemyRoot;
     [SerializeField, Tooltip("Optional native 2D actor prefab. EnemyDefinition still owns stats/rewards.")] private Enemy spritePrefab;
+    [SerializeField, Tooltip("Relative weights in branchPaths order; omitted entries use equal weight.")] private float[] branchWeights;
+    [SerializeField, Min(0)] private int openingPreferredBranches;
+    [SerializeField, Min(0)] private int openingPreferredChoices;
+    private int branchChoices;
     private int lastBranchIndex = -1;
     private int sameBranchStreak;
     private int lastDivergeChoice = -1;
     private int sameDivergeStreak;
     // Store route values, not an enemy reference: a group survives its leader's death.
     private readonly System.Collections.Generic.Dictionary<string, SpawnRoute> groupRoutes = new System.Collections.Generic.Dictionary<string, SpawnRoute>();
+    private readonly System.Collections.Generic.HashSet<string> mainRouteGroups = new System.Collections.Generic.HashSet<string>();
+    public void ConfigureMainRouteGroups(params string[] groups) {
+        mainRouteGroups.Clear();
+        if(groups != null) foreach(var group in groups)
+            if(!string.IsNullOrWhiteSpace(group)) mainRouteGroups.Add(group);
+        ResetSpawnGroups();
+    }
     private readonly struct SpawnRoute {
         public readonly WaypointPath Path, Continuation;
         public readonly float HideSeconds;
@@ -24,7 +35,10 @@ public sealed class EnemySpawner : MonoBehaviour {
             Path=path;Continuation=continuation;HideSeconds=hideSeconds;
         }
     }
-    public void ResetSpawnGroups() => groupRoutes.Clear();
+    public void ResetSpawnGroups() {
+        groupRoutes.Clear();
+        branchChoices = 0; lastBranchIndex = -1; sameBranchStreak = 0;
+    }
     public bool CanSpawn => flow != null && flow.IsPlaying;
     internal GameFlow Flow => flow;
     public void ConfigureDivergingRoute(WaypointPath entryPath, WaypointPath exitPath, float hideSeconds = 3f) {
@@ -69,11 +83,17 @@ public sealed class EnemySpawner : MonoBehaviour {
                     validIndices.Add(i);
             }
             if (validIndices.Count > 1) {
+                // Stage-specific opening preference applies to whole groups, never individual escorts.
+                if(branchChoices < openingPreferredChoices && openingPreferredBranches > 0) {
+                    var preferred = validIndices.FindAll(i=>i < openingPreferredBranches);
+                    if(preferred.Count > 0) validIndices = preferred;
+                }
                 // Prevent long single-lane streaks while keeping each independent route choice unpredictable.
-                if (sameBranchStreak >= 2 && validIndices.Contains(lastBranchIndex)) {
+                if (sameBranchStreak >= 2 && validIndices.Count > 1 && validIndices.Contains(lastBranchIndex)) {
                     validIndices.Remove(lastBranchIndex);
                 }
-                int chosen = validIndices[UnityEngine.Random.Range(0, validIndices.Count)];
+                int chosen = ChooseWeightedBranch(validIndices);
+                branchChoices++;
                 if (chosen == lastBranchIndex) sameBranchStreak++;
                 else {
                     lastBranchIndex = chosen;
@@ -84,6 +104,26 @@ public sealed class EnemySpawner : MonoBehaviour {
             if (validIndices.Count == 1) return branchPaths[validIndices[0]];
         }
         return path;
+    }
+    private float BranchWeight(int index) {
+        if(branchWeights == null || index >= branchWeights.Length) return 1f;
+        float weight = branchWeights[index];
+        return float.IsNaN(weight) || float.IsInfinity(weight) ? 1f : Mathf.Max(0f,weight);
+    }
+    private int ChooseWeightedBranch(System.Collections.Generic.List<int> candidates) {
+        float total = 0;
+        foreach(int index in candidates) total += BranchWeight(index);
+        if(total <= 0) return candidates[UnityEngine.Random.Range(0,candidates.Count)];
+        float roll = UnityEngine.Random.value * total;
+        int fallback = candidates[0];
+        foreach(int index in candidates) {
+            float weight = BranchWeight(index);
+            if(weight <= 0) continue;
+            fallback = index;
+            if(roll < weight) return index;
+            roll -= weight;
+        }
+        return fallback;
     }
     internal bool TryValidateSpawnContext(out string issue) {
         issue = null;
@@ -118,8 +158,9 @@ public sealed class EnemySpawner : MonoBehaviour {
         bool grouped = !string.IsNullOrEmpty(routeGroup) && !IsBoss(definition);
         SpawnRoute route;
         if(!grouped || !groupRoutes.TryGetValue(routeGroup,out route)) {
-            bool useDiverging = ShouldUseDivergingRoute(definition);
-            var chosenPath = useDiverging ? divergingEntryPath : (IsBoss(definition) ? path : SelectSpawnPath());
+            bool forceMain = grouped && mainRouteGroups.Contains(routeGroup);
+            bool useDiverging = !forceMain && ShouldUseDivergingRoute(definition);
+            var chosenPath = useDiverging ? divergingEntryPath : (forceMain || IsBoss(definition) ? path : SelectSpawnPath());
             route = new SpawnRoute(chosenPath,useDiverging ? divergingExitPath : null,divergingHideSeconds);
         }
         var activePath = route.Path;

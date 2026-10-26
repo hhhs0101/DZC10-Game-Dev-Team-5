@@ -19,9 +19,31 @@ public static class SupportSpawnGroupValidation {
         foreach(int n in new[]{2,3}) {
             var asset=AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/Defense/Data/SpawnPlans/Stage"+n+".json");
             Check(SpawnPlanLoader.TryLoad(asset,"Stage "+n,catalog,out var plan,out issue),issue);
-            var groups=plan.Events.Where(e=>e.RouteGroup!=null).GroupBy(e=>e.RouteGroup).ToArray();
+            var allGroups=plan.Events.Where(e=>e.RouteGroup!=null).GroupBy(e=>e.RouteGroup).ToArray();
+            var groups=allGroups.Where(g=>g.Any(e=>e.Enemy.Role==EnemyRole.SpeedSupport||e.Enemy.Role==EnemyRole.ShieldSupport)).ToArray();
+            var basicGroups=allGroups.Where(g=>g.Key.Contains("_basic_")).ToArray();
+            Check(basicGroups.Length==(n==2?2:3),"Occasional basic-only swarms");
+            foreach(var swarm in basicGroups) {
+                Check(swarm.Count()==6,"Basic swarms have six enemies sharing a route");
+                Check(swarm.All(e=>e.Enemy.VegetableType==VegetableType.Carrot||e.Enemy.VegetableType==VegetableType.Tomato||e.Enemy.VegetableType==VegetableType.Eggplant),"Basic swarm composition");
+                Check(swarm.Skip(1).All(e=>Mathf.Abs(e.Delay-.7f)<.001f),"Basic swarm spacing");
+            }
             Check(groups.Length==12,"Expected twelve support groups in Stage "+n);
             Check(plan.Events.Where(e=>e.Enemy.Role==EnemyRole.SpeedSupport||e.Enemy.Role==EnemyRole.ShieldSupport).All(e=>e.RouteGroup!=null),"Every support enemy is grouped");
+            Func<ResolvedSpawnEvent,bool> support=e=>e.Enemy.Role==EnemyRole.SpeedSupport||e.Enemy.Role==EnemyRole.ShieldSupport;
+            Check(groups.Count(g=>g.Any(e=>e.Enemy.Role==EnemyRole.SpeedSupport)&&g.Any(e=>e.Enemy.Role==EnemyRole.ShieldSupport))==(n==2?1:3),"Combined support group frequency");
+            Check(groups.Count(g=>g.Count(e=>!support(e))==5)==10,"Ten groups have five non-support escorts");
+            Check(groups.All(g=>g.Count(e=>!support(e))>=3&&g.Count(e=>!support(e))<=5),"Escort counts stay within authored limits");
+            Check(plan.Events.Count==(n==2?95:107),"Balanced scheduled enemy count");
+            Check(Mathf.Abs(plan.Events.Sum(e=>e.Delay)-180f)<.01f,"Three-minute spawn schedule preserved");
+            if(n==3) {
+                float time=0;int bosses=0;
+                foreach(var spawn in plan.Events) {
+                    time+=spawn.Delay;
+                    if(spawn.Enemy.VegetableType==VegetableType.Broccoli) { bosses++;Check(Mathf.Abs(time-150f)<.01f,"Boss arrival remains at 150 seconds"); }
+                }
+                Check(bosses==1,"Exactly one scheduled boss");
+            }
             foreach(var group in groups) {
                 Check(group.Count()>1&&group.Any(e=>e.Enemy.Role!=EnemyRole.SpeedSupport&&e.Enemy.Role!=EnemyRole.ShieldSupport),"Support has other vegetables");
                 Check(group.Skip(1).All(e=>e.Delay<=1.5f),"Support escorts remain within their authored burst");
@@ -64,6 +86,41 @@ public static class SupportSpawnGroupValidation {
                 Check(seen.Count==2,"Groups can use either route");
                 var boss=spawner.Spawn(lookup["enemy_broccoli"],"fixture_0");Check(boss.Movement.Route==main,"Boss stays on main route");UnityEngine.Object.DestroyImmediate(boss.gameObject);
             }
+            Set(spawner,"branchPaths",new[]{main});
+            spawner.ConfigureDivergingRoute(left,exit,3);
+            spawner.ConfigureMainRouteGroups("stage3_support_01","stage3_support_02");
+            foreach(string group in new[]{"stage3_support_01","stage3_support_02"}) {
+                var escort=spawner.Spawn(lookup["enemy_eggplant"],group);
+                Check(escort.Movement.Route==main,"Opening escort takes normal Stage 3 path");
+                UnityEngine.Object.DestroyImmediate(escort.gameObject);
+                var support=spawner.Spawn(lookup[group.EndsWith("01")?"enemy_bellpepper":"enemy_garlic"],group);
+                Check(support.Movement.Route==main&&Get<WaypointPath>(support.Movement,"continuationPath")==null,"Opening support stays on normal path after escort death");
+                UnityEngine.Object.DestroyImmediate(support.gameObject);
+            }
+            var laterRoutes=new HashSet<WaypointPath>();
+            for(int i=0;i<6;i++) {
+                var later=spawner.Spawn(lookup["enemy_bellpepper"],"later_"+i);
+                laterRoutes.Add(later.Movement.Route);UnityEngine.Object.DestroyImmediate(later.gameObject);
+            }
+            Check(laterRoutes.Contains(main)&&laterRoutes.Contains(left),"Later support groups can still take either Stage 3 route");
+            spawner.ConfigureMainRouteGroups();
+            Set(spawner,"branchPaths",new[]{left,right,exit});
+            Set(spawner,"branchWeights",new[]{4f,4f,1f});
+            Set(spawner,"openingPreferredBranches",2);
+            Set(spawner,"openingPreferredChoices",2);
+            spawner.ConfigureDivergingRoute(null,null);
+            UnityEngine.Random.InitState(20261026);
+            var choose=typeof(EnemySpawner).GetMethod("SelectSpawnPath",BindingFlags.Instance|BindingFlags.NonPublic);
+            int[] branchCounts=new int[3];
+            for(int i=0;i<6000;i++) {
+                var selected=(WaypointPath)choose.Invoke(spawner,null);
+                int index=selected==left?0:selected==right?1:2;
+                branchCounts[index]++;
+                if(i<2)Check(index<2,"Stage 2 opening avoids the lower route");
+            }
+            Check(branchCounts[0]>1800&&branchCounts[1]>1800&&branchCounts[2]>0&&branchCounts[2]<1500,"Stage 2 upper and middle routes are favored; lower route remains possible");
+            spawner.ResetSpawnGroups();
+            Check(Get<int>(spawner,"branchChoices")==0,"New run resets opening route preference");
             var text=new TextAsset("{\"stageId\":\"fixture\",\"spawns\":[{\"enemyId\":\"enemy_bellpepper\",\"delay\":1,\"routeGroup\":\"fixture_0\"},{\"enemyId\":\"enemy_carrot\",\"delay\":0,\"routeGroup\":\"fixture_0\"}]}");
             var stage=ScriptableObject.CreateInstance<StageDefinition>();
             try {

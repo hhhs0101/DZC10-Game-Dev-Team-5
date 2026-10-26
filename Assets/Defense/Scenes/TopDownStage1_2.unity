@@ -1248,6 +1248,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d39942e7f5454398bfb21bcd0e3a48c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Defense.EnemySpawner
+  branchWeights:
+  - 4
+  - 4
+  - 1
+  openingPreferredBranches: 2
+  openingPreferredChoices: 2
   path: {fileID: 1553294649}
   branchPaths:
   - {fileID: 1553294649}

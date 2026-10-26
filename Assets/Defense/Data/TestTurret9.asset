@@ -15,8 +15,8 @@ MonoBehaviour:
   displayName: Mustard
   prefab: {fileID: 2061435135399564034, guid: 65501c8b37c849f0954e9353fb4c493a, type: 3}
   cost: 0
-  damage: 54
-  attackRange: 4
+  damage: 60
+  attackRange: 3
   attackCooldown: 0.8
   targeting: {fileID: 11400000, guid: 352398aa511754b47a79b53950a3b3b4, type: 2}
   sprite: {fileID: 21300000, guid: c57b9eb42b0194b92babb8355ffba430, type: 3}

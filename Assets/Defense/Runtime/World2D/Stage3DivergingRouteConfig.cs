@@ -88,8 +88,11 @@ public static class Stage3DivergingRouteConfig {
         }
         var leftPath = BuildOrUpdatePath(root, LeftDivergingObjectName, LeftDivergingPixels, map.EnemySpawnRoot, null);
         var rightPath = BuildOrUpdatePath(root, RightEmergenceObjectName, RightEmergencePixels, null, map.BaseDestination);
-        if (spawner != null)
+        if (spawner != null) {
             spawner.ConfigureDivergingRoute(leftPath, rightPath, HideDurationSeconds);
+            // Include leading escorts, even when the first enemy is not a support.
+            spawner.ConfigureMainRouteGroups("stage3_support_01", "stage3_support_02");
+        }
         if (map.PlacementSlots != null && map.PlacementSlots.Count > 2 && map.PlacementSlots[2] != null) {
             map.PlacementSlots[2].transform.position = RouteWorld(new Vector2(860.48f, 650.00f));
         }
