@@ -228,7 +228,7 @@ public sealed class DeckEditorUI : MonoBehaviour {
 
         if (card is TowerCardDefinition towerCard && towerCard.Tower != null) {
             var t = towerCard.Tower;
-            int lifetimeSeconds = Mathf.RoundToInt(TowerLifetime.DurationForCost(card.ElixirCost));
+            int lifetimeSeconds = Mathf.RoundToInt(TowerLifetime.DurationFor(t, card.ElixirCost));
             popupRoleText.text = GetTowerRoleTitle(t);
             if (t.TowerType == TowerType.Mayonnaise) {
                 popupStatsText.text =

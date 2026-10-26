@@ -22,9 +22,14 @@ public sealed class TowerLifetime : MonoBehaviour {
             energyCost = 0;
         return Mathf.Max(MinimumLifetime, RechargeCycles * energyCost / LifetimeReferenceRegeneration);
     }
+    public static float DurationFor(TurretDefinition definition, float energyCost) {
+        float duration = definition != null ? definition.LifetimeSeconds : 0;
+        return duration > 0 && !float.IsNaN(duration) && !float.IsInfinity(duration)
+            ? duration : DurationForCost(energyCost);
+    }
     public void Initialize(Tower owner, TowerPlacementSlot placementSlot, GameFlow gameFlow, float energyCost) {
         tower = owner; slot = placementSlot; flow = gameFlow;
-        Duration = Remaining = DurationForCost(energyCost);
+        Duration = Remaining = DurationFor(owner.Definition, energyCost);
         display = UiFactory.Rect("Tower countdown", transform, new Vector2(.5f,.5f), Vector2.zero, new Vector2(100,32));
         var canvas = display.gameObject.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.WorldSpace; canvas.sortingOrder = 100;
