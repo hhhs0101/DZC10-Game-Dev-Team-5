@@ -12,6 +12,10 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     private int baseDamage;
     private bool active;
     private EnemyRoleAbility roleAbility;
+    private Enemy combatParent;
+    private CornTargets cornTargets;
+    public Enemy CombatBody => combatParent != null ? combatParent : this;
+    public Enemy SelectCombatTarget() => cornTargets != null ? cornTargets.FirstLivingTarget : this;
     public bool IsAlive => active && isActiveAndEnabled && health.Current > 0;
     public bool IsDead { get; private set; }
     public float CurrentHealth => health != null ? health.Current : 0;
@@ -23,7 +27,7 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     public void TakeDamage(int amount) => ReceiveDamage(amount);
     public EnemyDefinition Definition { get; private set; }
     public int ResourceReward { get; private set; }
-    public EnemyPathFollower Movement => movement;
+    public EnemyPathFollower Movement => combatParent != null ? combatParent.Movement : movement;
     // Observers can bind presentation without introducing visual concerns into enemy behavior.
     public event Action<EnemyDefinition> Initialized;
     public event Action<Enemy> Died;
@@ -50,14 +54,44 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
         movement.Moved += OnMoved;
         IsDead = false;
         SetVisualVisibility(true);
-        active = true; Initialized?.Invoke(data); registry.Register(this);
+        active = true;
+        if(data.VegetableType == VegetableType.Corn) {
+            cornTargets = GetComponent<CornTargets>();
+            if(cornTargets == null) cornTargets = gameObject.AddComponent<CornTargets>();
+            cornTargets.Initialize(this, health);
+        }
+        else cornTargets = null;
+        Initialized?.Invoke(data); registry.Register(this);
         roleAbility = EnemyRoleAbility.Configure(this,data,registry,roleAbility);
         if(!data.HasConfiguredBaseDamage) Debug.LogWarning(data.DisplayName+": endpoint damage is not configured (design says 'tower health'); Base arrival retires safely without damage or a kill reward.",this);
     }
     public void ReceiveDamage(float amount) => ReceiveDamage(amount,false);
     public void ReceiveDamage(float amount, bool bypassShield) {
+        if(cornTargets != null) { cornTargets.ReceiveDamage(amount,bypassShield); return; }
         if (IsAlive && amount > 0 && !float.IsNaN(amount) && !float.IsInfinity(amount))
             health.ReceiveDamage(bypassShield ? amount : registry.ResolveDamage(this,amount));
+    }
+    public void ReceiveSplashDamage(float amount) {
+        if(cornTargets != null) { cornTargets.ReceiveSplashDamage(amount); return; }
+        if (IsAlive && amount > 0 && !float.IsNaN(amount) && !float.IsInfinity(amount))
+            health.ReceiveSplashDamage(registry.ResolveDamage(this,amount));
+    }
+    // A Corn target owns combat state but never drives movement, waves or rewards.
+    internal void InitializeCombatTarget(Enemy body, float maximumHealth) {
+        combatParent = body; registry = body.Registry; Definition = body.Definition;
+        health = GetComponent<EnemyHealth>();
+        GetComponent<EnemyPathFollower>().enabled = false;
+        health.Initialize(maximumHealth);
+        health.Depleted += Die;
+        active = true; IsDead = false;
+        registry.RegisterCombatTarget(this);
+    }
+    internal void RetireCombatTarget() {
+        active = false;
+        IsDead = health != null && health.Current <= 0;
+        var effects = GetComponent<EnemyStatusEffects>();
+        if(effects != null) effects.Clear();
+        if(registry != null) registry.UnregisterCombatTarget(this);
     }
     protected virtual void OnCombatDeath() { }
     public EnemyStatusEffects StatusEffects {
@@ -65,6 +99,11 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     }
     protected virtual void Die() {
         if (!active) return;
+        if(combatParent != null) {
+            RetireCombatTarget();
+            Died?.Invoke(this);
+            return;
+        }
         IsDead = true;
         GameAudio.PlayEnemyNoHp();
         OnCombatDeath();
@@ -105,6 +144,7 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     }
     private void RetireCombat() {
         active = false;
+        if(cornTargets != null) cornTargets.Retire();
         if (roleAbility != null) roleAbility.Shutdown();
         var effects = GetComponent<EnemyStatusEffects>();
         if (effects != null) effects.Clear();

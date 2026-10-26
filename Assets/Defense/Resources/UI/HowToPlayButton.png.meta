@@ -1,0 +1,35 @@
+fileFormatVersion: 2
+guid: f83fc4e64c3d4b89b8fbc772f53da21f
+TextureImporter:
+  serializedVersion: 13
+  mipmaps:
+    enableMipMap: 0
+    sRGBTexture: 1
+  isReadable: 0
+  maxTextureSize: 4096
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  textureType: 8
+  textureShape: 1
+  spriteMode: 1
+  spriteMeshType: 1
+  spritePixelsToUnits: 100
+  spriteAlignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  alphaIsTransparency: 1
+  alphaUsage: 1
+  npotScale: 0
+  textureCompression: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites: []
+    outline: []
+    physicsShape: []
+    secondaryTextures: []
+    nameFileIdTable: {}

@@ -7,7 +7,7 @@ public sealed class CircularDamageSkill : Skill {
         var registry = context.Registry; var position = PlanarSpace.Project(context.TargetPosition,context.Plane);
         var footprint = definition.CreateFootprint(position);
         // Death unregisters synchronously, so iterate a snapshot.
-        var enemies = new List<Enemy>(registry.Enemies);
+        var enemies = new List<Enemy>(registry.CombatTargets);
         foreach (var enemy in enemies)
             if (enemy != null && enemy.IsAlive && footprint.Contains(PlanarSpace.Project(enemy.transform.position,context.Plane)))
                 enemy.ReceiveDamage(definition.Damage);

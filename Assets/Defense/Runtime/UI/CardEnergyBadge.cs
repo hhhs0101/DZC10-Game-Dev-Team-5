@@ -6,6 +6,7 @@ namespace Defense {
 public sealed class CardEnergyBadge : MonoBehaviour {
     private static Sprite energySprite;
     private Text number;
+    private CardClassBadge classBadge;
     public static CardEnergyBadge Create(RectTransform card) {
         if (energySprite == null) energySprite = Resources.Load<Sprite>("UI/EnergyIcon");
         float width = card.sizeDelta.x * .38f;
@@ -19,6 +20,7 @@ public sealed class CardEnergyBadge : MonoBehaviour {
         image.raycastTarget = false;
         image.color = energySprite != null ? Color.white : new Color(1f,.84f,.12f);
         var badge = rect.gameObject.AddComponent<CardEnergyBadge>();
+        badge.classBadge = CardClassBadge.Create(card);
         // Center the number in the wide upper section of the lightning bolt.
         badge.number = UiFactory.Label(rect,"",new Vector2(.43f,.73f),Vector2.zero,
             new Vector2(width*1.05f,height*.54f),Mathf.RoundToInt(width*.80f));
@@ -37,6 +39,7 @@ public sealed class CardEnergyBadge : MonoBehaviour {
         return badge;
     }
     public void Bind(CardDefinition card) {
+        classBadge.Bind(card);
         gameObject.SetActive(card != null);
         if (card == null) return;
         number.text = card.ElixirCost.ToString(CultureInfo.InvariantCulture);

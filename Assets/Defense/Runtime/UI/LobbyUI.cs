@@ -27,6 +27,23 @@ public sealed class LobbyUI : MonoBehaviour {
         Carousel.Initialize(PlayerSession.Catalog,PlayerSession.Selection,PlayerSession.Progression,skin);
         feedback = UiFactory.Label(transform,"A / D or click side cards   |   Enter: play",new Vector2(.5f,1),new Vector2(0,-405),new Vector2(850,48),21);
         var enterStageButton = UiFactory.Button(transform,"Enter Stage",new Vector2(0,-460),()=>TryEnter(),new Vector2(.5f,1),new Vector2(420,78));
+        // Midpoint between Enter Stage (top - 460) and Deck (bottom + 50).
+        var guideButton = UiFactory.Button(transform,"How to Play",new Vector2(0,-205),()=>TutorialUI.Open(GetComponentInParent<Canvas>().transform),new Vector2(.5f,.5f),new Vector2(420,78));
+        var guideSprite = UiFactory.LoadSprite("UI/HowToPlayButton");
+        if(guideSprite != null) {
+            guideButton.image.sprite = guideSprite;
+            guideButton.image.color = Color.white;
+            guideButton.image.preserveAspect = true;
+            guideButton.transition = Selectable.Transition.ColorTint;
+            var colors = guideButton.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1f,1f,.86f);
+            colors.selectedColor = colors.highlightedColor;
+            colors.pressedColor = new Color(.78f,.67f,.54f);
+            colors.fadeDuration = .08f;
+            guideButton.colors = colors;
+            foreach(var label in guideButton.GetComponentsInChildren<Text>()) label.enabled = false;
+        }
         var deckButton = UiFactory.Button(transform,"Deck",new Vector2(0,50),()=>openDeck(),new Vector2(.5f,0),new Vector2(420,78));
         if (skin != null) {
             UiFactory.ApplyButtonSkin(enterStageButton,skin.LobbyEnterStage);
@@ -151,6 +168,7 @@ public sealed class LobbyUI : MonoBehaviour {
         if (unlockPopupOverlay != null) unlockPopupOverlay.gameObject.SetActive(false);
     }
     private void Update() {
+        if(TutorialUI.BlocksInput)return;
         if (unlockPopupOverlay != null && unlockPopupOverlay.gameObject.activeSelf) return;
         int direction = (Input.GetKey(KeyCode.D) ? 1 : 0) - (Input.GetKey(KeyCode.A) ? 1 : 0);
         HandleNavigation(direction,Time.unscaledTime);
@@ -162,6 +180,8 @@ public sealed class LobbyUI : MonoBehaviour {
         else if (move > 0) PlayerSession.Selection.MoveNext();
     }
     public bool TryEnter() {
+        if(TutorialUI.BlocksInput)return false;
+        if(unlockPopupOverlay != null && unlockPopupOverlay.gameObject.activeSelf)return false;
         if (!Carousel.IsSettled) { feedback.text = "Wait for the selected stage to center."; return false; }
         if (!PlayerSession.TrySelectStageForPlay(out var issue)) { feedback.text = issue; return false; }
         SceneManager.LoadScene(PlayerSession.ActiveBattleScene); return true;
