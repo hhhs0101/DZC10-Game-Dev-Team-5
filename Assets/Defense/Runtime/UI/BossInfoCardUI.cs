@@ -50,9 +50,29 @@ public sealed class BossInfoCardUI : MonoBehaviour {
         body.verticalOverflow = VerticalWrapMode.Truncate;
         body.resizeTextForBestFit = true; body.resizeTextMinSize = 11; body.resizeTextMaxSize = 20;
 
-        var button = UiFactory.Button(box,"Season it!",Vector2.zero,Close,new Vector2(.5f,.15f),new Vector2(240,52));
-        button.image.color = new Color(.55f,.24f,.14f,.95f);
+        var button = UiFactory.Button(box,"Season it!",Vector2.zero,Close,new Vector2(.5f,.15f),new Vector2(240,71));
+        SkinButton(button,"UI/Boss/season_it_button");
         overlay.SetActive(false);
+    }
+
+    private static void SkinButton(Button button, string resourcePrefix) {
+        var normal = Resources.Load<Sprite>(resourcePrefix + "_normal");
+        var hover = Resources.Load<Sprite>(resourcePrefix + "_hover");
+        var pressed = Resources.Load<Sprite>(resourcePrefix + "_pressed");
+        if (normal == null) {
+            button.image.color = new Color(.55f,.24f,.14f,.95f);
+            return;
+        }
+        button.image.sprite = normal;
+        button.image.color = Color.white;
+        button.image.preserveAspect = true;
+        button.transition = Selectable.Transition.SpriteSwap;
+        button.spriteState = new SpriteState {
+            highlightedSprite = hover != null ? hover : normal,
+            selectedSprite = hover != null ? hover : normal,
+            pressedSprite = pressed != null ? pressed : normal
+        };
+        foreach (var label in button.GetComponentsInChildren<Text>()) label.enabled = false;
     }
 
     private void Show(EnemyDefinition boss) {

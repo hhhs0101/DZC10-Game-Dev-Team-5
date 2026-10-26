@@ -34,12 +34,31 @@ public sealed class TutorialUI : MonoBehaviour {
         active.Build();
     }
     private void Build() {
-        sheet=UiFactory.Rect("Tutorial Page",transform,new Vector2(.5f,.5f),Vector2.zero,new Vector2(900,620));
-        sheet.gameObject.AddComponent<Image>().color=new Color(.96f,.93f,.84f);
-        var tag=UiFactory.Label(sheet,"GUIDE",new Vector2(.5f,1),new Vector2(0,-32),new Vector2(780,28),18);tag.color=new Color(.39f,.36f,.27f);
-        title=UiFactory.Label(sheet,"",new Vector2(.5f,1),new Vector2(0,-82),new Vector2(800,60),36);title.color=new Color(.12f,.2f,.18f);
-        body=UiFactory.Label(sheet,"",new Vector2(.5f,1),new Vector2(0,-317),new Vector2(788,370),25);body.color=new Color(.16f,.22f,.2f);body.alignment=TextAnchor.UpperLeft;body.resizeTextForBestFit=true;body.resizeTextMinSize=20;body.resizeTextMaxSize=25;body.verticalOverflow=VerticalWrapMode.Truncate;
-        legend=UiFactory.Rect("Class Legend",sheet,new Vector2(.5f,1),new Vector2(0,-317),new Vector2(800,370)).gameObject;
+        sheet=UiFactory.Rect("Tutorial Page",transform,new Vector2(.5f,.5f),Vector2.zero,new Vector2(920,630));
+        var sheetImage=sheet.gameObject.AddComponent<Image>();
+        var woodSprite=Resources.Load<Sprite>("UI/TowerCardsWoodPanel");
+        if(woodSprite!=null){sheetImage.sprite=woodSprite;sheetImage.color=Color.white;}
+        else{sheetImage.color=new Color(.96f,.93f,.84f);}
+        sheetImage.raycastTarget=true;
+
+        var innerPanel=UiFactory.Rect("Inner Backdrop",sheet,new Vector2(.5f,.5f),new Vector2(0,16),new Vector2(836,490));
+        var innerImage=innerPanel.gameObject.AddComponent<Image>();
+        innerImage.color=new Color(0.98f,0.95f,0.88f,0.94f);
+        innerImage.raycastTarget=false;
+
+        title=UiFactory.Label(sheet,"",new Vector2(.5f,1),new Vector2(0,-92),new Vector2(800,56),34);
+        title.color=new Color(.12f,.2f,.18f);
+        title.fontStyle=FontStyle.Bold;
+
+        body=UiFactory.Label(sheet,"",new Vector2(.5f,1),new Vector2(0,-310),new Vector2(788,360),24);
+        body.color=new Color(.16f,.22f,.2f);
+        body.alignment=TextAnchor.UpperLeft;
+        body.resizeTextForBestFit=true;
+        body.resizeTextMinSize=19;
+        body.resizeTextMaxSize=24;
+        body.verticalOverflow=VerticalWrapMode.Truncate;
+
+        legend=UiFactory.Rect("Class Legend",sheet,new Vector2(.5f,1),new Vector2(0,-310),new Vector2(800,360)).gameObject;
         string[] descriptions={
             "Salt, BlackPepper and Paprika are basic towers, having no unique properties and only dealing damage.",
             "Oil deals damage and slows down enemies.",
@@ -50,19 +69,67 @@ public sealed class TutorialUI : MonoBehaviour {
         };
         CardCombatClass[] classes={CardCombatClass.Basic,CardCombatClass.Slow,CardCombatClass.Splash,CardCombatClass.Pierce,CardCombatClass.Burn,CardCombatClass.Basic};
         for(int i=0;i<descriptions.Length;i++) {
-            var row=UiFactory.Rect("Legend "+i,legend.transform,new Vector2(.5f,1),new Vector2(0,-30-i*60),new Vector2(788,58));
-            var iconRect=UiFactory.Rect("Icon",row,new Vector2(0,.5f),new Vector2(25,0),new Vector2(38,38));iconRect.gameObject.AddComponent<CanvasRenderer>();var symbol=iconRect.gameObject.AddComponent<CardClassSymbol>();symbol.SetKind(classes[i]);symbol.color=new Color(.14f,.3f,.25f);symbol.raycastTarget=false;
-            var text=UiFactory.Label(row,descriptions[i],new Vector2(0,.5f),new Vector2(430,0),new Vector2(704,58),22);text.alignment=TextAnchor.MiddleLeft;text.color=new Color(.16f,.22f,.2f);text.resizeTextForBestFit=true;text.resizeTextMinSize=19;text.resizeTextMaxSize=22;
+            var row=UiFactory.Rect("Legend "+i,legend.transform,new Vector2(.5f,1),new Vector2(0,-28-i*58),new Vector2(788,56));
+            var iconRect=UiFactory.Rect("Icon",row,new Vector2(0,.5f),new Vector2(25,0),new Vector2(38,38));
+            iconRect.gameObject.AddComponent<CanvasRenderer>();
+            var symbol=iconRect.gameObject.AddComponent<CardClassSymbol>();
+            symbol.SetKind(classes[i]);
+            symbol.color=new Color(.14f,.3f,.25f);
+            symbol.raycastTarget=false;
+            var text=UiFactory.Label(row,descriptions[i],new Vector2(0,.5f),new Vector2(430,0),new Vector2(704,56),21);
+            text.alignment=TextAnchor.MiddleLeft;
+            text.color=new Color(.16f,.22f,.2f);
+            text.resizeTextForBestFit=true;
+            text.resizeTextMinSize=18;
+            text.resizeTextMaxSize=21;
         }
-        back=UiFactory.Button(sheet,"Back",new Vector2(-300,47),()=>Move(-1),new Vector2(.5f,0),new Vector2(140,48));
-        var next=UiFactory.Button(sheet,"Next",new Vector2(300,47),()=>{if(page==Titles.Length-1)Close();else Move(1);},new Vector2(.5f,0),new Vector2(140,48));nextLabel=next.GetComponentInChildren<Text>();
-        counter=UiFactory.Label(sheet,"",new Vector2(.5f,0),new Vector2(0,52),new Vector2(150,30),19);counter.color=new Color(.3f,.35f,.3f);
-        UiFactory.Button(sheet,"Skip / Close",new Vector2(0,22),Close,new Vector2(.5f,0),new Vector2(145,26));
-        Render();if(EventSystem.current!=null)EventSystem.current.SetSelectedGameObject(next.gameObject);
+
+        back=UiFactory.Button(sheet,"Back",new Vector2(-280,48),()=>Move(-1),new Vector2(.5f,0),new Vector2(150,54));
+        SkinTutorialButton(back,"back");
+
+        var skip=UiFactory.Button(sheet,"Skip",new Vector2(0,48),Close,new Vector2(.5f,0),new Vector2(150,54));
+        SkinTutorialButton(skip,"skip");
+
+        var next=UiFactory.Button(sheet,"Next",new Vector2(280,48),()=>{if(page==Titles.Length-1)Close();else Move(1);},new Vector2(.5f,0),new Vector2(150,54));
+        SkinTutorialButton(next,"next");
+        nextLabel=next.GetComponentInChildren<Text>();
+
+        counter=UiFactory.Label(sheet,"",new Vector2(.5f,0),new Vector2(0,108),new Vector2(150,28),18);
+        counter.color=new Color(.38f,.34f,.26f);
+        counter.fontStyle=FontStyle.Bold;
+
+        Render();
+        if(EventSystem.current!=null)EventSystem.current.SetSelectedGameObject(next.gameObject);
+    }
+    private static void SkinTutorialButton(Button button,string baseName) {
+        var normal=Resources.Load<Sprite>("UI/Tutorial/"+baseName+"_normal");
+        var hover=Resources.Load<Sprite>("UI/Tutorial/"+baseName+"_hover");
+        var pressed=Resources.Load<Sprite>("UI/Tutorial/"+baseName+"_pressed");
+        if(normal==null)return;
+        button.image.sprite=normal;
+        button.image.color=Color.white;
+        button.image.preserveAspect=true;
+        button.transition=Selectable.Transition.SpriteSwap;
+        button.spriteState=new SpriteState{
+            highlightedSprite=hover!=null?hover:normal,
+            selectedSprite=hover!=null?hover:normal,
+            pressedSprite=pressed!=null?pressed:normal,
+            disabledSprite=normal
+        };
+        foreach(var label in button.GetComponentsInChildren<Text>())label.enabled=false;
     }
     private void Move(int amount){page=Mathf.Clamp(page+amount,0,Titles.Length-1);Render();}
-    private void Render(){title.text=Titles[page];body.text=Bodies[page];legend.SetActive(page==3);body.gameObject.SetActive(page!=3);back.interactable=page>0;nextLabel.text=page==Titles.Length-1?"Close":"Next";counter.text=(page+1)+" / "+Titles.Length;}
-    private void Update(){var parent=(RectTransform)transform;float scale=Mathf.Min(1,Mathf.Min((parent.rect.width-32)/900f,(parent.rect.height-32)/620f));sheet.localScale=Vector3.one*Mathf.Max(.1f,scale);if(Input.GetKeyDown(KeyCode.Escape))Close();}
+    private void Render(){
+        title.text=Titles[page];
+        body.text=Bodies[page];
+        legend.SetActive(page==3);
+        body.gameObject.SetActive(page!=3);
+        back.interactable=page>0;
+        back.image.color=back.interactable?Color.white:new Color(1f,1f,1f,.45f);
+        nextLabel.text=page==Titles.Length-1?"Close":"Next";
+        counter.text=(page+1)+" / "+Titles.Length;
+    }
+    private void Update(){var parent=(RectTransform)transform;float scale=Mathf.Min(1,Mathf.Min((parent.rect.width-32)/920f,(parent.rect.height-32)/630f));sheet.localScale=Vector3.one*Mathf.Max(.1f,scale);if(Input.GetKeyDown(KeyCode.Escape))Close();}
     private void Close(){if(finished)return;finished=true;PlayerPrefs.SetInt(SeenKey,1);PlayerPrefs.Save();gameObject.SetActive(false);if(EventSystem.current!=null)EventSystem.current.SetSelectedGameObject(previousSelection);var callback=closed;Destroy(gameObject);callback?.Invoke();}
     private void OnDisable(){if(active==this){active=null;closedFrame=Time.frameCount;}}
     private void OnDestroy(){if(active==this)active=null;}
