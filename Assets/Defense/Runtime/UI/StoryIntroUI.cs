@@ -61,6 +61,8 @@ public sealed class StoryIntroUI : MonoBehaviour {
             fit.aspectRatio = background.rect.width / background.rect.height;
             fit.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
         }
+        // Darken the kitchen so the portraits and dialogue stand out.
+        UiFactory.Panel("Background Dim",transform,new Color(0,0,0,.5f)).GetComponent<Image>().raycastTarget = false;
         thoughtTint = UiFactory.Panel("Thought Tint",transform,new Color(.35f,.15f,.55f,.35f)).GetComponent<Image>();
         thoughtTint.raycastTarget = false; thoughtTint.enabled = false;
 

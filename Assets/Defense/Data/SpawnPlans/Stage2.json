@@ -264,6 +264,10 @@
     {
       "enemyId": "enemy_tomato",
       "delay": 0.5
+    },
+    {
+      "enemyId": "enemy_gosari",
+      "delay": 6.0
     }
   ]
 }

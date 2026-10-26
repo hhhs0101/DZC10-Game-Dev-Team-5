@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c5dc96c0878b4aed8f25fdf900d7049, type: 3}
+  m_Name: BaechuBoss
+  m_EditorClassIdentifier: Assembly-CSharp::Defense.EnemyDefinition
+  enemyTypeId: enemy_baechu
+  displayName: Napa Cabbage King
+  sprite: {fileID: 21300000, guid: fc0744791a514790b43707618a634b8a, type: 3}
+  prefab: {fileID: 7971707257215467551, guid: 31c315c7eb8d40518f18bd7b9727f557, type: 3}
+  health: 2000
+  movementSpeed: 0.35
+  baseDamage: 400
+  baseDamageUnconfigured: 0
+  role: 4
+  supportArea: 3
+  speedIncrease: 1.5
+  shieldValue: 0.6
+  disruptionRange: 4
+  disruptionCooldown: 5
+  disruptionDuration: 3
+  resourceReward: 10
+  candyDropChance: 0.1
+  candyDropAmount: 1
+  vegetableType: 0
+  splitCount: 5
+  summonCount: 2
+  summonInterval: 6
+  towerAttackRange: 3
+  towerAttackInterval: 5
+  towerDamageFraction: 0.66
+  summonTypes: []

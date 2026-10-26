@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Defense.EnemyDefinition
   enemyTypeId: enemy_tomato
   displayName: Tomato
-  sprite: {fileID: 21300000, guid: b1ed63ebead7144a48d59328441160cc, type: 3}
+  sprite: {fileID: 21300000, guid: 45f67c9287354cb8ba1ff51b6440d51e, type: 3}
   prefab: {fileID: 7971707257215467551, guid: 33849ed52015f419b9db496e0d87d51c, type: 3}
   health: 85
   movementSpeed: 3

@@ -14,6 +14,11 @@ public sealed class FixedIntervalSpawner : MonoBehaviour {
     public bool HasConfigurationError => !string.IsNullOrEmpty(ConfigurationError);
     public int PlannedSpawnCount => total;
     public event System.Action<Enemy> EnemyScheduled;
+    // Raised once per boss just before it spawns; the schedule waits until ResumeAfterBossAnnouncement.
+    public event System.Action<EnemyDefinition> BossIncoming;
+    private bool awaitingBossAnnouncement;
+    private int announcedBossIndex = -1;
+    public void ResumeAfterBossAnnouncement() { awaitingBossAnnouncement = false; }
     public int SpawnedCount { get; private set; }
     public bool IsFinishedSpawning => !HasConfigurationError && !cancelled && total > 0 && SpawnedCount >= total;
     private void ResetSchedule() {
@@ -22,7 +27,7 @@ public sealed class FixedIntervalSpawner : MonoBehaviour {
         if(flow == null) flow = GetComponent<GameFlow>();
         if(flow != null) flow.Changed += OnStateChanged;
         enemy=null;sequence=null;timedPlan=null;remaining=interval=0;total=SpawnedCount=0;
-        cancelled=false;UsesJsonPlan=false;ConfigurationError=null;
+        cancelled=false;UsesJsonPlan=false;ConfigurationError=null;awaitingBossAnnouncement=false;announcedBossIndex=-1;
     }
     // Legacy contract is unchanged: zero total means continuous, interval clamps to 0.1s.
     public void Configure(EnemyDefinition definition,float seconds,int totalEnemies=0) {
@@ -58,11 +63,14 @@ public sealed class FixedIntervalSpawner : MonoBehaviour {
     private void CancelRemaining() {cancelled=true;timedPlan=null;sequence=null;}
     private void Update() => Advance(Time.deltaTime);
     public void Advance(float deltaTime) {
-        if(cancelled || HasConfigurationError || IsFinishedSpawning || spawner==null || !spawner.CanSpawn || deltaTime<=0 || float.IsNaN(deltaTime) || float.IsInfinity(deltaTime))return;
+        if(cancelled || HasConfigurationError || IsFinishedSpawning || awaitingBossAnnouncement || spawner==null || !spawner.CanSpawn || deltaTime<=0 || float.IsNaN(deltaTime) || float.IsInfinity(deltaTime))return;
         remaining-=deltaTime;if(remaining>0)return;
         if(UsesJsonPlan) {
             while(!IsFinishedSpawning && !cancelled && spawner.CanSpawn) {
                 var plan=timedPlan;var next=plan.Events[SpawnedCount];
+                if(next.Enemy.Role==EnemyRole.Boss && BossIncoming!=null && announcedBossIndex!=SpawnedCount) {
+                    announcedBossIndex=SpawnedCount;awaitingBossAnnouncement=true;BossIncoming(next.Enemy);return;
+                }
                 var spawned=spawner.Spawn(next.Enemy);
                 if(spawned==null) {Fail("Spawn JSON stageId '"+plan.StageId+"', event ["+SpawnedCount+"] enemyId '"+next.Enemy.EnemyTypeId+"' could not spawn.");return;}
                 SpawnedCount++;bool last=SpawnedCount>=total;

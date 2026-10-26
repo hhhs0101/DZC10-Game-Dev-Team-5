@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Defense.EnemyDefinition
   enemyTypeId: enemy_carrot
   displayName: Carrot
-  sprite: {fileID: 21300000, guid: 58bbbdda9212d4fd2b594c971cd6ee34, type: 3}
+  sprite: {fileID: 21300000, guid: 75cd696836104f1389cd99925c251169, type: 3}
   prefab: {fileID: 7971707257215467551, guid: 33849ed52015f419b9db496e0d87d51c, type: 3}
   health: 100
   movementSpeed: 2

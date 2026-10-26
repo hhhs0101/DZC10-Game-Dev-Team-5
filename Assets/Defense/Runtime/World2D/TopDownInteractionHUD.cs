@@ -20,7 +20,7 @@ public sealed class TopDownInteractionHUD : MonoBehaviour {
     private void Update() {
         if(flow==null)return;
         if(Input.GetKeyDown(KeyCode.Escape))flow.TogglePause();
-        status.text="Base HP: "+GetComponent<BaseHealth>().Current+"     Resources: "+GetComponent<ResourceWallet>().Balance+"     "+flow.State;
+        status.text="Soup HP: "+GetComponent<BaseHealth>().Current+"     Resources: "+GetComponent<ResourceWallet>().Balance+"     "+flow.State;
         GetComponent<BuildMenuUI>().SetInteractionEnabled(flow.IsPlaying);
     }
     private void OnDestroy() {GetComponent<GameplayHand>().Message-=Show;GetComponent<TurretPlacementController>().Message-=Show;}

@@ -232,6 +232,10 @@
     {
       "enemyId": "enemy_eggplant",
       "delay": 2
+    },
+    {
+      "enemyId": "enemy_baechu",
+      "delay": 6.0
     }
   ]
 }

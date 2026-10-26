@@ -12,6 +12,36 @@ public static class CulturalFacts {
         + "(\"Why is your mouth so short?\")\n\n"
         + "Korean meals are shared, with rice, soup and many small side dishes (반찬, banchan) on the table for everyone. "
         + "Trying a bit of everything and finishing your bowl is a way of showing respect for the food and the person who cooked it.";
+
+    // Boss cards shown just before each stage's final vegetable appears, keyed by enemy ID.
+    public static bool TryGetBoss(string enemyTypeId, out string heading, out string body) {
+        switch (enemyTypeId) {
+            case "enemy_baechu":
+                heading = "배추 - Napa Cabbage";
+                body = "배추 (baechu) is napa cabbage, the main ingredient of Korea's most famous dish: baechu kimchi.\n\n"
+                    + "Every late autumn, families and neighbours gather for 김장 (gimjang) to salt, season and pack hundreds of cabbages "
+                    + "so there is kimchi all winter. Kimjang was added to UNESCO's Intangible Cultural Heritage list in 2013.\n\n"
+                    + "To a picky eater, though, a whole cabbage is a mountain of leaves!";
+                return true;
+            case "enemy_gosari":
+                heading = "고사리 - Gosari (Bracken Fern)";
+                body = "고사리 (gosari) are young bracken fern shoots, picked in the mountains in spring, then dried and soaked before cooking.\n\n"
+                    + "They are a classic bibimbap topping and give yukgaejang, a spicy beef soup, its chewy bite. Brown gosari is also one of "
+                    + "the three-colour namul (삼색나물) served at ancestral rites and holidays like Chuseok.\n\n"
+                    + "Kids often pick them out because they look like little brown worms!";
+                return true;
+            case "enemy_doraji":
+                heading = "도라지 - Doraji (Bellflower Root)";
+                body = "도라지 (doraji) is the root of the balloon flower. It is famously bitter, so cooks soak it in salt water "
+                    + "before making doraji namul or sweet-and-spicy doraji muchim.\n\n"
+                    + "It is also a traditional remedy: doraji tea and syrup are given for coughs and sore throats. White doraji is "
+                    + "another colour of 삼색나물, and \"Doraji Taryeong\" is one of Korea's best-known folk songs.\n\n"
+                    + "The bitterest boss of all, so season it well!";
+                return true;
+        }
+        heading = body = null;
+        return false;
+    }
 }
 
 // An "i" button that opens a wooden text box with a heading and body text. Click anywhere to close.

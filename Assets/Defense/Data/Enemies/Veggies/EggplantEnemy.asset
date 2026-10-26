@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Defense.EnemyDefinition
   enemyTypeId: enemy_eggplant
   displayName: Eggplant
-  sprite: {fileID: 21300000, guid: 7ba0be14038ac4bf78e120009b096a80, type: 3}
+  sprite: {fileID: 21300000, guid: 7ed7ac06d6fa4f9da4ff03e50e04cee4, type: 3}
   prefab: {fileID: 7971707257215467551, guid: 33849ed52015f419b9db496e0d87d51c, type: 3}
   health: 150
   movementSpeed: 1.7

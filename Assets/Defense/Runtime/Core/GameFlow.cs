@@ -39,6 +39,13 @@ public sealed class GameFlow : MonoBehaviour {
         // Reload only scene-owned runtime state. ActiveStage, Selection, Deck and Progression stay intact.
         SceneManager.LoadScene(gameObject.scene.name);
     }
+    public void NextStage() {
+        if (State != GameplayState.Victory || reloading) return;
+        if (!PlayerSession.TrySelectNextStageForPlay(out var issue)) { Debug.LogWarning(issue); return; }
+        reloading = true;
+        Time.timeScale = 1;
+        SceneManager.LoadScene(PlayerSession.ActiveBattleScene);
+    }
     public void ExitToMenu() {
         Time.timeScale = 1;
         PlayerSession.ReturnToLobby = true;

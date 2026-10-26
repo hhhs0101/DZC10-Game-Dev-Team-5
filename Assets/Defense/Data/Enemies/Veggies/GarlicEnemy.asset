@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Defense.EnemyDefinition
   enemyTypeId: enemy_garlic
   displayName: Garlic
-  sprite: {fileID: 21300000, guid: 7479bd727b53142b39cb250a2571c5d0, type: 3}
+  sprite: {fileID: 21300000, guid: 3ad8ba8c19274002a0f1fe975277c0a6, type: 3}
   prefab: {fileID: 7971707257215467551, guid: 2b5b621f9c4448b19720f41f696083cd, type: 3}
   health: 70
   movementSpeed: 2

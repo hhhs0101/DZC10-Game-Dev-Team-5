@@ -11,13 +11,15 @@ public sealed class GameplayUI : MonoBehaviour {
     [SerializeField] private ResourceWallet wallet;
     [SerializeField] private TurretPlacementController placement;
     private Text hpLabel, remainingEnemiesLabel, messageLabel;
+    private RectTransform hpFill;
     private GameObject pause, gameOver, victory, configurationError;
     private UnityEngine.UI.Text configurationDetails;
     private SettingsUI settings;
-    private Button pauseButton;
+    private Button pauseButton, nextStageButton;
     private FadingMessageUI feedback;
     private GameplayHand hand;
     private FixedIntervalSpawner schedule;
+    private BossInfoCardUI bossCard;
     private EnemyRegistry enemies;
     private int lastRemainingEnemies = -1;
     private void Start() {
@@ -37,8 +39,17 @@ public sealed class GameplayUI : MonoBehaviour {
         bannerImage.preserveAspect = true;
         bannerImage.raycastTarget = false;
         bannerImage.color = bannerImage.sprite != null ? Color.white : new Color(.38f,.24f,.12f,.95f);
-        hpLabel = UiFactory.Label(bannerRect,"",new Vector2(.5f,.5f),new Vector2(-140,1),new Vector2(260,48),25);
+        hpLabel = UiFactory.Label(bannerRect,"Soup HP",new Vector2(.5f,.5f),new Vector2(-218,1),new Vector2(110,48),25);
         StyleBannerLabel(hpLabel);
+        hpLabel.resizeTextForBestFit = true; hpLabel.resizeTextMinSize = 16; hpLabel.resizeTextMaxSize = 25;
+        // Soup health is shown as a bar: dark frame, recessed track, coloured fill anchored to the left.
+        var hpFrame = UiFactory.Panel("Soup HP Bar",bannerRect,new Color(.22f,.09f,.03f)).GetComponent<RectTransform>();
+        hpFrame.anchorMin = hpFrame.anchorMax = new Vector2(.5f,.5f);
+        hpFrame.anchoredPosition = new Vector2(-88,1); hpFrame.sizeDelta = new Vector2(150,24);
+        var hpTrack = UiFactory.Panel("Track",hpFrame,new Color(.45f,.3f,.2f)).GetComponent<RectTransform>();
+        hpTrack.offsetMin = new Vector2(3,3); hpTrack.offsetMax = new Vector2(-3,-3);
+        hpFill = UiFactory.Panel("Fill",hpTrack,Color.green).GetComponent<RectTransform>();
+        foreach (var image in hpFrame.GetComponentsInChildren<Image>()) image.raycastTarget = false;
         remainingEnemiesLabel = UiFactory.Label(bannerRect,"",new Vector2(.5f,.5f),new Vector2(135,1),new Vector2(280,48),25);
         StyleBannerLabel(remainingEnemiesLabel);
         remainingEnemiesLabel.resizeTextForBestFit = true; remainingEnemiesLabel.resizeTextMinSize = 16; remainingEnemiesLabel.resizeTextMaxSize = 25;
@@ -71,13 +82,17 @@ public sealed class GameplayUI : MonoBehaviour {
         var clearTitle = UiFactory.Label(victory.transform,"Stage Clear",new Vector2(.5f,.5f),new Vector2(0,150),new Vector2(600,70),42);
         var replayButton = UiFactory.Button(victory.transform,"Replay",new Vector2(0,0),flow.Retry);
         var clearLobbyButton = UiFactory.Button(victory.transform,"Return to Lobby",new Vector2(0,-70),flow.ExitToMenu);
+        nextStageButton = UiFactory.Button(victory.transform,"Next Stage",new Vector2(0,75),flow.NextStage,null,new Vector2(280,56));
+        nextStageButton.image.color = new Color(.36f,.6f,.22f);
         if (resultSkin != null) {
             defeatTitle.rectTransform.anchoredPosition = new Vector2(0,170);
-            clearTitle.rectTransform.anchoredPosition = new Vector2(0,220);
+            clearTitle.rectTransform.anchoredPosition = new Vector2(0,250);
             SkinMenuButton(retryButton,resultSkin.Retry,new Vector2(0,20));
             SkinMenuButton(defeatLobbyButton,resultSkin.Lobby,new Vector2(0,-115));
-            SkinMenuButton(replayButton,resultSkin.Replay,new Vector2(0,20));
-            SkinMenuButton(clearLobbyButton,resultSkin.Lobby,new Vector2(0,-115));
+            // Next Stage has no skin art yet; it sits above the skinned Replay / Lobby pair.
+            ((RectTransform)nextStageButton.transform).anchoredPosition = new Vector2(0,160);
+            SkinMenuButton(replayButton,resultSkin.Replay,new Vector2(0,40));
+            SkinMenuButton(clearLobbyButton,resultSkin.Lobby,new Vector2(0,-95));
         }
         configurationError = Overlay("Stage Configuration Error",root);
         UiFactory.Label(configurationError.transform,"Stage Configuration Error",new Vector2(.5f,.5f),new Vector2(0,160),new Vector2(850,65),36);
@@ -85,6 +100,7 @@ public sealed class GameplayUI : MonoBehaviour {
         UiFactory.Button(configurationError.transform,"Retry",new Vector2(0,-85),flow.Retry);
         UiFactory.Button(configurationError.transform,"Return to Lobby",new Vector2(0,-155),flow.ExitToMenu);
         settings = GetComponent<SettingsUI>(); settings.Initialize(root);
+        bossCard = gameObject.AddComponent<BossInfoCardUI>(); bossCard.Initialize(root,schedule,flow);
         baseHealth.Changed += UpdateHealth;
         flow.Changed += UpdateState; placement.Message += ShowMessage;
         UpdateHealth(baseHealth.Current); UpdateRemainingEnemies(); UpdateState(flow.State);
@@ -109,7 +125,7 @@ public sealed class GameplayUI : MonoBehaviour {
     }
     private static GameObject Overlay(string name, Transform parent) => UiFactory.Panel(name,parent,new Color(0,0,0,.78f));
     private void Update() {
-        if (Input.GetKeyDown(KeyCode.Escape)) flow.TogglePause();
+        if (Input.GetKeyDown(KeyCode.Escape) && !bossCard.IsOpen) flow.TogglePause();
         UpdateRemainingEnemies();
     }
     private void UpdateRemainingEnemies() {
@@ -124,13 +140,18 @@ public sealed class GameplayUI : MonoBehaviour {
             remainingEnemiesLabel.text = "Remaining Enemies: " + remaining;
         }
     }
-    private void UpdateHealth(int health) { hpLabel.text = "Base HP: " + health; }
+    private void UpdateHealth(int health) {
+        float fraction = baseHealth.Maximum > 0 ? Mathf.Clamp01((float)health / baseHealth.Maximum) : 0;
+        hpFill.anchorMax = new Vector2(fraction,1);
+        hpFill.GetComponent<Image>().color = fraction > .5f ? new Color(.36f,.78f,.25f) : fraction > .25f ? new Color(.95f,.75f,.2f) : new Color(.85f,.22f,.15f);
+    }
     private void ShowMessage(string message) { feedback.Show(message,message == GameplayHand.InsufficientElixirMessage ? 1.5f : 3); }
     private void UpdateState(GameplayState state) {
         GetComponent<BuildMenuUI>().SetInteractionEnabled(state == GameplayState.Playing);
         settings.Hide();
         pause.SetActive(state == GameplayState.Paused); gameOver.SetActive(state == GameplayState.GameOver);
         victory.SetActive(state == GameplayState.Victory);
+        nextStageButton.gameObject.SetActive(state == GameplayState.Victory && PlayerSession.HasNextStage);
         configurationError.SetActive(state == GameplayState.ConfigurationError);
         if(state == GameplayState.ConfigurationError) configurationDetails.text = flow.ConfigurationErrorMessage;
         pauseButton.interactable = !flow.IsTerminal;

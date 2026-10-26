@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Defense.EnemyDefinition
   enemyTypeId: enemy_potato
   displayName: Potato
-  sprite: {fileID: 21300000, guid: c85b9dee84a6a4975b9be72402c79068, type: 3}
+  sprite: {fileID: 21300000, guid: ce55c96df28a4844adc6acb9d2dc1b9c, type: 3}
   prefab: {fileID: 7971707257215467551, guid: 0c5a3ffb033e41a0af8c4f80b8af7698, type: 3}
   health: 200
   movementSpeed: 2

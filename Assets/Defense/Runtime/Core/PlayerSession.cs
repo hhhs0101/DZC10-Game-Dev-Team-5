@@ -53,6 +53,19 @@ public static class PlayerSession {
         ActiveStage = stage;
         ReturnToLobby = true; return true;
     }
+    private static int ActiveStageIndex() {
+        if (Catalog == null || ActiveStage == null) return -1;
+        for (int i=0;i<Catalog.Stages.Count;i++) if (Catalog.Stages[i] == ActiveStage) return i;
+        return -1;
+    }
+    public static bool HasNextStage { get { int index = ActiveStageIndex(); return index >= 0 && index + 1 < Catalog.Stages.Count; } }
+    // Victory shortcut: selects the stage after the active one, using the same unlock and scene checks as the lobby.
+    public static bool TrySelectNextStageForPlay(out string issue) {
+        Ensure();
+        if (!HasNextStage) { issue = "There is no next stage."; return false; }
+        Selection.Select(ActiveStageIndex() + 1);
+        return TrySelectStageForPlay(out issue);
+    }
     // Direct opening of a configured 2D scene keeps its authored stage identity.
     internal static void BindActiveStage(StageDefinition definition) {
         ActiveStage = definition;
