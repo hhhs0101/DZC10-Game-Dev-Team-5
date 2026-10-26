@@ -19,10 +19,10 @@ public sealed class TutorialUI : MonoBehaviour {
     private GameObject previousSelection;
     private int page;
     private bool finished;
-    private static readonly string[] Titles={"Protect the kitchen","Build your defence","Vegetables Abilities","Towers"};
+    private static readonly string[] Titles={"Protect the Soup","Defense","Vegetables","Towers"};
     private static readonly string[] Bodies={
         "Stop the vegetables before they reach your base.\n\nEnemies that reach the end take away Base HP. Clear the stage by surviving the waves and defeating the remaining enemies.\n\nStart with Stage 1, then unlock the later stages.",
-        "Each stage starts with a premade deck.\n\nIn battle, select a tower card from your hand, then click or drag to an empty placement plate. The lightning number is its energy cost. Wait for energy to refill if you cannot afford it.\n\nUsing a card cycles it through your deck.",
+        "Each stage starts with a premade deck. When there are more cards unlocked than available slots for the deck, you can change the cards from the premade deck (Stage 3).\n\nIn battle, select a tower card from your hand, then click or drag to an empty placement plate. The lightning number is its energy cost. Wait for energy to refill if you cannot afford it.\n\nUsing a card cycles it through your deck.",
         "Carrot, Tomato and Eggplant are basic enemies.\n\nBell Pepper shields nearby vegetables.\n\nGarlic speeds up nearby vegetables.\n\nCorn has 5 health bars that are independent.\n\nPotato disrupts towers.\n\nBroccoli is a boss enemy with high HP and regularly summons enemies.",
         ""
     };
