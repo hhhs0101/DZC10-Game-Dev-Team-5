@@ -31,3 +31,4 @@ MonoBehaviour:
   slowDuration: 2
   damageBoost: 1.25
   cleanseInterval: 5
+  lifetimeSeconds: 40

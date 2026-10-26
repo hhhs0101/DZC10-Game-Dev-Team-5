@@ -18,7 +18,7 @@ MonoBehaviour:
   damage: 100
   attackRange: 2.7
   attackCooldown: 0.9
-  lifetimeSeconds: 28
+  lifetimeSeconds: 30
   targeting: {fileID: 11400000, guid: 352398aa511754b47a79b53950a3b3b4, type: 2}
   sprite: {fileID: 21300000, guid: 594c912ac0f0948c8b80c1380931187e, type: 3}
   spriteScale: 1.5292035

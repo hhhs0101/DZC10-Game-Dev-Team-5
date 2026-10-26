@@ -3,10 +3,8 @@ using UnityEngine.UI;
 namespace Defense {
 // Created only after successful placement. Preview and sandbox actors stay untimed.
 public sealed class TowerLifetime : MonoBehaviour {
-    public const float RechargeCycles = 3.5f;
-    public const float MinimumLifetime = 17.5f;
-    // Preserve the team's current lifetime balance independently of Energy recovery.
-    public const float LifetimeReferenceRegeneration = .34f;
+    public const float SecondsPerEnergy = 10f;
+    public const float MinimumLifetime = 20f;
     private Tower tower;
     private TowerPlacementSlot slot;
     private GameFlow flow;
@@ -20,7 +18,7 @@ public sealed class TowerLifetime : MonoBehaviour {
     public static float DurationForCost(float energyCost) {
         if (float.IsNaN(energyCost) || float.IsInfinity(energyCost) || energyCost < 0)
             energyCost = 0;
-        return Mathf.Max(MinimumLifetime, RechargeCycles * energyCost / LifetimeReferenceRegeneration);
+        return Mathf.Max(MinimumLifetime, SecondsPerEnergy * energyCost);
     }
     public static float DurationFor(TurretDefinition definition, float energyCost) {
         float duration = definition != null ? definition.LifetimeSeconds : 0;
