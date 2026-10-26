@@ -10,7 +10,9 @@ public static class TowerLifetimeValidation {
         var root = new GameObject("Tower lifetime validation");
         try {
             foreach (float cost in new[] { 2f, 3f, 4f })
-                Check(Mathf.Abs(TowerLifetime.DurationForCost(cost) * TowerLifetime.LifetimeReferenceRegeneration - TowerLifetime.RechargeCycles * cost) < .001f, "Existing lifetime balance is preserved");
+                Check(TowerLifetime.DurationForCost(cost) == cost * 10f, "Two, three and four Energy towers last 20, 30 and 40 seconds");
+            var paprika = AssetDatabase.LoadAssetAtPath<TurretDefinition>("Assets/Defense/Data/TestTurret5.asset");
+            Check(paprika != null && TowerLifetime.DurationFor(paprika, 3) == 30f, "Paprika has a 30-second lifetime");
             Check(TowerLifetime.DurationForCost(0) == TowerLifetime.MinimumLifetime && TowerLifetime.DurationForCost(float.NaN) == TowerLifetime.MinimumLifetime, "Safe minimum");
             var flow = root.AddComponent<GameFlow>();
             var slotObject = new GameObject("Slot"); slotObject.transform.SetParent(root.transform);

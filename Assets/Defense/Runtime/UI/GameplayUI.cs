@@ -125,7 +125,7 @@ public sealed class GameplayUI : MonoBehaviour {
     }
     private static GameObject Overlay(string name, Transform parent) => UiFactory.Panel(name,parent,new Color(0,0,0,.78f));
     private void Update() {
-        if (Input.GetKeyDown(KeyCode.Escape) && !bossCard.IsOpen) flow.TogglePause();
+        if (!TutorialUI.BlocksInput && !bossCard.IsOpen && Input.GetKeyDown(KeyCode.Escape)) flow.TogglePause();
         UpdateRemainingEnemies();
     }
     private void UpdateRemainingEnemies() {

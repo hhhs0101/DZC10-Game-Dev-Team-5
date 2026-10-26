@@ -8,7 +8,7 @@ namespace Defense.Editor {
 public static class EnemyRolesSetup {
     public static readonly string[] Names = {"Carrot","Tomato","Eggplant","Garlic","BellPepper","Corn","Potato","Broccoli"};
     public static string PathFor(string name) => name == "Boss" ? "Assets/Defense/Data/Enemies/BossEnemy.asset" : VeggieEnemySetup.DataRoot+"/"+name+"Enemy.asset";
-    private static readonly float[] Health = {100,85,150,40,200,30,200,5000};
+    private static readonly float[] Health = {100,85,150,40,162,30,200,5000};
     private static readonly float[] Speed = {2,3,1.7f,2,1.8f,2,2,1.3f};
     private static readonly int[] Damage = {100,100,100,20,30,40,20,0};
     private static readonly EnemyRole[] Roles = {EnemyRole.Basic,EnemyRole.Basic,EnemyRole.Basic,EnemyRole.SpeedSupport,EnemyRole.ShieldSupport,EnemyRole.Split,EnemyRole.Disruptor,EnemyRole.Boss};
@@ -26,8 +26,8 @@ public static class EnemyRolesSetup {
             if(created) { data.FindProperty("enemyTypeId").stringValue="enemy_"+name.ToLowerInvariant();data.FindProperty("displayName").stringValue=name;data.FindProperty("prefab").objectReferenceValue=prefab;data.FindProperty("sprite").objectReferenceValue=null; }
             data.FindProperty("health").floatValue=Health[i];data.FindProperty("movementSpeed").floatValue=Speed[i];data.FindProperty("baseDamage").intValue=Damage[i];
             data.FindProperty("baseDamageUnconfigured").boolValue=false;data.FindProperty("role").enumValueIndex=(int)Roles[i];
-            if(name=="Garlic") data.FindProperty("speedIncrease").floatValue=1.5f;
-            if(name=="BellPepper") data.FindProperty("shieldValue").floatValue=.6f;
+            if(name=="Garlic") data.FindProperty("speedIncrease").floatValue=1.65f;
+            if(name=="BellPepper") data.FindProperty("shieldValue").floatValue=.675f;
             data.ApplyModifiedPropertiesWithoutUndo();
             if(created) AssetDatabase.CreateAsset(definition,path);else EditorUtility.SetDirty(definition);
         }
@@ -40,7 +40,7 @@ public static class EnemyRolesSetup {
         var garlic=AssetDatabase.LoadAssetAtPath<EnemyDefinition>(PathFor("Garlic"));
         var broccoli=AssetDatabase.LoadAssetAtPath<EnemyDefinition>(PathFor("BellPepper"));
         if(garlic==null||broccoli==null) throw new InvalidOperationException("Enemy role definitions must exist first.");
-        var garlicData=new SerializedObject(garlic);garlicData.FindProperty("speedIncrease").floatValue=1.5f;garlicData.ApplyModifiedPropertiesWithoutUndo();
+        var garlicData=new SerializedObject(garlic);garlicData.FindProperty("speedIncrease").floatValue=1.65f;garlicData.ApplyModifiedPropertiesWithoutUndo();
         var broccoliData=new SerializedObject(broccoli);broccoliData.FindProperty("shieldValue").floatValue=.6f;broccoliData.ApplyModifiedPropertiesWithoutUndo();
         EditorUtility.SetDirty(garlic);EditorUtility.SetDirty(broccoli);
         AssetDatabase.SaveAssetIfDirty(garlic);AssetDatabase.SaveAssetIfDirty(broccoli);

@@ -52,7 +52,14 @@ public static class CardSelectionToggleValidation {
         Mouse(pointer,p,PointerEventData.FramePressState.Released);
     }
     private static void Visuals(){
-        for(int i=0;i<3;i++)Check(ButtonAt(i).image.color==(Hand.Cycle.Hand[i]==Hand.SelectedCard?new Color(.2f,.55f,.36f):Hand.Cycle.Hand[i].Definition.Color),"Exactly the authoritative runtime selection controls card tint: "+i);
+        for(int i=0;i<3;i++) {
+            var def = Hand.Cycle.Hand[i].Definition;
+            bool hasSprite = def != null && def.CardSprite != null;
+            Color expected = hasSprite
+                ? (Hand.Cycle.Hand[i] == Hand.SelectedCard ? new Color(.72f, 1f, .78f) : Color.white)
+                : (Hand.Cycle.Hand[i] == Hand.SelectedCard ? new Color(.2f, .55f, .36f) : def.Color);
+            Check(ButtonAt(i).image.color == expected, "Exactly the authoritative runtime selection controls card tint: "+i);
+        }
         if(Hand.SelectedCard==null)Check(!UnityEngine.Object.FindObjectsByType<Text>().Any(t=>t.text.StartsWith("Selected: ")),"Deselect clears selected-card context text");
     }
     private sealed class Snapshot {

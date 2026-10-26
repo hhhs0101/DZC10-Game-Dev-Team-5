@@ -59,13 +59,13 @@ public static class EnemyRolesValidation {
     private static void TestAuras() {
         var carrot=Spawn("Carrot",Vector3.right);var garlic=Spawn("Garlic",Vector3.zero);
         Check(garlic is SpeedSupportEnemy,"Actual speed support subclass");
-        Near(carrot.Movement.EffectiveMovementSpeed,3,"1.5x speed aura");Near(garlic.Movement.EffectiveMovementSpeed,2,"Garlic excludes itself");
-        garlic.transform.position=Vector3.left*10;registry.NotifyMoved(garlic);Near(carrot.Movement.EffectiveMovementSpeed,2,"Aura exit removes boost");
+        Near(carrot.Movement.EffectiveMovementSpeed,3.3f*.85f,"1.65x speed aura");Near(garlic.Movement.EffectiveMovementSpeed,2*.85f,"Garlic excludes itself");
+        garlic.transform.position=Vector3.left*10;registry.NotifyMoved(garlic);Near(carrot.Movement.EffectiveMovementSpeed,2*.85f,"Aura exit removes boost");
         var pepper=Spawn("BellPepper",Vector3.zero);Check(pepper is ShieldSupportEnemy,"Actual shield subclass");
-        carrot.ReceiveDamage(50);Near(carrot.CurrentHealth,80,"60% absorption");pepper.ReceiveDamage(50);Near(pepper.CurrentHealth,180,"Shield includes itself");
-        Spawn("BellPepper",Vector3.zero);carrot.ReceiveDamage(50);Near(carrot.CurrentHealth,60,"Overlapping shields do not compound");
-        carrot.ReceiveDamage(10,true);Near(carrot.CurrentHealth,50,"Piercing bypasses shield");
-        carrot.transform.position=Vector3.right*10;carrot.ReceiveDamage(10);Near(carrot.CurrentHealth,40,"Outside aura receives full damage");
+        carrot.ReceiveDamage(50);Near(carrot.CurrentHealth,83.75f,"67.5% absorption");pepper.ReceiveDamage(50);Near(pepper.CurrentHealth,145.75f,"Shield includes itself");
+        Spawn("BellPepper",Vector3.zero);carrot.ReceiveDamage(50);Near(carrot.CurrentHealth,67.5f,"Overlapping shields do not compound");
+        carrot.ReceiveDamage(10,true);Near(carrot.CurrentHealth,57.5f,"Piercing bypasses shield");
+        carrot.transform.position=Vector3.right*10;carrot.ReceiveDamage(10);Near(carrot.CurrentHealth,47.5f,"Outside aura receives full damage");
     }
     private static void TestTowers() {
         var a=Spawn("Carrot",Vector3.zero);var b=Spawn("Carrot",Vector3.right);var c=Spawn("Eggplant",Vector3.right*8);
@@ -80,8 +80,8 @@ public static class EnemyRolesValidation {
         flow.TogglePause();c.StatusEffects.Advance(2);Near(c.CurrentHealth,150-direct,"Burn pauses");flow.TogglePause();
         c.StatusEffects.Advance(duration);Near(c.CurrentHealth,Mathf.Max(0,150-direct-burn*duration),"Burn persists after tower destruction and leaving range");
         float afterBurn=c.CurrentHealth;c.StatusEffects.Advance(duration);Near(c.CurrentHealth,afterBurn,"Burn expires");
-        var oil=Tower(2,Vector3.up);oil.Attack(a);Near(a.Movement.EffectiveMovementSpeed,2*oil.Definition.SlowMultiplier,"Oil slow");
-        a.StatusEffects.Advance(oil.Definition.SlowDuration);Near(a.Movement.EffectiveMovementSpeed,2,"Oil slow expires");
+        var oil=Tower(2,Vector3.up);oil.Attack(a);Near(a.Movement.EffectiveMovementSpeed,2*.85f*oil.Definition.SlowMultiplier,"Oil slow");
+        a.StatusEffects.Advance(oil.Definition.SlowDuration);Near(a.Movement.EffectiveMovementSpeed,2*.85f,"Oil slow expires");
         var salt=Tower(6,Vector3.zero);var mayo=Tower(10,Vector3.right);
         Near(salt.EffectiveDamage,salt.Definition.Damage*mayo.Definition.DamageBoost,"Mayonnaise damage boost");salt.AttackStatus.Apply(new object(),30);
         mayo.AdvanceSupport(4);Check(salt.AttackDisabled,"No early cleanse");mayo.AdvanceSupport(1);Check(!salt.AttackDisabled,"Five-second cleanse");

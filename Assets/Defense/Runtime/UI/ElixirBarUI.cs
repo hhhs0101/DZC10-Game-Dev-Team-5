@@ -49,18 +49,18 @@ public sealed class ElixirBarUI : MonoBehaviour {
             bolt.SetAsLastSibling();
 
             energyNumber = UiFactory.Label(bolt,"",new Vector2(.43f,.73f),Vector2.zero,
-                new Vector2(boltWidth*.82f,boltHeight*.42f),Mathf.RoundToInt(boltWidth*.62f));
+                new Vector2(boltWidth*1.05f,boltHeight*.54f),Mathf.RoundToInt(boltWidth*.80f));
             energyNumber.name = "Energy Number";
             energyNumber.color = Color.white;
-            energyNumber.fontStyle = FontStyle.Bold;
+            energyNumber.fontStyle = FontStyle.Normal;
             energyNumber.resizeTextForBestFit = true;
-            energyNumber.resizeTextMinSize = 12;
-            energyNumber.resizeTextMaxSize = Mathf.RoundToInt(boltWidth*.62f);
+            energyNumber.resizeTextMinSize = 14;
+            energyNumber.resizeTextMaxSize = Mathf.RoundToInt(boltWidth*.80f);
             energyNumber.horizontalOverflow = HorizontalWrapMode.Overflow;
             energyNumber.verticalOverflow = VerticalWrapMode.Overflow;
             var outline = energyNumber.gameObject.AddComponent<Outline>();
             outline.effectColor = Color.black;
-            outline.effectDistance = new Vector2(1.5f,-1.5f);
+            outline.effectDistance = new Vector2(0.6f,-0.6f);
             outline.useGraphicAlpha = true;
         }
         elixir.Changed += Refresh; Refresh(elixir.CurrentEnergy);

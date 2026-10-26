@@ -16,13 +16,13 @@ MonoBehaviour:
   displayName: Garlic
   sprite: {fileID: 21300000, guid: 3ad8ba8c19274002a0f1fe975277c0a6, type: 3}
   prefab: {fileID: 7971707257215467551, guid: 2b5b621f9c4448b19720f41f696083cd, type: 3}
-  health: 70
+  health: 100
   movementSpeed: 2
   baseDamage: 20
   baseDamageUnconfigured: 0
   role: 1
   supportArea: 3
-  speedIncrease: 1.5
+  speedIncrease: 1.65
   shieldValue: 0.6
   disruptionRange: 4
   disruptionCooldown: 5

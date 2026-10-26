@@ -7,6 +7,7 @@ public sealed class MainMenuUI : MonoBehaviour {
     [SerializeField, Tooltip("Backdrop for the opening Mom and Jihoon dialogue.")] private Sprite storyBackground;
     private GameObject menu, lobby, deckEditor;
     private SettingsUI settings;
+    private bool tutorialShownFromStart;
     private void Start() {
         Time.timeScale = 1; PlayerSession.Ensure();
         BuildBackground();
@@ -87,9 +88,16 @@ public sealed class MainMenuUI : MonoBehaviour {
     }
     // The Mom and Jihoon dialogue sets up the stages the first time the player enters stage select.
     private void StartGame() {
-        if (!StoryIntroUI.ShouldPlay) { Show(lobby); return; }
+        if(TutorialUI.BlocksInput)return;
+        if (!StoryIntroUI.ShouldPlay) { OpenLobbyWithTutorial(); return; }
         menu.SetActive(false);
-        StoryIntroUI.Play(canvas.transform,storyBackground != null ? storyBackground : UiFactory.LoadSprite("UI/GameBackground"),()=>Show(lobby));
+        StoryIntroUI.Play(canvas.transform,storyBackground != null ? storyBackground : UiFactory.LoadSprite("UI/GameBackground"),OpenLobbyWithTutorial);
+    }
+    private void OpenLobbyWithTutorial() {
+        Show(lobby);
+        if(tutorialShownFromStart)return;
+        tutorialShownFromStart=true;
+        TutorialUI.Open(canvas.transform);
     }
     private void OpenSettings(GameObject origin) {
         origin.SetActive(false);

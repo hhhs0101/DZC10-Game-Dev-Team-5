@@ -17,6 +17,15 @@ public sealed class BattlefieldMap2D : MonoBehaviour {
     public WaypointPath Path => path;
     public System.Collections.Generic.IReadOnlyList<WaypointPath> BranchPaths => branchPaths != null && branchPaths.Length > 0 ? branchPaths : (path != null ? new[] { path } : System.Array.Empty<WaypointPath>());
     public System.Collections.Generic.IReadOnlyList<TowerPlacementSlot> PlacementSlots => placementSlots;
+    // Stage-specific runtime slots join the same placement/inspection list as scene slots.
+    public void RegisterPlacementSlot(TowerPlacementSlot slot) {
+        if(slot == null) return;
+        if(placementSlots == null) placementSlots = System.Array.Empty<TowerPlacementSlot>();
+        foreach(var existing in placementSlots) if(existing == slot) return;
+        int index = placementSlots.Length;
+        System.Array.Resize(ref placementSlots,index+1);
+        placementSlots[index] = slot;
+    }
     public Transform EnemySpawnRoot => enemySpawnRoot;
     public Transform BaseDestination => baseDestination;
     public Transform EnemyRuntimeRoot => enemyRuntimeRoot;

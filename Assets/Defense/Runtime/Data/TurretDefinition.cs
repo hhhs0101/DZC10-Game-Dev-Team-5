@@ -9,6 +9,8 @@ public sealed class TurretDefinition : ScriptableObject {
     [SerializeField, Min(0.01f)] private float damage = 10;
     [SerializeField, Min(0.01f)] private float attackRange = 3;
     [SerializeField, Min(0.01f)] private float attackCooldown = 0.75f;
+    [SerializeField, Min(0), Tooltip("Lifetime in gameplay seconds; zero uses the card's energy-cost lifetime.")] private float lifetimeSeconds;
+    public float LifetimeSeconds => lifetimeSeconds;
     [SerializeField] private TargetingStrategy targeting;
     [Header("2D presentation (optional)")]
     [SerializeField] private Sprite sprite;

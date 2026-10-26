@@ -20,7 +20,7 @@ public sealed class EnemyStatusEffects : MonoBehaviour {
         var slow = slows.Find(s => ReferenceEquals(s.Source,source));
         if(slow == null) { slow = new Slow { Source = source }; slows.Add(slow); }
         slow.Remaining = seconds;
-        owner.Movement.Modifiers.SetSlow(source,multiplier);
+        owner.Movement.Modifiers.SetSlow(slow,multiplier);
     }
     private void Update() => Advance(Time.deltaTime);
     public void Advance(float deltaTime) {
@@ -33,13 +33,13 @@ public sealed class EnemyStatusEffects : MonoBehaviour {
         }
         for(int i=slows.Count-1;i>=0;i--) {
             slows[i].Remaining -= deltaTime;
-            if(slows[i].Remaining <= 0) { owner.Movement.Modifiers.Remove(slows[i].Source); slows.RemoveAt(i); }
+            if(slows[i].Remaining <= 0) { owner.Movement.Modifiers.Remove(slows[i]); slows.RemoveAt(i); }
         }
         if(damage > 0) owner.ReceiveDamage(damage);
     }
     public void Clear() {
         burns.Clear();
-        if(owner != null && owner.Movement != null) foreach(var slow in slows) owner.Movement.Modifiers.Remove(slow.Source);
+        if(owner != null && owner.Movement != null) foreach(var slow in slows) owner.Movement.Modifiers.Remove(slow);
         slows.Clear();
     }
     private void OnDisable() => Clear();

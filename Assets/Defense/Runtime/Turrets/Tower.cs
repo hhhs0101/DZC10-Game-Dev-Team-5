@@ -53,7 +53,7 @@ public abstract class Tower : MonoBehaviour, IDamageable {
         Attack(target);
         cooldown = definition.AttackCooldown;
     }
-    public Enemy FindTarget() => targeting != null && registry != null ? targeting.Select(transform.position,EffectiveAttackRange,registry.Enemies,registry.Plane) : null;
+    public Enemy FindTarget() => targeting != null && registry != null ? targeting.Select(transform.position,EffectiveAttackRange,registry.CombatTargets,registry.Plane) : null;
     public float EffectiveDamage {
         get {
             if(definition == null) return 0;
@@ -68,6 +68,7 @@ public abstract class Tower : MonoBehaviour, IDamageable {
         }
     }
     public void Attack(Enemy target) {
+        if(target != null) target = target.SelectCombatTarget();
         if(!isActiveAndEnabled || CurrentHealth <= 0 || AttackDisabled || target == null || !target.IsAlive || definition == null) return;
         var flow = registry.GetComponent<GameFlow>(); if(flow != null && !flow.IsPlaying) return;
         float damage = EffectiveDamage;

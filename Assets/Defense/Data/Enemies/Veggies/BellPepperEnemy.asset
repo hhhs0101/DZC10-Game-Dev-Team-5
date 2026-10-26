@@ -16,14 +16,14 @@ MonoBehaviour:
   displayName: BellPepper
   sprite: {fileID: 21300000, guid: c8d90c8cf613458ba1dcdfdcc09d1f72, type: 3}
   prefab: {fileID: 7971707257215467551, guid: 42ba81e11bbe4bbba5423e533a17ee48, type: 3}
-  health: 200
+  health: 130
   movementSpeed: 1.8
   baseDamage: 30
   baseDamageUnconfigured: 0
   role: 2
   supportArea: 3
   speedIncrease: 1.5
-  shieldValue: 0.6
+  shieldValue: 0.675
   disruptionRange: 4
   disruptionCooldown: 5
   disruptionDuration: 3

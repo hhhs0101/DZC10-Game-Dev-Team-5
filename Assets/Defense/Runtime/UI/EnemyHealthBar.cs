@@ -75,9 +75,9 @@ public sealed class EnemyHealthBar : MonoBehaviour {
             }
         }
         bar.SetActive(isActiveAndEnabled && NormalizedHealth > 0);
-        // Bars deplete in their authored order. Excess damage carries into the next bar.
+        // Every bar displays its own target health, including simultaneous splash damage.
         for(int i=0;i<count;i++) {
-            float layerHealth = current - (count-1-i)*health.LayerMaximum;
+            float layerHealth = health.GetLayerHealth(i);
             float fraction = health.LayerMaximum > 0 ? Mathf.Clamp01(layerHealth/health.LayerMaximum) : 0;
             fills[i].anchorMax = new Vector2(fraction,1);
         }

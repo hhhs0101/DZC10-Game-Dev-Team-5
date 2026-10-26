@@ -28,11 +28,11 @@ public static class SegmentedEnergyValidation {
         var go=new GameObject("Integer Energy model");var flow=go.AddComponent<GameFlow>();var energy=go.AddComponent<ElixirSystem>();energy.enabled=false;
         try {
             energy.Initialize(flow);Check(energy.CurrentEnergy==3&&energy.MaxEnergy==10,"Integer starting value and maximum");
-            energy.Advance(1.5f);Check(energy.CurrentEnergy==3,"No fractional spendable Energy before interval");
-            flow.TogglePause();energy.Advance(100);flow.TogglePause();energy.Advance(.5f);Check(energy.CurrentEnergy==4,"Pause preserves partial timer without advancing it");
-            energy.Advance(2);Check(energy.CurrentEnergy==5,"Exactly two integer points after four active seconds");
-            energy.Initialize(flow);energy.Advance(5);Check(energy.CurrentEnergy==5,"Long frame restores multiple points");energy.Advance(1);Check(energy.CurrentEnergy==6,"Long-frame remainder is preserved");
-            energy.Advance(100);Check(energy.CurrentEnergy==10,"Long frames clamp at ten");energy.Advance(1000);energy.TrySpend(1);energy.Advance(1.99f);Check(energy.CurrentEnergy==9,"Full bar banks no hidden regeneration");energy.Advance(.02f);Check(energy.CurrentEnergy==10,"Spending from full starts a fresh interval");
+            energy.Advance(ElixirSystem.RegenerationInterval*.75f);Check(energy.CurrentEnergy==3,"No fractional spendable Energy before interval");
+            flow.TogglePause();energy.Advance(100);flow.TogglePause();energy.Advance(ElixirSystem.RegenerationInterval*.25f+.0001f);Check(energy.CurrentEnergy==4,"Pause preserves partial timer without advancing it");
+            energy.Advance(ElixirSystem.RegenerationInterval);Check(energy.CurrentEnergy==5,"Exactly two integer points after two active intervals");
+            energy.Initialize(flow);energy.Advance(ElixirSystem.RegenerationInterval*2.5f);Check(energy.CurrentEnergy==5,"Long frame restores multiple points");energy.Advance(ElixirSystem.RegenerationInterval*.5f+.0001f);Check(energy.CurrentEnergy==6,"Long-frame remainder is preserved");
+            energy.Advance(100);Check(energy.CurrentEnergy==10,"Long frames clamp at ten");energy.Advance(1000);energy.TrySpend(1);energy.Advance(ElixirSystem.RegenerationInterval-.01f);Check(energy.CurrentEnergy==9,"Full bar banks no hidden regeneration");energy.Advance(.02f);Check(energy.CurrentEnergy==10,"Spending from full starts a fresh interval");
             Check(!energy.TrySpend(-1)&&!energy.TrySpend(11)&&!energy.TrySpend(.5f)&&!energy.TrySpend(float.NaN)&&!energy.TrySpend(float.PositiveInfinity)&&energy.CurrentEnergy==10,"Invalid/fractional/insufficient costs never spend");
             energy.Advance(float.NaN);energy.Advance(float.PositiveInfinity);energy.Advance(-10);Check(energy.CurrentEnergy==10,"Invalid elapsed time ignored");
             energy.TrySpend(10);energy.Advance(float.MaxValue);Check(energy.CurrentEnergy==10,"Extremely long finite frames cannot overflow");

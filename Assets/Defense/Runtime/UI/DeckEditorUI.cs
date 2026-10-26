@@ -228,7 +228,7 @@ public sealed class DeckEditorUI : MonoBehaviour {
 
         if (card is TowerCardDefinition towerCard && towerCard.Tower != null) {
             var t = towerCard.Tower;
-            int lifetimeSeconds = Mathf.RoundToInt(TowerLifetime.DurationForCost(card.ElixirCost));
+            int lifetimeSeconds = Mathf.RoundToInt(TowerLifetime.DurationFor(t, card.ElixirCost));
             popupRoleText.text = GetTowerRoleTitle(t);
             if (t.TowerType == TowerType.Mayonnaise) {
                 popupStatsText.text =
@@ -323,7 +323,7 @@ public sealed class DeckEditorUI : MonoBehaviour {
     }
     private void OnDisable() => HideCardPopup();
     private void Refresh() {
-        stageTitle.text = (PlayerSession.CardStage != null ? PlayerSession.CardStage.DisplayName : "All") + " Cards";
+        stageTitle.text = (PlayerSession.CardStage != null ? PlayerSession.CardStage.DisplayName + " " : "") + "Available Cards";
         for (int i=0;i<6;i++) {
             bool occupied = i < deck.Slots.Count;
             slotImages[i].gameObject.SetActive(occupied); if(!occupied) continue;

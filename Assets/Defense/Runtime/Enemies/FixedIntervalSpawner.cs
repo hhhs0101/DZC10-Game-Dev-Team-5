@@ -26,6 +26,7 @@ public sealed class FixedIntervalSpawner : MonoBehaviour {
         flow = spawner != null ? spawner.Flow : null;
         if(flow == null) flow = GetComponent<GameFlow>();
         if(flow != null) flow.Changed += OnStateChanged;
+        if(spawner != null) spawner.ResetSpawnGroups();
         enemy=null;sequence=null;timedPlan=null;remaining=interval=0;total=SpawnedCount=0;
         cancelled=false;UsesJsonPlan=false;ConfigurationError=null;awaitingBossAnnouncement=false;announcedBossIndex=-1;
     }
@@ -71,7 +72,7 @@ public sealed class FixedIntervalSpawner : MonoBehaviour {
                 if(next.Enemy.Role==EnemyRole.Boss && BossIncoming!=null && announcedBossIndex!=SpawnedCount) {
                     announcedBossIndex=SpawnedCount;awaitingBossAnnouncement=true;BossIncoming(next.Enemy);return;
                 }
-                var spawned=spawner.Spawn(next.Enemy);
+                var spawned=spawner.Spawn(next.Enemy,next.RouteGroup);
                 if(spawned==null) {Fail("Spawn JSON stageId '"+plan.StageId+"', event ["+SpawnedCount+"] enemyId '"+next.Enemy.EnemyTypeId+"' could not spawn.");return;}
                 SpawnedCount++;bool last=SpawnedCount>=total;
                 // Positive delays start at the preceding successful spawn; no overshoot is borrowed.

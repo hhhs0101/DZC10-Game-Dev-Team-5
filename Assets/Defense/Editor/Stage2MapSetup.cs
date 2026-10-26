@@ -68,7 +68,8 @@ public static class Stage2MapSetup {
         new Vector2(1250.0f,718.0f),
         new Vector2(165.0f,565.0f),
         new Vector2(125.0f,755.0f),
-        new Vector2(1365.0f,405.0f)
+        new Vector2(1365.0f,405.0f),
+        new Vector2(885.0f,758.0f)
     };
 
     private static Vector3 RouteWorld(Vector2 pixel) => new Vector3((pixel.x - 836f) / PixelsPerUnit, (470.5f - pixel.y) / PixelsPerUnit + .5f, 0f);
@@ -170,9 +171,24 @@ public static class Stage2MapSetup {
         spawnerBranchesProp.arraySize = builtBranches.Length;
         for (int b = 0; b < builtBranches.Length; b++)
             spawnerBranchesProp.GetArrayElementAtIndex(b).objectReferenceValue = builtBranches[b];
+        var weights = spawnerData.FindProperty("branchWeights");
+        weights.arraySize = 3;
+        weights.GetArrayElementAtIndex(0).floatValue = 4f;
+        weights.GetArrayElementAtIndex(1).floatValue = 4f;
+        weights.GetArrayElementAtIndex(2).floatValue = 1f;
+        spawnerData.FindProperty("openingPreferredBranches").intValue = 2;
+        spawnerData.FindProperty("openingPreferredChoices").intValue = 2;
         spawnerData.ApplyModifiedPropertiesWithoutUndo();
 
-        for (int i = 0; i < map.PlacementSlots.Count; i++)
+        // Keep the additional lower-route plate when rebuilding an older scene.
+        if (map.PlacementSlots.Count == 8) {
+            var template = map.PlacementSlots[3];
+            var slot = UnityEngine.Object.Instantiate(template, template.transform.parent);
+            slot.gameObject.name = "Slot 9 (Lower Middle)";
+            map.RegisterPlacementSlot(slot);
+            EditorUtility.SetDirty(map);
+        }
+        for (int i = 0; i < map.PlacementSlots.Count && i < SlotPixels.Length; i++)
             map.PlacementSlots[i].transform.position = RouteWorld(SlotPixels[i]);
 
         var stage1_2 = AssetDatabase.LoadAssetAtPath<StageDefinition>("Assets/Defense/Data/Stage1_2.asset");

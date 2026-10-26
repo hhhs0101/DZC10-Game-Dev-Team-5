@@ -84,7 +84,8 @@ public sealed class EnemyDefinition : ScriptableObject {
     public int ResourceReward => Mathf.Max(0, resourceReward);
     public Enemy Prefab => prefab;
     public float Health => health;
-    public float MovementSpeed => movementSpeed;
+    // Apply the global pacing adjustment once, including summoned enemies.
+    public float MovementSpeed => movementSpeed * 0.85f;
     public int BaseDamage => HasConfiguredBaseDamage ? baseDamage : 0;
 }
 }

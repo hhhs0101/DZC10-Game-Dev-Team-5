@@ -60,7 +60,7 @@ public static class KitchenMap2DSetup {
         new Vector2(1410f,408f),
         new Vector2(1423f,382f)
     };
-    private static readonly Vector2[] SlotPixels = { new Vector2(558.0800f,577.3400f), new Vector2(480.0000f,670.0000f), new Vector2(687.6800f,447.7400f), new Vector2(882.0800f,426.1400f), new Vector2(1170.0000f,565.0000f), new Vector2(1224.0800f,674.5400f), new Vector2(860.4800f,764.5400f), new Vector2(120.0000f,650.0000f) };
+    private static readonly Vector2[] SlotPixels = { new Vector2(558.0800f,577.3400f), new Vector2(480.0000f,670.0000f), new Vector2(860.4800f,650.0000f), new Vector2(882.0800f,426.1400f), new Vector2(1170.0000f,565.0000f), new Vector2(1224.0800f,674.5400f), new Vector2(860.4800f,764.5400f), new Vector2(120.0000f,650.0000f) };
     private static Vector3 RouteWorld(Vector2 pixel) => new Vector3((pixel.x-836)/PixelsPerUnit,(470.5f-pixel.y)/PixelsPerUnit+.5f,0);
     [MenuItem("Defense/Maps/Apply Kitchen 2D Layout")]
     public static void Run() {

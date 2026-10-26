@@ -10,11 +10,13 @@ public sealed class SpawnPlanData {
 public sealed class SpawnEventData {
     public string enemyId;
     public float delay;
+    public string routeGroup;
 }
 public readonly struct ResolvedSpawnEvent {
     public EnemyDefinition Enemy { get; }
     public float Delay { get; }
-    public ResolvedSpawnEvent(EnemyDefinition enemy,float delay) {Enemy=enemy;Delay=delay;}
+    public string RouteGroup { get; }
+    public ResolvedSpawnEvent(EnemyDefinition enemy,float delay,string routeGroup=null) {Enemy=enemy;Delay=delay;RouteGroup=routeGroup;}
 }
 // Fresh, read-only snapshot per run. Editing a TextAsset never mutates an active schedule.
 public sealed class ResolvedSpawnPlan {

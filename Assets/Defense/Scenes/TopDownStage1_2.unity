@@ -1248,6 +1248,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d39942e7f5454398bfb21bcd0e3a48c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Defense.EnemySpawner
+  branchWeights:
+  - 4
+  - 4
+  - 1
+  openingPreferredBranches: 2
+  openingPreferredChoices: 2
   path: {fileID: 1553294649}
   branchPaths:
   - {fileID: 1553294649}
@@ -3194,6 +3200,7 @@ Transform:
   - {fileID: 1095854142}
   - {fileID: 1186146022}
   - {fileID: 1668980667}
+  - {fileID: 2100000102}
   m_Father: {fileID: 2047559009}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1906388101
@@ -3262,6 +3269,79 @@ Transform:
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7117058949492522495, guid: 319cd65fbe318401faccb819a0e3ff37, type: 3}
   m_PrefabInstance: {fileID: 1906388101}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4cb6fd94ca544b7e87d9ac24f4102b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Defense.TowerPlacementSlot
+--- !u!1001 &2100000101
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1878203354}
+    m_Modifications:
+    - target: {fileID: 5480215686109789671, guid: 319cd65fbe318401faccb819a0e3ff37, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.6125
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480215686109789671, guid: 319cd65fbe318401faccb819a0e3ff37, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -3.09375
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480215686109789671, guid: 319cd65fbe318401faccb819a0e3ff37, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480215686109789671, guid: 319cd65fbe318401faccb819a0e3ff37, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480215686109789671, guid: 319cd65fbe318401faccb819a0e3ff37, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480215686109789671, guid: 319cd65fbe318401faccb819a0e3ff37, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480215686109789671, guid: 319cd65fbe318401faccb819a0e3ff37, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480215686109789671, guid: 319cd65fbe318401faccb819a0e3ff37, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480215686109789671, guid: 319cd65fbe318401faccb819a0e3ff37, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480215686109789671, guid: 319cd65fbe318401faccb819a0e3ff37, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9124981615732549281, guid: 319cd65fbe318401faccb819a0e3ff37, type: 3}
+      propertyPath: m_Name
+      value: Slot 9 (Lower Middle)
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 319cd65fbe318401faccb819a0e3ff37, type: 3}
+--- !u!4 &2100000102 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5480215686109789671, guid: 319cd65fbe318401faccb819a0e3ff37, type: 3}
+  m_PrefabInstance: {fileID: 2100000101}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2100000103 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7117058949492522495, guid: 319cd65fbe318401faccb819a0e3ff37, type: 3}
+  m_PrefabInstance: {fileID: 2100000101}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
@@ -3339,6 +3419,7 @@ MonoBehaviour:
   - {fileID: 1095854143}
   - {fileID: 1186146023}
   - {fileID: 1668980668}
+  - {fileID: 2100000103}
   enemySpawnRoot: {fileID: 190669950}
   baseDestination: {fileID: 414716244}
   enemyRuntimeRoot: {fileID: 1357743024}

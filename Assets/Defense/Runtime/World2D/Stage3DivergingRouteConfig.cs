@@ -17,21 +17,27 @@ public static class Stage3DivergingRouteConfig {
         new Vector2(296f, 599f),
         new Vector2(267f, 647f),
         new Vector2(257f, 685f),
-        new Vector2(268f, 735f),
-        new Vector2(282f, 790f),
-        new Vector2(289f, 850f),
-        new Vector2(284f, 910f),
-        new Vector2(280f, 970f),
-        new Vector2(274f, 1024f)
+        new Vector2(277f, 723f),
+        new Vector2(319f, 757f),
+        new Vector2(374f, 778f),
+        new Vector2(438f, 786f),
+        new Vector2(452f, 835f),
+        new Vector2(460f, 885f),
+        new Vector2(462f, 935f),
+        new Vector2(464f, 980f),
+        new Vector2(464f, 1024f)
     };
 
     public static readonly Vector2[] RightEmergencePixels = {
-        new Vector2(1466f, 1024f),
-        new Vector2(1460f, 980f),
-        new Vector2(1449f, 940f),
-        new Vector2(1442f, 895f),
-        new Vector2(1438f, 850f),
-        new Vector2(1435f, 800f),
+        new Vector2(1230f, 1024f),
+        new Vector2(1234f, 980f),
+        new Vector2(1248f, 945f),
+        new Vector2(1236f, 905f),
+        new Vector2(1225f, 860f),
+        new Vector2(1236f, 817f),
+        new Vector2(1291f, 814f),
+        new Vector2(1347f, 801f),
+        new Vector2(1396f, 775f),
         new Vector2(1441f, 742f),
         new Vector2(1477f, 703f),
         new Vector2(1504f, 662f),
@@ -45,6 +51,8 @@ public static class Stage3DivergingRouteConfig {
         new Vector2(1423f, 382f)
     };
 
+    public const string RightPlacementSlotName = "Slot 9 (Stage 3 Right)";
+    public static readonly Vector3 RightPlacementSlotPosition = new Vector3(6.8f,-1.4f,0f);
     private static Sprite cachedRouteSprite;
 
     public static bool IsStage3(StageDefinition definition) =>
@@ -66,6 +74,7 @@ public static class Stage3DivergingRouteConfig {
 
     public static void Apply(BattlefieldMap2D map, EnemySpawner spawner) {
         if (map == null) return;
+        EnsureRightPlacementSlot(map);
         var root = map.transform;
         var routeTransform = root.Find("GinghamPathSprite");
         if (routeTransform != null) {
@@ -79,8 +88,30 @@ public static class Stage3DivergingRouteConfig {
         }
         var leftPath = BuildOrUpdatePath(root, LeftDivergingObjectName, LeftDivergingPixels, map.EnemySpawnRoot, null);
         var rightPath = BuildOrUpdatePath(root, RightEmergenceObjectName, RightEmergencePixels, null, map.BaseDestination);
-        if (spawner != null)
+        if (spawner != null) {
             spawner.ConfigureDivergingRoute(leftPath, rightPath, HideDurationSeconds);
+            // Include leading escorts, even when the first enemy is not a support.
+            spawner.ConfigureMainRouteGroups("stage3_support_01", "stage3_support_02");
+        }
+        if (map.PlacementSlots != null && map.PlacementSlots.Count > 2 && map.PlacementSlots[2] != null) {
+            map.PlacementSlots[2].transform.position = RouteWorld(new Vector2(860.48f, 650.00f));
+        }
+    }
+
+    private static void EnsureRightPlacementSlot(BattlefieldMap2D map) {
+        if(map.PlacementSlots == null || map.PlacementSlots.Count == 0) return;
+        var template = map.PlacementSlots[0];
+        if(template == null || template.transform.parent == null) return;
+        var parent = template.transform.parent;
+        var existing = parent.Find(RightPlacementSlotName);
+        if(existing != null) {
+            map.RegisterPlacementSlot(existing.GetComponent<TowerPlacementSlot>());
+            return;
+        }
+        // Clone the authored plate, collider, layer, anchor and hover view together.
+        var slot = Object.Instantiate(template,RightPlacementSlotPosition,template.transform.rotation,parent);
+        slot.gameObject.name = RightPlacementSlotName;
+        map.RegisterPlacementSlot(slot);
     }
 
     private static WaypointPath BuildOrUpdatePath(Transform root, string objectName, Vector2[] pixels, Transform firstAnchor, Transform lastAnchor) {
