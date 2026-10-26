@@ -28,14 +28,14 @@ public static class SupportSpawnGroupValidation {
                 Check(swarm.All(e=>e.Enemy.VegetableType==VegetableType.Carrot||e.Enemy.VegetableType==VegetableType.Tomato||e.Enemy.VegetableType==VegetableType.Eggplant),"Basic swarm composition");
                 Check(swarm.Skip(1).All(e=>Mathf.Abs(e.Delay-.7f)<.001f),"Basic swarm spacing");
             }
-            Check(groups.Length==12,"Expected twelve support groups in Stage "+n);
+            Check(groups.Length==(n==2?14:12),"Expected authored support group count in Stage "+n);
             Check(plan.Events.Where(e=>e.Enemy.Role==EnemyRole.SpeedSupport||e.Enemy.Role==EnemyRole.ShieldSupport).All(e=>e.RouteGroup!=null),"Every support enemy is grouped");
             Func<ResolvedSpawnEvent,bool> support=e=>e.Enemy.Role==EnemyRole.SpeedSupport||e.Enemy.Role==EnemyRole.ShieldSupport;
-            Check(groups.Count(g=>g.Any(e=>e.Enemy.Role==EnemyRole.SpeedSupport)&&g.Any(e=>e.Enemy.Role==EnemyRole.ShieldSupport))==(n==2?1:3),"Combined support group frequency");
+            Check(groups.Count(g=>g.Any(e=>e.Enemy.Role==EnemyRole.SpeedSupport)&&g.Any(e=>e.Enemy.Role==EnemyRole.ShieldSupport))==3,"Combined support group frequency");
             Check(groups.All(g=>g.Count(e=>!support(e))<=4),"Support groups have at most four non-support escorts");
             Check(groups.All(g=>g.Count(e=>!support(e))>=3&&g.Count(e=>!support(e))<=4),"Escort counts stay within authored limits");
-            Check(plan.Events.Count==(n==2?85:97),"Balanced scheduled enemy count");
-            Check(Mathf.Abs(plan.Events.Sum(e=>e.Delay)-180f)<.01f,"Three-minute spawn schedule preserved");
+            Check(plan.Events.Count==97,"Balanced scheduled enemy count");
+            Check(Mathf.Abs(plan.Events.Sum(e=>e.Delay)-(n==2?196f:180f))<.01f,"Authored spawn duration, including Stage 2 finale");
             if(n==3) {
                 float time=0;int bosses=0;
                 foreach(var spawn in plan.Events) {

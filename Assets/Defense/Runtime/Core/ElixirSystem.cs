@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Defense {
 public sealed class ElixirSystem : MonoBehaviour {
     public const int Maximum = 10, Starting = 3;
-    public const float RegenerationInterval = 3f, Regeneration = 1f / RegenerationInterval;
+    public const float RegenerationInterval = 2.8f, Regeneration = 1f / RegenerationInterval;
     private GameFlow flow;
     private double regenerationElapsed;
     public int CurrentEnergy { get; private set; } = Starting;

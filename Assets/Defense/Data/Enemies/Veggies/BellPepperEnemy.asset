@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: BellPepper
   sprite: {fileID: 21300000, guid: 7a7a57471c274ebbaa7b4f7c292a4260, type: 3}
   prefab: {fileID: 7971707257215467551, guid: 42ba81e11bbe4bbba5423e533a17ee48, type: 3}
-  health: 162
+  health: 130
   movementSpeed: 1.8
   baseDamage: 30
   baseDamageUnconfigured: 0

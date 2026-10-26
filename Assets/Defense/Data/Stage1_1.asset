@@ -21,7 +21,7 @@ MonoBehaviour:
   spawnSequence: []
   spawnPlanJson: {fileID: 4900000, guid: 195e102104b3466384c834d454ab571a, type: 3}
   finiteSpawning: 1
-  totalEnemies: 58
+  totalEnemies: 85
   clearGoldReward: 50
   alwaysUnlocked: 0
   availableTurrets:

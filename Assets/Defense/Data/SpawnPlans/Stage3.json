@@ -196,7 +196,7 @@
       "delay": 0.3
     },
     {
-      "enemyId": "enemy_carrot",
+      "enemyId": "enemy_eggplant",
       "routeGroup": "stage3_support_05",
       "delay": 0.3
     },
@@ -436,7 +436,7 @@
       "delay": 0.3
     },
     {
-      "enemyId": "enemy_carrot",
+      "enemyId": "enemy_eggplant",
       "routeGroup": "stage3_support_11",
       "delay": 0.3
     },
