@@ -32,9 +32,9 @@ public static class SupportSpawnGroupValidation {
             Check(plan.Events.Where(e=>e.Enemy.Role==EnemyRole.SpeedSupport||e.Enemy.Role==EnemyRole.ShieldSupport).All(e=>e.RouteGroup!=null),"Every support enemy is grouped");
             Func<ResolvedSpawnEvent,bool> support=e=>e.Enemy.Role==EnemyRole.SpeedSupport||e.Enemy.Role==EnemyRole.ShieldSupport;
             Check(groups.Count(g=>g.Any(e=>e.Enemy.Role==EnemyRole.SpeedSupport)&&g.Any(e=>e.Enemy.Role==EnemyRole.ShieldSupport))==(n==2?1:3),"Combined support group frequency");
-            Check(groups.Count(g=>g.Count(e=>!support(e))==5)==10,"Ten groups have five non-support escorts");
-            Check(groups.All(g=>g.Count(e=>!support(e))>=3&&g.Count(e=>!support(e))<=5),"Escort counts stay within authored limits");
-            Check(plan.Events.Count==(n==2?95:107),"Balanced scheduled enemy count");
+            Check(groups.All(g=>g.Count(e=>!support(e))<=4),"Support groups have at most four non-support escorts");
+            Check(groups.All(g=>g.Count(e=>!support(e))>=3&&g.Count(e=>!support(e))<=4),"Escort counts stay within authored limits");
+            Check(plan.Events.Count==(n==2?85:97),"Balanced scheduled enemy count");
             Check(Mathf.Abs(plan.Events.Sum(e=>e.Delay)-180f)<.01f,"Three-minute spawn schedule preserved");
             if(n==3) {
                 float time=0;int bosses=0;

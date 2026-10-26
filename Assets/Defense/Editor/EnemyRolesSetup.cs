@@ -8,7 +8,7 @@ namespace Defense.Editor {
 public static class EnemyRolesSetup {
     public static readonly string[] Names = {"Carrot","Tomato","Eggplant","Garlic","BellPepper","Corn","Potato","Broccoli"};
     public static string PathFor(string name) => name == "Boss" ? "Assets/Defense/Data/Enemies/BossEnemy.asset" : VeggieEnemySetup.DataRoot+"/"+name+"Enemy.asset";
-    private static readonly float[] Health = {100,85,150,40,200,30,200,5000};
+    private static readonly float[] Health = {100,85,150,40,162,30,200,5000};
     private static readonly float[] Speed = {2,3,1.7f,2,1.8f,2,2,1.3f};
     private static readonly int[] Damage = {100,100,100,20,30,40,20,0};
     private static readonly EnemyRole[] Roles = {EnemyRole.Basic,EnemyRole.Basic,EnemyRole.Basic,EnemyRole.SpeedSupport,EnemyRole.ShieldSupport,EnemyRole.Split,EnemyRole.Disruptor,EnemyRole.Boss};
