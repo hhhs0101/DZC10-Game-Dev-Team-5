@@ -359,3 +359,6 @@ Editor tests may use DEFENSE_TEST_PROGRESS_SAVE_PATH. If omitted while test curr
 ### Sound settings and first-run introductions
 
 BGM and SFX volume preferences, including mute, are saved immediately through PlayerPrefs. The story is marked seen when completed or skipped, so it no longer automatically replays after a restart. Automatic tutorial display honors the existing tutorial completion preference; How to Play remains available for manual replay. The opening video retains its existing once-per-launch behavior.
+
+
+Doraji now uses the existing BossEnemy periodic-summon behavior with the same seven candidate EnemyDefinitions as Broccoli (Carrot, Tomato, Eggplant, Garlic, BellPepper, Corn and Potato). It summons three distinct candidate types every five active gameplay seconds at its current path position. Doraji has 4000 HP; its movement speed, Base damage and existing child reward policy are unchanged.
