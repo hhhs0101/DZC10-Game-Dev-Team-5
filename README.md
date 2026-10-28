@@ -184,7 +184,7 @@ Settings is a placeholder screen. Closing it returns to the screen that opened i
 - There are 15 tower types. The initial deck is `[Test1, Test2, Test3, Test4, Test5, Test6]`. PlayerDeck always contains six unique CardDefinition references, including at least one Tower Card.
 - Available Cards is **the full card catalog minus the six cards in the current deck**. There are 17 cards (15 towers and 2 skills), so 11 are available. After replacement, the incoming card disappears and the outgoing card returns immediately. Duplicate assignments and removing the final Tower Card are rejected.
 - T1–T6 are persistent deck-editing positions. At stage entry, a separate runtime copy is shuffled once. Hand and Queue changes do not modify PlayerDeck.
-- Three independent deck presets and the active preset index survive application restarts. Progression and stage selection remain session-only. No PlayerPrefs are used.
+- Three independent deck presets and the active preset index survive application restarts. Stage completion and unlocks are saved separately; stage selection remains session-only. No PlayerPrefs are used.
 - Stages `1-1` through `1-3` reuse the shared gameplay maps. Starting resources are 150, 175, and 200; enemy spawn intervals are 2.0, 1.9, and 1.8 seconds.
 - `PlayerSession.CompleteActiveStage()` remains an idempotent progression-only operation. Finite stages call it on Victory; repeat clears leave completion unchanged and still award Gold. Game Over does not unlock stages. The three campaign test configurations still spawn continuously; enable Finite Spawning and configure Total Enemies on their StageDefinition assets to give them a clear condition.
 
@@ -204,11 +204,11 @@ No Scene, Prefab or Inspector wiring is required. The existing UI builders creat
 
 The dedicated **Test Stage** uses the integrated 2D scene and is accessible at the right end of the Lobby carousel without campaign progression. It starts with 3 Base HP and 300 resources, spawns exactly five enemies at 0.75-second intervals, and awards 50 Gold on every clear. Its RewardTestEnemy definition uses 20 HP, speed 3, Base damage 1, resource reward 10, and a 100% chance of 1 Candy per combat kill. Let enemies through to test failure. BasicEnemy uses a 10% chance of 1 Candy. These are editable asset values, not hard-coded reward rules.
 
-`FixedIntervalSpawner` counts successful spawns and exposes completion. `EnemyRegistry` owns the active population. `StageVictoryController` evaluates finished spawning plus zero active enemies in LateUpdate, after the final enemy's Base damage callback finishes. Base HP depletion triggers Game Over; a positive-HP Base arrival never triggers defeat. Optional scheduled combat-death statistics are independent of clear eligibility. `GameFlow.Victory` is terminal, mutually exclusive with Game Over, and freezes gameplay. Progression completion is separate from the once-per-run Gold award. Replay uses the existing scene reload, resetting the runtime Hand, Elixir, towers, skills, enemies and schedule while retaining currency, presets and session progression.
+`FixedIntervalSpawner` counts successful spawns and exposes completion. `EnemyRegistry` owns the active population. `StageVictoryController` evaluates finished spawning plus zero active enemies in LateUpdate, after the final enemy's Base damage callback finishes. Base HP depletion triggers Game Over; a positive-HP Base arrival never triggers defeat. Optional scheduled combat-death statistics are independent of clear eligibility. `GameFlow.Victory` is terminal, mutually exclusive with Game Over, and freezes gameplay. Progression completion is separate from the once-per-run Gold award. Replay uses the existing scene reload, resetting the runtime Hand, Elixir, towers, skills, enemies and schedule while retaining currency, presets and saved stage progression.
 
 `PlayerSession.Currency` owns one `PlayerCurrency`. Gold and Candy are separate from stage resources and Elixir. Controlled add/spend operations reject negative amounts, unaffordable spending and integer overflow. `CandyDropSystem` subscribes to the spawner's combat-death event and rolls once using that enemy's definition. Base arrival and arbitrary object removal do not award Candy. Successful drops save immediately and survive Game Over; no pickup input or visual is required. Lobby and gameplay counters subscribe to currency changes.
 
-`player-currency.json` under `Application.persistentDataPath` stores only `Version: 1`, `Gold` and `Candy`. The shared JsonFileStore also serves deck saves. Currency changes save immediately using a flushed temporary file and replacement; failure retains memory and the previous file, logs an explicit error, and exposes `LastSaveSucceeded = false`. A later valid mutation retries the complete current state. Malformed/unsupported saves reset balances with a warning; negative loaded balances are clamped and saved. Stage completion/unlocks remain **session-only** and are not restored after application restart.
+`player-currency.json` under `Application.persistentDataPath` stores only `Version: 1`, `Gold` and `Candy`. The shared JsonFileStore also serves deck saves. Currency changes save immediately using a flushed temporary file and replacement; failure retains memory and the previous file, logs an explicit error, and exposes `LastSaveSucceeded = false`. A later valid mutation retries the complete current state. Malformed/unsupported saves reset balances with a warning; negative loaded balances are clamped and saved. Stage completion/unlocks persist separately in `stage-progress.json` and are restored on the next launch.
 
 No manual Scene/Prefab rewiring is required: StageInitializer adds and connects the reward components, and existing UI builders create the counters and Victory panel. No new package, shop, wave framework, pickup object or final visual asset is introduced.
 
@@ -331,3 +331,31 @@ Energy artwork was revised using `ChatGPT Image Oct 23, 2026, 09_29_20 PM (4).pn
 
 
 The Energy bar adds `Resources/UI/EnergyBarBolt.png` as its final child after the segment container. This keeps the supplied lightning mark in front of all yellow blocks, including at full Energy. It preserves aspect ratio, uses Point filtering, and has raycastTarget disabled. The source is archived as `Art/UI/SegmentedEnergy/EnergyBoltSource.png`; latest source `image (7).png`, crop (188,299,312,426), measured from top-left.
+
+
+### Gosari two-generation death split
+
+Stage 2 keeps the stable `enemy_gosari` ID and original Gosari General data (2000 HP, 0.32 authored speed). On combat death it creates two `GosariChild` enemies (800 HP, 0.48 speed); each child creates two `GosariGrandchild` enemies (400 HP, 0.64 speed). Grandchildren do not split. The existing global movement multiplier 0.85 still applies. These are prototype tuning values.
+
+All generations share `Prefabs/TopDown2D/DeathSplitEnemy2D.prefab` and original Gosari artwork. `DeathSplitEnemy` reuses Enemy's combat-death hook and EnemySpawner.SpawnChild, inheriting the parent's route/progress. Configurations link through EnemyDefinition's Death Split Child/Count/Spacing fields; siblings receive small forward path spacing (0.4 for the parent, 0.2 for a child). This creates children synchronously before parent retirement so Victory cannot occur between generations. Base arrival, scene cleanup and nonlethal damage do not split. Child Base damage 260 and grandchild 130 conserve the parent's total 520 damage potential. Child spawns retain the existing no-additional-resource/Candy policy.
+
+`Defense.Editor.GosariSplitValidation.Run` verifies the finite 1 -> 2 -> 4 chain, stats, route progress, duplicate-death guards, clear eligibility, endpoint behavior and unchanged Broccoli summoning. Run outside Play Mode with isolated test save paths.
+
+
+Gosari sprite size also decreases by generation: EnemyDefinition.SpriteScale is 1.0 for GosariBoss, 0.75 for GosariChild and 0.5 for GosariGrandchild. EnemySpriteView applies this to its cached original SpriteRenderer scale, so repeated refresh/re-enable does not compound shrinking. Only the artwork transform changes; root/collider scale, HP, speed and split rules remain unchanged. Other enemies default to 1.0.
+
+
+### Automatic stage completion and unlock saving
+
+`PlayerSession.Ensure` loads `stage-progress.json` from `Application.persistentDataPath` before creating stage selection/Lobby UI. Successful clears pass through the existing StageVictoryController -> PlayerSession.CompleteActiveStage -> StageProgressionState.Complete flow, saving immediately with the existing atomic JsonFileStore. The file contains Version 1, CompletedStageIds and UnlockedStageIds. Repeated clears are idempotent; Game Over and Developer Mode entry alone do not change progress. The existing completion/unlock eligibility rules remain.
+
+StageDefinition has an Inspector-visible stable Stage Id: campaign stages use stage_1, stage_2 and stage_3; development definitions have their own IDs. Do not change these IDs after release. Completion and explicit unlocks follow IDs across list reorder/asset/display renaming. Blank IDs fall back to asset names for legacy/new authoring compatibility, but current stage assets have explicit IDs; duplicate/empty identities are rejected. Unknown saved IDs are retained for content that may return later.
+
+Missing saves start fresh. Malformed saves fall back with a warning and can be rewritten on the next clear. Unsupported newer versions are preserved without overwriting. Save failure leaves progress in memory, reports LastSaveSucceeded=false and retries on a later clear (including the same completed stage). Existing deck/currency files are independent. No historical clear data existed before this feature, so older session-only clears cannot be recovered.
+
+Editor tests may use DEFENSE_TEST_PROGRESS_SAVE_PATH. If omitted while test currency/deck paths are set, progress automatically uses stage-progress.json in that isolated profile directory. StageProgressionPersistenceValidation.Run covers storage and actual Victory integration; WriteRestartFixture then ReadRestartFixture verify restoration across two separate Unity processes. In-memory StageProgressionState constructors still work without persistence.
+
+
+### Sound settings and first-run introductions
+
+BGM and SFX volume preferences, including mute, are saved immediately through PlayerPrefs. The story is marked seen when completed or skipped, so it no longer automatically replays after a restart. Automatic tutorial display honors the existing tutorial completion preference; How to Play remains available for manual replay. The opening video retains its existing once-per-launch behavior.

@@ -68,6 +68,8 @@ public static class GameAudio {
             if (enemyDeathSfxSource != null) enemyDeathSfxSource.volume = clamped;
             if (enemyReachSfxSource != null) enemyReachSfxSource.volume = clamped;
         }
+        // Flush now so settings survive an interrupted session as well as a normal exit.
+        PlayerPrefs.Save();
         VolumeChanged?.Invoke(category, clamped);
     }
 

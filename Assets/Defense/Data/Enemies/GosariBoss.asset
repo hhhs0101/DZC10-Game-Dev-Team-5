@@ -15,8 +15,9 @@ MonoBehaviour:
   enemyTypeId: enemy_gosari
   displayName: Gosari General
   sprite: {fileID: 21300000, guid: 2c2655258a3843358aaa15117e063af9, type: 3}
-  prefab: {fileID: 7971707257215467551, guid: 31c315c7eb8d40518f18bd7b9727f557, type: 3}
-  health: 3500
+  spriteScale: 1
+  prefab: {fileID: 4682262823018934269, guid: dfbd6d4312c564b2ba3e52a6e13a94a9, type: 3}
+  health: 2000
   movementSpeed: 0.32
   baseDamage: 520
   baseDamageUnconfigured: 0
@@ -27,14 +28,17 @@ MonoBehaviour:
   disruptionRange: 4
   disruptionCooldown: 5
   disruptionDuration: 3
-  resourceReward: 10
-  candyDropChance: 0.1
-  candyDropAmount: 1
   vegetableType: 0
   splitCount: 5
+  deathSplitChild: {fileID: 11400000, guid: fbd3fd783d940498bb6eb600ff0058e2, type: 2}
+  deathSplitCount: 2
+  deathSplitSpacing: 0.4
   summonCount: 3
   summonInterval: 6
+  summonTypes: []
   towerAttackRange: 3
   towerAttackInterval: 5
   towerDamageFraction: 0.66
-  summonTypes: []
+  resourceReward: 10
+  candyDropChance: 0.1
+  candyDropAmount: 1

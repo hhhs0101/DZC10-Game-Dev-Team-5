@@ -7,9 +7,10 @@ public sealed class EnemySpriteView : MonoBehaviour {
     private Enemy enemy;
     private Sprite originalSprite;
     private Color originalColor;
+    private Vector3 originalScale;
     private void Awake() {
         enemy=GetComponent<Enemy>();
-        originalSprite=appearance.sprite; originalColor=appearance.color;
+        originalSprite=appearance.sprite; originalColor=appearance.color; originalScale=appearance.transform.localScale;
     }
     private void OnEnable() {
         enemy.Initialized += Refresh;
@@ -19,6 +20,7 @@ public sealed class EnemySpriteView : MonoBehaviour {
     private void Refresh(EnemyDefinition definition) {
         bool custom = definition != null && definition.Sprite != null;
         appearance.sprite = custom ? definition.Sprite : originalSprite;
+        appearance.transform.localScale = originalScale * (definition != null ? definition.SpriteScale : 1);
         var color = custom ? Color.white : originalColor;
         if (enemy != null && enemy.IsDead) color.a = Enemy.DeadSpriteAlpha;
         appearance.color = color;

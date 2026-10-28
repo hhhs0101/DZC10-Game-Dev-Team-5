@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 namespace Defense {
-// Pokémon-style dialogue between Mom and Jihoon, played once per launch when Start Game opens stage select.
+// Pokémon-style dialogue between Mom and Jihoon, shown until completed or skipped once.
 // Portraits are loaded from Resources/Story/{Mom|Jihoon}_{Face}; placeholders are drawn if the art is missing.
 public sealed class StoryIntroUI : MonoBehaviour {
     private enum Speaker { Mom, Jihoon }
@@ -24,6 +24,7 @@ public sealed class StoryIntroUI : MonoBehaviour {
     };
     private const float CharsPerSecond = 28f, FadeSeconds = .4f;
     private static readonly Color Ink = new Color(.16f,.12f,.1f), Dimmed = new Color(.45f,.45f,.5f,1f);
+    private const string SeenKey = "Defense.StoryIntro.Seen.v1";
     private static bool played;
 
     private Action finished;
@@ -40,7 +41,7 @@ public sealed class StoryIntroUI : MonoBehaviour {
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatics() { played = false; }
 
-    public static bool ShouldPlay => !played;
+    public static bool ShouldPlay => !played && PlayerPrefs.GetInt(SeenKey,0) != 1;
 
     public static void Play(Transform canvas, Sprite background, Action onFinished) {
         played = true;
@@ -189,6 +190,8 @@ public sealed class StoryIntroUI : MonoBehaviour {
 
     private void Complete() {
         if (finished == null) return;
+        PlayerPrefs.SetInt(SeenKey,1);
+        PlayerPrefs.Save();
         var callback = finished; finished = null;
         Destroy(gameObject);
         callback();

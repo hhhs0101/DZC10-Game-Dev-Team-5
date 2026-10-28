@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d16f3810864884c378b0a0ec8de87ccb, type: 3}
   m_Name: Stage1_3
   m_EditorClassIdentifier: Assembly-CSharp::Defense.StageDefinition
+  stageId: stage_3
   displayName: Stage 3
   sceneName: TopDownStage3
   baseHealth: 1000
@@ -20,14 +21,6 @@ MonoBehaviour:
   spawnInterval: 1.8
   spawnSequence: []
   spawnPlanJson: {fileID: 4900000, guid: ca99c512e656467f8d7fd36e902fb6d4, type: 3}
-  finiteSpawning: 1
-  totalEnemies: 97
-  clearGoldReward: 50
-  alwaysUnlocked: 0
-  availableTurrets:
-  - {fileID: 11400000, guid: 04ae679be013433580c018e4b27e4bd9, type: 2}
-  - {fileID: 11400000, guid: 1e6ab288cd744598bff374d5eeffb51a, type: 2}
-  - {fileID: 11400000, guid: da7da4367609414b848cbffc6eeb6989, type: 2}
   allowedCards:
   - {fileID: 11400000, guid: a89fa7734b2342a9bce1b42c17e6df35, type: 2}
   - {fileID: 11400000, guid: bcb28410ab624f3fa800a4edcc547109, type: 2}
@@ -45,3 +38,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 3300e1ffc40f4b25a8540657bfb13abc, type: 2}
   - {fileID: 11400000, guid: 408d4a8491b744d680ca8cb5857aa52c, type: 2}
   - {fileID: 11400000, guid: 546996874fe8409f975d7c0f2cedf2f2, type: 2}
+  finiteSpawning: 1
+  totalEnemies: 97
+  clearGoldReward: 50
+  alwaysUnlocked: 0
+  availableTurrets:
+  - {fileID: 11400000, guid: 04ae679be013433580c018e4b27e4bd9, type: 2}
+  - {fileID: 11400000, guid: 1e6ab288cd744598bff374d5eeffb51a, type: 2}
+  - {fileID: 11400000, guid: da7da4367609414b848cbffc6eeb6989, type: 2}

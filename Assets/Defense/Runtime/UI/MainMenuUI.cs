@@ -95,7 +95,7 @@ public sealed class MainMenuUI : MonoBehaviour {
     }
     private void OpenLobbyWithTutorial() {
         Show(lobby);
-        if(tutorialShownFromStart)return;
+        if(tutorialShownFromStart || TutorialUI.HasSeen)return;
         tutorialShownFromStart=true;
         TutorialUI.Open(canvas.transform);
     }

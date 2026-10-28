@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d16f3810864884c378b0a0ec8de87ccb, type: 3}
   m_Name: TestStage2
   m_EditorClassIdentifier: Assembly-CSharp::Defense.StageDefinition
+  stageId: test_stage_2
   displayName: Test Stage 2
   sceneName: TopDownStage3
   baseHealth: 1000
@@ -30,6 +31,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 68674d1b066ce45e0bc56f8020b8f66d, type: 2}
   - {fileID: 11400000, guid: 76ca0626ddf9a4d9caccfcea52ad443c, type: 2}
   spawnPlanJson: {fileID: 4900000, guid: 1b32ec5a11a21443d9274f3c5d3a4278, type: 3}
+  allowedCards: []
+  defaultDeck: []
   finiteSpawning: 1
   totalEnemies: 10
   clearGoldReward: 50

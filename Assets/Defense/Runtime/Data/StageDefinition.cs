@@ -2,6 +2,8 @@ using UnityEngine;
 namespace Defense {
 [CreateAssetMenu(menuName="Defense/Stage Definition")]
 public sealed class StageDefinition : ScriptableObject {
+    [SerializeField, Tooltip("Stable progression save ID. Keep unchanged after release, even if the stage is renamed or reordered.")] private string stageId;
+    public string StageId => string.IsNullOrWhiteSpace(stageId) ? name : stageId;
     [SerializeField] private string displayName = "Test Stage";
     [SerializeField, Tooltip("Configured 2D gameplay scene name included in Build Settings.")] private string sceneName = "TopDownStage3";
     [SerializeField, Min(1)] private int baseHealth = 1000;

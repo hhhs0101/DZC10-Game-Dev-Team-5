@@ -11,10 +11,12 @@ public sealed class EnemyDefinition : ScriptableObject {
     [SerializeField] private string displayName;
     [SerializeField, Tooltip("Optional native 2D artwork. Empty preserves the prefab's original visual.")]
     private Sprite sprite;
+    [SerializeField, Min(.01f), Tooltip("Visual-only multiplier relative to the prefab SpriteRenderer size; does not change collision or movement.")] private float spriteScale = 1;
     [SerializeField] private Enemy prefab;
     public string EnemyTypeId => enemyTypeId;
     public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? name : displayName;
     public Sprite Sprite => sprite;
+    public float SpriteScale => float.IsNaN(spriteScale) || float.IsInfinity(spriteScale) ? 1 : Mathf.Max(.01f,spriteScale);
     [Header("Gameplay")]
 
     [SerializeField, Min(1)] private float health = 40;
@@ -38,6 +40,14 @@ public sealed class EnemyDefinition : ScriptableObject {
     private float disruptionDuration;
     [SerializeField] private VegetableType vegetableType;
     [SerializeField, Min(1)] private int splitCount = 5;
+    [Header("Combat-death splitting (optional)")]
+    [SerializeField, Tooltip("Next generation spawned on combat death by DeathSplitEnemy. Empty ends the chain.")] private EnemyDefinition deathSplitChild;
+    [SerializeField, Min(1)] private int deathSplitCount = 2;
+    [SerializeField, Min(0), Tooltip("Small forward path spacing between siblings so identical sprites do not completely overlap.")] private float deathSplitSpacing = .3f;
+    public float DeathSplitSpacing => Mathf.Max(0,deathSplitSpacing);
+    public EnemyDefinition DeathSplitChild => deathSplitChild;
+    public int DeathSplitCount => Mathf.Max(1,deathSplitCount);
+    [Header("Periodic summoning")]
     [SerializeField, Min(1)] private int summonCount = 3;
     [SerializeField, Min(.1f)] private float summonInterval = 5;
     [SerializeField] private EnemyDefinition[] summonTypes = System.Array.Empty<EnemyDefinition>();

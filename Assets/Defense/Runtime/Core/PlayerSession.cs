@@ -1,6 +1,6 @@
 using UnityEngine;
 namespace Defense {
-// Currency and deck presets persist to disk; progression and stage selection remain session-only.
+// Currency, deck presets and stage progression persist; selected stage and DevMode remain session-only.
 public static class PlayerSession {
     // Session-only testing switch; does not rewrite campaign unlocks.
     public static bool DevMode { get; set; }
@@ -28,7 +28,7 @@ public static class PlayerSession {
         Catalog = Resources.Load<GameCatalog>("GameCatalog");
         if (Catalog == null) throw new System.InvalidOperationException("Resources/GameCatalog asset is required.");
         Currency = new PlayerCurrency(new JsonFileStore<PlayerCurrencySaveData>(PlayerCurrency.DefaultPath,"Currency"));
-        Progression = new StageProgressionState(Catalog.Stages);
+        Progression = new StageProgressionState(Catalog.Stages,new StageProgressionPersistence(StageProgressionPersistence.DefaultPath));
         Selection = new StageSelection(Catalog.Stages.Count);
         Selection.Changed += () => SelectCardStage(Catalog.Stages[Selection.SelectedStageIndex]);
         SelectCardStage(Catalog.Stages[Selection.SelectedStageIndex]);
