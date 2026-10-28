@@ -59,6 +59,46 @@ public static class StageCardProgressionValidation {
             using(var repaired=new DeckPresetManager(stages[0].DefaultDeck,stages[0].AllowedCards,new DeckPersistence(restricted),_=>{}))
                 Check(repaired.ActiveDeck.Slots.All(c=>StageCardRules.Allows(stages[0],c)),"Foreign locked cards are repaired on load");
             Check(File.ReadAllText(legacy)=="Legacy save must remain untouched","Legacy global presets preserved");
+
+            // Progression-based cross-stage card unlock validation:
+            // 1. Without progression, Stage 1 has only 3 cards and rejects later cards.
+            Check(StageCardRules.Available(stages[0],catalog,null).Count==3,"Base Stage 1 pool has 3 cards");
+            var mockProgress = new StageProgressionState(stages.Count);
+            Check(StageCardRules.Available(stages[0],catalog,mockProgress).Count==3,"Fresh progression keeps Stage 1 pool at 3 cards");
+            Check(!StageCardRules.Allows(stages[0],stages[1].AllowedCards.Last(),catalog,mockProgress),"Stage 1 rejects Stage 2 tower when Stage 1 is not cleared");
+
+            // 2. Clear Stage 1: Stage 2 towers become available and allowed in Stage 1.
+            mockProgress.Complete(0);
+            var stage1AfterClear1 = StageCardRules.Available(stages[0],catalog,mockProgress);
+            Check(stage1AfterClear1.Count==6,"Stage 1 pool expands to 6 cards after Stage 1 clear");
+            foreach(var card in stages[1].AllowedCards) {
+                Check(stage1AfterClear1.Contains(card),"Stage 1 pool includes Stage 2 unlocked tower: "+card.DisplayName);
+                Check(StageCardRules.Allows(stages[0],card,catalog,mockProgress),"Stage 1 allows Stage 2 unlocked tower: "+card.DisplayName);
+            }
+            Check(!StageCardRules.Allows(stages[0],stages[2].AllowedCards.Last(),catalog,mockProgress),"Stage 1 still rejects Stage 3 tower before Stage 2 is cleared");
+
+            // 3. Deck editor and preset manager allow equipping an unlocked Stage 2 tower into Stage 1 deck.
+            using(var progressionManager = new DeckPresetManager(stages[0].DefaultDeck,stage1AfterClear1,new DeckPersistence(StageCardRules.SavePath(stages[0],legacy)))) {
+                var stage1Editor = new DeckEditorController(progressionManager.ActiveDeck,stage1AfterClear1);
+                var unlockedTower = stages[1].AllowedCards.First(c=>!progressionManager.ActiveDeck.Contains(c));
+                Check(stage1Editor.Replace(0,unlockedTower),"Unlocked Stage 2 tower can be equipped in Stage 1 deck");
+                Check(progressionManager.ActiveDeck.Slots[0]==unlockedTower,"Stage 1 deck now contains unlocked tower");
+                Check(StageCardRules.Allows(stages[0],progressionManager.ActiveDeck.Slots[0],catalog,mockProgress),"Equipped unlocked tower is allowed in Stage 1");
+            }
+
+            // 4. Clear Stage 2: Stage 3 towers become available and allowed in both Stage 1 and Stage 2.
+            mockProgress.Complete(1);
+            var stage1AfterClear2 = StageCardRules.Available(stages[0],catalog,mockProgress);
+            var stage2AfterClear2 = StageCardRules.Available(stages[1],catalog,mockProgress);
+            Check(stage1AfterClear2.Count==9,"Stage 1 pool expands to 9 cards after Stage 2 clear");
+            Check(stage2AfterClear2.Count==9,"Stage 2 pool expands to 9 cards after Stage 2 clear");
+            foreach(var card in stages[2].AllowedCards) {
+                Check(stage1AfterClear2.Contains(card),"Stage 1 pool includes Stage 3 unlocked tower: "+card.DisplayName);
+                Check(stage2AfterClear2.Contains(card),"Stage 2 pool includes Stage 3 unlocked tower: "+card.DisplayName);
+                Check(StageCardRules.Allows(stages[0],card,catalog,mockProgress),"Stage 1 allows Stage 3 tower: "+card.DisplayName);
+                Check(StageCardRules.Allows(stages[1],card,catalog,mockProgress),"Stage 2 allows Stage 3 tower: "+card.DisplayName);
+            }
+
             Debug.Log("STAGE CARD PROGRESSION PASSED: pools, restrictions, independent presets, save/restore and locked-save recovery.");
         } finally {
             foreach(var manager in managers)manager.Dispose();

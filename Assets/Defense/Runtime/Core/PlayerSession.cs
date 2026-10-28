@@ -21,7 +21,9 @@ public static class PlayerSession {
     public static bool ReturnToLobby { get; set; }
     public static int PendingTowerUnlockStage { get; set; }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void Reset() { foreach(var manager in stagePresets.Values) manager.Dispose(); stagePresets.Clear();
+    private static void Reset() {
+        if (Progression != null) Progression.Changed -= OnProgressionChanged;
+        foreach(var manager in stagePresets.Values) manager.Dispose(); stagePresets.Clear();
         DevMode = false; StageCardsChanged = null; CardStage = null; Presets = null; Currency = null; Catalog = null; Progression = null; Selection = null; ActiveStage = null; ReturnToLobby = false; PendingTowerUnlockStage = 0; }
     public static void Ensure() {
         if (Catalog != null) return;
@@ -29,9 +31,19 @@ public static class PlayerSession {
         if (Catalog == null) throw new System.InvalidOperationException("Resources/GameCatalog asset is required.");
         Currency = new PlayerCurrency(new JsonFileStore<PlayerCurrencySaveData>(PlayerCurrency.DefaultPath,"Currency"));
         Progression = new StageProgressionState(Catalog.Stages,new StageProgressionPersistence(StageProgressionPersistence.DefaultPath));
+        Progression.Changed += OnProgressionChanged;
         Selection = new StageSelection(Catalog.Stages.Count);
         Selection.Changed += () => SelectCardStage(Catalog.Stages[Selection.SelectedStageIndex]);
         SelectCardStage(Catalog.Stages[Selection.SelectedStageIndex]);
+    }
+    private static void OnProgressionChanged() {
+        foreach (var manager in stagePresets.Values) manager.Dispose();
+        stagePresets.Clear();
+        if (CardStage != null) {
+            var current = CardStage;
+            CardStage = null; Presets = null;
+            SelectCardStage(current);
+        }
     }
     public static void SelectCardStage(StageDefinition stage) {
         if(stage == null) return;
