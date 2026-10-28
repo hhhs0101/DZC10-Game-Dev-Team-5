@@ -96,11 +96,16 @@ public static class PlayerSession {
     // Idempotent progression only. Victory reward policy is deliberately separate.
     public static bool CompleteActiveStage() {
         Ensure();
-        if (ActiveStage != null) {
-            if (ActiveStage.name == "Stage1_1" || ActiveStage.DisplayName == "Stage 1") PendingTowerUnlockStage = 1;
-            else if (ActiveStage.name == "Stage1_2" || ActiveStage.DisplayName == "Stage 2") PendingTowerUnlockStage = 2;
+        for (int i=0;i<Catalog.Stages.Count;i++) {
+            if (Catalog.Stages[i] == ActiveStage) {
+                bool newlyCompleted = Progression.Complete(i);
+                if (newlyCompleted && ActiveStage != null) {
+                    if (i == 0 || ActiveStage.name == "Stage1_1" || ActiveStage.DisplayName == "Stage 1") PendingTowerUnlockStage = 1;
+                    else if (i == 1 || ActiveStage.name == "Stage1_2" || ActiveStage.DisplayName == "Stage 2") PendingTowerUnlockStage = 2;
+                }
+                return newlyCompleted;
+            }
         }
-        for (int i=0;i<Catalog.Stages.Count;i++) if (Catalog.Stages[i] == ActiveStage) return Progression.Complete(i);
         return false;
     }
 }

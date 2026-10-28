@@ -69,7 +69,9 @@ public static class StageProgressionPersistenceValidation {
   string deckPath=PlayerSession.Presets.SavePath;string deck=File.ReadAllText(deckPath),currency=File.ReadAllText(PlayerCurrency.DefaultPath);
   Bind(stages[0]);var fixture=Fixture(stages[0],out var flow,out var victory);Check(victory.EvaluateClear()&&flow.State==GameplayState.Victory,"Actual StageVictoryController invokes completion callback");
   Check(File.Exists(StageProgressionPersistence.DefaultPath)&&PlayerSession.Progression.IsComplete(0)&&PlayerSession.Progression.IsUnlocked(1),"Victory automatically persists clear and unlock before scene exit");
+  Check(PlayerSession.PendingTowerUnlockStage==1,"First clear schedules unlock popup");PlayerSession.PendingTowerUnlockStage=0;
   Check(!victory.EvaluateClear()&&!PlayerSession.CompleteActiveStage(),"Duplicate victory/completion cannot duplicate progress");
+  Check(PlayerSession.PendingTowerUnlockStage==0,"Duplicate clear does not reschedule unlock popup");
   Check(File.ReadAllText(deckPath)==deck&&File.ReadAllText(PlayerCurrency.DefaultPath)==currency,"Progress save leaves existing deck and currency content unchanged");
   UnityEngine.Object.DestroyImmediate(fixture);
   typeof(PlayerSession).GetMethod("Reset",BindingFlags.NonPublic|BindingFlags.Static).Invoke(null,null);PlayerSession.Ensure();
