@@ -9,6 +9,12 @@ public sealed class MainMenuSkin : ScriptableObject {
         [SerializeField] private Sprite normal;
         [SerializeField] private Sprite highlighted;
         [SerializeField] private Sprite pressed;
+        public ButtonSprites() {}
+        public ButtonSprites(Sprite normal, Sprite highlighted, Sprite pressed) {
+            this.normal = normal;
+            this.highlighted = highlighted;
+            this.pressed = pressed;
+        }
         public Sprite Normal => normal;
         public Sprite Highlighted => highlighted;
         public Sprite Pressed => pressed;

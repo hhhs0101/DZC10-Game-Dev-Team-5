@@ -89,10 +89,16 @@ public sealed class GameplayUI : MonoBehaviour {
             clearTitle.rectTransform.anchoredPosition = new Vector2(0,250);
             SkinMenuButton(retryButton,resultSkin.Retry,new Vector2(0,20));
             SkinMenuButton(defeatLobbyButton,resultSkin.Lobby,new Vector2(0,-115));
-            // Next Stage has no skin art yet; it sits above the skinned Replay / Lobby pair.
-            ((RectTransform)nextStageButton.transform).anchoredPosition = new Vector2(0,160);
+            var nextStageArt = resultSkin.NextStage != null && resultSkin.NextStage.Normal != null
+                ? resultSkin.NextStage
+                : FallbackNextStageSprites();
+            if (nextStageArt != null) SkinMenuButton(nextStageButton,nextStageArt,new Vector2(0,160));
+            else ((RectTransform)nextStageButton.transform).anchoredPosition = new Vector2(0,160);
             SkinMenuButton(replayButton,resultSkin.Replay,new Vector2(0,40));
             SkinMenuButton(clearLobbyButton,resultSkin.Lobby,new Vector2(0,-95));
+        } else {
+            var nextStageArt = FallbackNextStageSprites();
+            if (nextStageArt != null) SkinMenuButton(nextStageButton,nextStageArt,new Vector2(0,75));
         }
         configurationError = Overlay("Stage Configuration Error",root);
         UiFactory.Label(configurationError.transform,"Stage Configuration Error",new Vector2(.5f,.5f),new Vector2(0,160),new Vector2(850,65),36);
@@ -122,6 +128,16 @@ public sealed class GameplayUI : MonoBehaviour {
         UiFactory.ApplyButtonSkin(button,sprites);
         var rect = (RectTransform)button.transform;
         rect.anchoredPosition = position; rect.sizeDelta = new Vector2(360,120);
+    }
+    private static MainMenuSkin.ButtonSprites fallbackNextStageSprites;
+    private static MainMenuSkin.ButtonSprites FallbackNextStageSprites() {
+        if (fallbackNextStageSprites != null && fallbackNextStageSprites.Normal != null) return fallbackNextStageSprites;
+        var normal = Resources.Load<Sprite>("UI/ResultMenu/NextStage_Normal");
+        var hover = Resources.Load<Sprite>("UI/ResultMenu/NextStage_Hover");
+        var pressed = Resources.Load<Sprite>("UI/ResultMenu/NextStage_Pressed");
+        if (normal == null) return null;
+        fallbackNextStageSprites = new MainMenuSkin.ButtonSprites(normal, hover != null ? hover : normal, pressed != null ? pressed : normal);
+        return fallbackNextStageSprites;
     }
     private static GameObject Overlay(string name, Transform parent) => UiFactory.Panel(name,parent,new Color(0,0,0,.78f));
     private void Update() {
