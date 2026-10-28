@@ -15,8 +15,9 @@ MonoBehaviour:
   enemyTypeId: enemy_doraji
   displayName: Doraji
   sprite: {fileID: 21300000, guid: a154463f78cc4b22ac38bfd601368be4, type: 3}
+  spriteScale: 1
   prefab: {fileID: 7971707257215467551, guid: 31c315c7eb8d40518f18bd7b9727f557, type: 3}
-  health: 5000
+  health: 4000
   movementSpeed: 0.3
   baseDamage: 660
   baseDamageUnconfigured: 0
@@ -27,14 +28,24 @@ MonoBehaviour:
   disruptionRange: 4
   disruptionCooldown: 5
   disruptionDuration: 3
-  resourceReward: 10
-  candyDropChance: 0.1
-  candyDropAmount: 1
   vegetableType: 0
   splitCount: 5
+  deathSplitChild: {fileID: 0}
+  deathSplitCount: 2
+  deathSplitSpacing: 0.3
   summonCount: 3
   summonInterval: 5
+  summonTypes:
+  - {fileID: 11400000, guid: d65badab72abf430386c0740d5a7f3aa, type: 2}
+  - {fileID: 11400000, guid: 3c3e218e3b2ab4e938d3750eb68c6cb5, type: 2}
+  - {fileID: 11400000, guid: a8249a29896264bbbb11fbff60143421, type: 2}
+  - {fileID: 11400000, guid: 0f8ff68745e9e47459e1147f74c8f9a5, type: 2}
+  - {fileID: 11400000, guid: b62124ec2ad548ceb3b19266c84e6538, type: 2}
+  - {fileID: 11400000, guid: d6c7fc7bd1c64663950f74c71a5e5ffd, type: 2}
+  - {fileID: 11400000, guid: 76ca0626ddf9a4d9caccfcea52ad443c, type: 2}
   towerAttackRange: 3
   towerAttackInterval: 5
   towerDamageFraction: 0.66
-  summonTypes: []
+  resourceReward: 10
+  candyDropChance: 0.1
+  candyDropAmount: 1
