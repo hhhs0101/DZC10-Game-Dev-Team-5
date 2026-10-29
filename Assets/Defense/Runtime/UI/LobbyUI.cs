@@ -22,13 +22,15 @@ public sealed class LobbyUI : MonoBehaviour {
             UiFactory.ApplyButtonSkin(backButton,skin.LobbyBack);
             UiFactory.ApplyButtonSkin(settingsButton,skin.LobbySettings);
         }
-        var viewport = UiFactory.Rect("Stage Carousel",transform,new Vector2(.5f,1),new Vector2(0,-230),new Vector2(970,290));
+        var viewport = UiFactory.Rect("Stage Carousel",transform,new Vector2(.5f,1),new Vector2(0,-200),new Vector2(970,270));
         Carousel = viewport.gameObject.AddComponent<StageCarouselView>();
         Carousel.Initialize(PlayerSession.Catalog,PlayerSession.Selection,PlayerSession.Progression,skin);
-        feedback = UiFactory.Label(transform,"A / D or click side cards   |   Enter: play",new Vector2(.5f,1),new Vector2(0,-405),new Vector2(850,48),21);
-        var enterStageButton = UiFactory.Button(transform,"Enter Stage",new Vector2(0,-460),()=>TryEnter(),new Vector2(.5f,1),new Vector2(420,78));
-        // Midpoint between Enter Stage (top - 460) and Deck (bottom + 50).
-        var guideButton = UiFactory.Button(transform,"How to Play",new Vector2(0,-205),()=>TutorialUI.Open(GetComponentInParent<Canvas>().transform),new Vector2(.5f,.5f),new Vector2(420,78));
+        var preview = UiFactory.Rect("Stage enemy preview",transform,new Vector2(.5f,1),new Vector2(0,-402),new Vector2(950,120));
+        preview.gameObject.AddComponent<StageEnemyPreview>().Initialize(PlayerSession.Catalog,PlayerSession.Selection);
+        feedback = UiFactory.Label(transform,"A / D or click side cards   |   Enter: play",new Vector2(.5f,1),new Vector2(0,-485),new Vector2(850,32),19);
+        var enterStageButton = UiFactory.Button(transform,"Enter Stage",new Vector2(0,-535),()=>TryEnter(),new Vector2(.5f,1),new Vector2(324,60));
+        // Keep the preview and all three actions visible on the 1280 x 720 menu.
+        var guideButton = UiFactory.Button(transform,"How to Play",new Vector2(0,-605),()=>TutorialUI.Open(GetComponentInParent<Canvas>().transform),new Vector2(.5f,1),new Vector2(324,60));
         var guideSprite = UiFactory.LoadSprite("UI/HowToPlayButton");
         if(guideSprite != null) {
             guideButton.image.sprite = guideSprite;
@@ -44,7 +46,7 @@ public sealed class LobbyUI : MonoBehaviour {
             guideButton.colors = colors;
             foreach(var label in guideButton.GetComponentsInChildren<Text>()) label.enabled = false;
         }
-        var deckButton = UiFactory.Button(transform,"Deck",new Vector2(0,50),()=>openDeck(),new Vector2(.5f,0),new Vector2(420,78));
+        var deckButton = UiFactory.Button(transform,"Deck",new Vector2(0,45),()=>openDeck(),new Vector2(.5f,0),new Vector2(324,60));
         if (skin != null) {
             UiFactory.ApplyButtonSkin(enterStageButton,skin.LobbyEnterStage);
             UiFactory.ApplyButtonSkin(deckButton,skin.LobbyDeck);

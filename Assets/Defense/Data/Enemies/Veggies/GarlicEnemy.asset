@@ -15,9 +15,10 @@ MonoBehaviour:
   enemyTypeId: enemy_garlic
   displayName: Garlic
   sprite: {fileID: 21300000, guid: 3ad8ba8c19274002a0f1fe975277c0a6, type: 3}
+  spriteScale: 1
   prefab: {fileID: 7971707257215467551, guid: 2b5b621f9c4448b19720f41f696083cd, type: 3}
   health: 100
-  movementSpeed: 2
+  movementSpeed: 2.2
   baseDamage: 20
   baseDamageUnconfigured: 0
   role: 1
@@ -27,13 +28,17 @@ MonoBehaviour:
   disruptionRange: 4
   disruptionCooldown: 5
   disruptionDuration: 3
-  resourceReward: 10
-  candyDropChance: 0.1
-  candyDropAmount: 1
   vegetableType: 4
   splitCount: 5
+  deathSplitChild: {fileID: 0}
+  deathSplitCount: 2
+  deathSplitSpacing: 0.3
   summonCount: 3
   summonInterval: 5
+  summonTypes: []
   towerAttackRange: 3
   towerAttackInterval: 5
   towerDamageFraction: 0.66
+  resourceReward: 10
+  candyDropChance: 0.1
+  candyDropAmount: 1

@@ -59,7 +59,7 @@ public static class EnemyRolesValidation {
     private static void TestAuras() {
         var carrot=Spawn("Carrot",Vector3.right);var garlic=Spawn("Garlic",Vector3.zero);
         Check(garlic is SpeedSupportEnemy,"Actual speed support subclass");
-        Near(carrot.Movement.EffectiveMovementSpeed,3.3f*.85f,"1.65x speed aura");Near(garlic.Movement.EffectiveMovementSpeed,2*.85f,"Garlic excludes itself");
+        Near(carrot.Movement.EffectiveMovementSpeed,3.3f*.85f,"1.65x speed aura");Near(garlic.Movement.EffectiveMovementSpeed,2.2f*.85f,"Garlic excludes itself");
         garlic.transform.position=Vector3.left*10;registry.NotifyMoved(garlic);Near(carrot.Movement.EffectiveMovementSpeed,2*.85f,"Aura exit removes boost");
         var pepper=Spawn("BellPepper",Vector3.zero);Check(pepper is ShieldSupportEnemy,"Actual shield subclass");
         carrot.ReceiveDamage(50);Near(carrot.CurrentHealth,83.75f,"67.5% absorption");pepper.ReceiveDamage(50);Near(pepper.CurrentHealth,145.75f,"Shield includes itself");
