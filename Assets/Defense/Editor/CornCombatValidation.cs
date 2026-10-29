@@ -44,8 +44,8 @@ public static class CornCombatValidation {
                 typeof(EnemyHealthBar).GetMethod("LateUpdate",BindingFlags.NonPublic|BindingFlags.Instance).Invoke(healthView,null);
                 for(int i=0;i<5;i++) {
                     var row = (RectTransform)fills[i].parent;
-                    Check(row.gameObject.activeInHierarchy && row.GetComponent<UnityEngine.UI.Outline>() != null,
-                        "All five section frames remain visible, including empty sections.");
+                    Check(row.gameObject.activeInHierarchy && row.GetComponent<UnityEngine.UI.Outline>() == null,
+                        "All five section backgrounds remain visible without outlines, including empty sections.");
                     Check(row.rect.width > 0 && row.rect.height > 0,"Each Corn bar must have visible dimensions.");
                     for(int j=0;j<i;j++) {
                         var other = (RectTransform)fills[j].parent;

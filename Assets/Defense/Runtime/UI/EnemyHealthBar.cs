@@ -77,10 +77,6 @@ public sealed class EnemyHealthBar : MonoBehaviour {
                 row.anchoredPosition = new Vector2(0,-i*(rowHeight+3));
                 if(count > 1) {
                     row.GetComponent<Image>().color = new Color(.12f,.12f,.12f,1);
-                    var outline = row.gameObject.AddComponent<Outline>();
-                    outline.effectColor = new Color(.95f,.95f,.95f,1);
-                    outline.effectDistance = new Vector2(1.5f,-1.5f);
-                    outline.useGraphicAlpha = false;
                 }
                 fills[i] = CreateImage("Fill",row,fillColor);
             }

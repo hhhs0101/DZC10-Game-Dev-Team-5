@@ -69,7 +69,9 @@ public sealed class FixedIntervalSpawner : MonoBehaviour {
         if(UsesJsonPlan) {
             while(!IsFinishedSpawning && !cancelled && spawner.CanSpawn) {
                 var plan=timedPlan;var next=plan.Events[SpawnedCount];
-                if(next.Enemy.Role==EnemyRole.Boss && BossIncoming!=null && announcedBossIndex!=SpawnedCount) {
+                // Napa is a stage boss with Basic combat behavior, so include its stable content ID.
+                bool announceBoss = next.Enemy.Role==EnemyRole.Boss || next.Enemy.EnemyTypeId=="enemy_baechu";
+                if(announceBoss && BossIncoming!=null && announcedBossIndex!=SpawnedCount) {
                     announcedBossIndex=SpawnedCount;awaitingBossAnnouncement=true;BossIncoming(next.Enemy);return;
                 }
                 var spawned=spawner.Spawn(next.Enemy,next.RouteGroup);
