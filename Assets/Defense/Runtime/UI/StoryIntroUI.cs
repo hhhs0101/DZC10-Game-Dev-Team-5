@@ -24,7 +24,6 @@ public sealed class StoryIntroUI : MonoBehaviour {
     };
     private const float CharsPerSecond = 28f, FadeSeconds = .4f;
     private static readonly Color Ink = new Color(.16f,.12f,.1f), Dimmed = new Color(.45f,.45f,.5f,1f);
-    private const string SeenKey = "Defense.StoryIntro.Seen.v1";
     private static bool played;
 
     private Action finished;
@@ -41,7 +40,7 @@ public sealed class StoryIntroUI : MonoBehaviour {
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatics() { played = false; }
 
-    public static bool ShouldPlay => !played && PlayerPrefs.GetInt(SeenKey,0) != 1;
+    public static bool ShouldPlay => !played && !OnboardingProgress.StorySeen;
 
     public static void Play(Transform canvas, Sprite background, Action onFinished) {
         played = true;
@@ -190,8 +189,7 @@ public sealed class StoryIntroUI : MonoBehaviour {
 
     private void Complete() {
         if (finished == null) return;
-        PlayerPrefs.SetInt(SeenKey,1);
-        PlayerPrefs.Save();
+        OnboardingProgress.MarkStorySeen();
         var callback = finished; finished = null;
         Destroy(gameObject);
         callback();

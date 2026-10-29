@@ -5,12 +5,11 @@ using UnityEngine.EventSystems;
 namespace Defense {
 // A replayable, skippable guide. It never spends resources or edits a player's deck.
 public sealed class TutorialUI : MonoBehaviour {
-    private const string SeenKey="Defense.Tutorial.Seen.v1";
     private static TutorialUI active;
     private static int closedFrame=-1;
     public static bool IsOpen => active!=null;
     public static bool BlocksInput => IsOpen || closedFrame==Time.frameCount;
-    public static bool HasSeen => PlayerPrefs.GetInt(SeenKey,0)==1;
+    public static bool HasSeen => OnboardingProgress.TutorialSeen;
     private RectTransform sheet;
     private Text title,body,counter,nextLabel;
     private GameObject legend;
@@ -130,7 +129,7 @@ public sealed class TutorialUI : MonoBehaviour {
         counter.text=(page+1)+" / "+Titles.Length;
     }
     private void Update(){var parent=(RectTransform)transform;float scale=Mathf.Min(1,Mathf.Min((parent.rect.width-32)/920f,(parent.rect.height-32)/630f));sheet.localScale=Vector3.one*Mathf.Max(.1f,scale);if(Input.GetKeyDown(KeyCode.Escape))Close();}
-    private void Close(){if(finished)return;finished=true;PlayerPrefs.SetInt(SeenKey,1);PlayerPrefs.Save();gameObject.SetActive(false);if(EventSystem.current!=null)EventSystem.current.SetSelectedGameObject(previousSelection);var callback=closed;Destroy(gameObject);callback?.Invoke();}
+    private void Close(){if(finished)return;finished=true;OnboardingProgress.MarkTutorialSeen();gameObject.SetActive(false);if(EventSystem.current!=null)EventSystem.current.SetSelectedGameObject(previousSelection);var callback=closed;Destroy(gameObject);callback?.Invoke();}
     private void OnDisable(){if(active==this){active=null;closedFrame=Time.frameCount;}}
     private void OnDestroy(){if(active==this)active=null;}
 }

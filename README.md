@@ -347,7 +347,7 @@ Gosari sprite size also decreases by generation: EnemyDefinition.SpriteScale is 
 
 ### Automatic stage completion and unlock saving
 
-`PlayerSession.Ensure` loads `stage-progress.json` from `Application.persistentDataPath` before creating stage selection/Lobby UI. Successful clears pass through the existing StageVictoryController -> PlayerSession.CompleteActiveStage -> StageProgressionState.Complete flow, saving immediately with the existing atomic JsonFileStore. The file contains Version 1, CompletedStageIds and UnlockedStageIds. Repeated clears are idempotent; Game Over and Developer Mode entry alone do not change progress. The existing completion/unlock eligibility rules remain.
+`PlayerSession.Ensure` loads `SaveData/stage-progress.json` from the project/program folder before creating stage selection/Lobby UI. Successful clears pass through the existing StageVictoryController -> PlayerSession.CompleteActiveStage -> StageProgressionState.Complete flow, saving immediately with the existing atomic JsonFileStore. The file contains Version 1, CompletedStageIds and UnlockedStageIds. Repeated clears are idempotent; Game Over and Developer Mode entry alone do not change progress. The existing completion/unlock eligibility rules remain.
 
 StageDefinition has an Inspector-visible stable Stage Id: campaign stages use stage_1, stage_2 and stage_3; development definitions have their own IDs. Do not change these IDs after release. Completion and explicit unlocks follow IDs across list reorder/asset/display renaming. Blank IDs fall back to asset names for legacy/new authoring compatibility, but current stage assets have explicit IDs; duplicate/empty identities are rejected. Unknown saved IDs are retained for content that may return later.
 
@@ -358,7 +358,10 @@ Editor tests may use DEFENSE_TEST_PROGRESS_SAVE_PATH. If omitted while test curr
 
 ### Sound settings and first-run introductions
 
-BGM and SFX volume preferences, including mute, are saved immediately through PlayerPrefs. The story is marked seen when completed or skipped, so it no longer automatically replays after a restart. Automatic tutorial display honors the existing tutorial completion preference; How to Play remains available for manual replay. The opening video retains its existing once-per-launch behavior.
+BGM and SFX volume preferences, including mute, are saved immediately through PlayerPrefs. The story is marked seen when completed or skipped, so it no longer automatically replays after a restart. Story/tutorial flags are stored in `SaveData/onboarding-progress.json` inside the Unity project (Editor) or beside the executable/macOS app (desktop player); set `storySeen` or `tutorialSeen` to `false` while the game is stopped to allow automatic display on the next launch. Legacy PlayerPrefs records are imported only when the JSON does not exist. Automatic tutorial display honors its saved completion flag; How to Play remains available for manual replay. The opening video retains its existing once-per-launch behavior.
 
 
 Doraji now uses the existing BossEnemy periodic-summon behavior with the same seven candidate EnemyDefinitions as Broccoli (Carrot, Tomato, Eggplant, Garlic, BellPepper, Corn and Potato). It summons three distinct candidate types every five active gameplay seconds at its current path position. Doraji has 4000 HP; its movement speed, Base damage and existing child reward policy are unchanged.
+
+
+Stage and onboarding history share `PlayerSavePaths`: the project root in the Editor, or the folder beside the desktop executable/macOS app. `SaveData/` is Git-ignored and each installation maintains its own records. When a program-local stage save is absent, valid old `Application.persistentDataPath/stage-progress.json` records are imported automatically; the original is retained as a backup. An existing local JSON always takes priority. Currency and deck save locations are unchanged.

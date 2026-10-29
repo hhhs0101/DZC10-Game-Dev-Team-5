@@ -37,3 +37,6 @@ sysinfo.txt
 
 # Original downloads; imported Unity assets are tracked under Assets.
 /Free-3D-Assets/*.zip
+
+# Per-installation player history stored inside the project/program folder
+/SaveData/

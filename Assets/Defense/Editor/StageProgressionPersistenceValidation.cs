@@ -52,6 +52,16 @@ public static class StageProgressionPersistenceValidation {
   var development=Stages("a","b","test");Set(development[2],"alwaysUnlocked",true);Check(new StageProgressionState(development).IsUnlocked(2),"Existing AlwaysUnlocked stage policy is retained");
   string blocked=Path.Combine(directory,"blocking-file");File.WriteAllText(blocked,"block directory creation");var failed=State(stages,Path.Combine(blocked,"progress.json"),messages);Check(failed.Complete(0)&&failed.IsComplete(0)&&failed.IsUnlocked(1)&&!failed.LastSaveSucceeded,"Write failure keeps in-memory progress and exposes failure");
   File.Delete(blocked);Directory.CreateDirectory(blocked);Check(!failed.Complete(0)&&failed.LastSaveSucceeded&&State(stages,Path.Combine(blocked,"progress.json")).IsComplete(0),"Repeated clear retries failed storage successfully");
+  string legacy=Path.Combine(directory,"legacy.json"),local=Path.Combine(directory,"SaveData","stage-progress.json");
+  string oldJson="{\"Version\":1,\"CompletedStageIds\":[\"one\"],\"UnlockedStageIds\":[\"one\",\"two\"]}";File.WriteAllText(legacy,oldJson);
+  var migratedStore=new StageProgressionPersistence(local,messages.Add,messages.Add,legacy);var migrated=new StageProgressionState(stages,migratedStore);
+  Check(migrated.IsComplete(0)&&migrated.IsUnlocked(1)&&File.Exists(local),"Legacy progress automatically migrates into program-local storage");
+  Check(File.ReadAllText(legacy)==oldJson,"Migration keeps the external file intact as a backup");
+  migratedStore.Save(new StageProgressionSaveData{Version=1,CompletedStageIds=Array.Empty<string>(),UnlockedStageIds=Array.Empty<string>()});
+  Check(!new StageProgressionState(stages,new StageProgressionPersistence(local,messages.Add,messages.Add,legacy)).IsComplete(0),"Existing local JSON overrides older external records");
+  File.WriteAllText(local,"{broken JSON");Check(new StageProgressionPersistence(local,messages.Add,messages.Add,legacy).Load()==null,"Malformed local JSON does not silently restore old external progress");
+  string localFuture=Path.Combine(directory,"local-future.json");File.WriteAllText(legacy,newer);var futureMigration=new StageProgressionPersistence(localFuture,messages.Add,messages.Add,legacy);
+  Check(futureMigration.Load()==null&&!futureMigration.CanWrite&&!File.Exists(localFuture)&&File.ReadAllText(legacy)==newer,"Unsupported legacy versions are preserved without migration or overwrite");
   string explicitPath=Environment.GetEnvironmentVariable("DEFENSE_TEST_PROGRESS_SAVE_PATH");Environment.SetEnvironmentVariable("DEFENSE_TEST_PROGRESS_SAVE_PATH",null);try{Check(StageProgressionPersistence.DefaultPath==Path.Combine(Path.GetDirectoryName(PlayerCurrency.DefaultPath),StageProgressionPersistence.FileName),"Existing currency/deck test isolation also isolates progress");}finally{Environment.SetEnvironmentVariable("DEFENSE_TEST_PROGRESS_SAVE_PATH",explicitPath);}
  }
  static void Bind(StageDefinition stage)=>typeof(PlayerSession).GetMethod("BindActiveStage",BindingFlags.NonPublic|BindingFlags.Static).Invoke(null,new object[]{stage});
