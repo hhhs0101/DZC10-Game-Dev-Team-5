@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 namespace Defense {
-public sealed class SummoningEnemy : BasicEnemy {
+public sealed class SummoningEnemy : Enemy {
     private float summonClock;
     private void OnEnable() { summonClock = 0; }
     private void Update() => AdvanceAbilities(Time.deltaTime);

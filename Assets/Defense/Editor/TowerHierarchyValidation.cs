@@ -49,10 +49,13 @@ public static class TowerHierarchyValidation {
             var shield=child("Shield").AddComponent<BasicEnemy>();shield.Initialize(shieldData,path,null,registry);
             var tower=UnityEngine.Object.Instantiate(data.Prefab,root.transform);tower.Initialize(data,registry);
             int events=0;tower.Attacked+=e=>events++;
-            tower.AttackStatus.Apply(new object(),10);tower.Attack(victim);
+            var damageTower=tower as AttackerTower;
+            var supportTower=tower as SupportTower;
+            tower.AttackStatus.Apply(new object(),10);
+            if(damageTower!=null)damageTower.Attack(victim);else supportTower.AdvanceSupport(data.CleanseInterval);
             Near(victim.CurrentHealth,10000,"Disrupted damage");Near(events,0,"Disrupted event");tower.AttackStatus.Clear();
             victim.StatusEffects.SendMessage("Awake");
-            tower.Attack(victim);
+            if(damageTower!=null)damageTower.Attack(victim);else supportTower.AdvanceSupport(data.CleanseInterval);
             float expected=data.TowerType==TowerType.Mayonnaise?0:data.Damage*(data.TowerType==TowerType.Mustard?1:.4f);
             Near(victim.CurrentHealth,10000-expected,"Initial damage "+data.name);
             Near(neighbour.CurrentHealth,10000-(data.TowerType==TowerType.Ketchup?data.Damage*.4f:0),"Splash membership");
@@ -66,17 +69,64 @@ public static class TowerHierarchyValidation {
                     victim.StatusEffects.Advance(data.SlowDuration);Near(victim.Movement.Modifiers.Multiplier,1,"Slow expiry");
                 }
             }
+            if(damageTower != null) {
+                // Verify the shared damage-tower cadence after extracting it from Tower.
+                damageTower.Initialize(data,registry);
+                var tick=typeof(AttackerTower).GetMethod("AdvanceBehavior",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance);
+                int before=events;
+                damageTower.AttackStatus.Apply(new object(),100);
+                tick.Invoke(damageTower,new object[]{data.AttackCooldown+1f});
+                Near(events,before,"Disruption blocks automatic attacks");
+                damageTower.AttackStatus.Clear();
+                tick.Invoke(damageTower,new object[]{.001f});
+                Near(events,before+1,"Ready damage tower attacks once");
+                tick.Invoke(damageTower,new object[]{data.AttackCooldown*.5f});
+                Near(events,before+1,"Cooldown prevents early automatic attacks");
+                tick.Invoke(damageTower,new object[]{data.AttackCooldown*.5f+.001f});
+                Near(events,before+2,"Cooldown expiry permits the next attack");
+                var flow=registry.gameObject.AddComponent<GameFlow>();
+                flow.TogglePause();damageTower.Attack(victim);
+                Near(events,before+2,"Pause blocks explicit damage attacks");
+                flow.TogglePause();
+            }
             if(data.TowerType==TowerType.Mayonnaise) {
                 var otherData=AssetDatabase.LoadAssetAtPath<TurretDefinition>("Assets/Defense/Data/TestTurret6.asset");
-                var other=UnityEngine.Object.Instantiate(otherData.Prefab,root.transform);other.Initialize(otherData,registry);
+                var other=(AttackerTower)UnityEngine.Object.Instantiate(otherData.Prefab,root.transform);other.Initialize(otherData,registry);
                 child("Support slot").AddComponent<TowerPlacementSlot>().TryOccupy(tower);
                 child("Target slot").AddComponent<TowerPlacementSlot>().TryOccupy(other);
-                Near(other.EffectiveDamage,otherData.Damage*data.DamageBoost,"Support multiplier");
+                Near(other.FinalDamage,otherData.Damage*data.DamageBoost,"Support multiplier");
+                supportTower.AttackStatus.Apply(new object(),10);
+                Near(other.FinalDamage,otherData.Damage,"Disrupted support contributes no boost");
+                supportTower.AttackStatus.Clear();
+                var supportPosition=supportTower.transform.position;
+                supportTower.transform.position+=Vector3.right*(data.AttackRange+100);
+                Near(other.FinalDamage,otherData.Damage,"Out-of-range support contributes no boost");
+                supportTower.transform.position=supportPosition;
+                Near(other.FinalDamage,otherData.Damage*data.DamageBoost,"Returning support restores its boost");
                 other.AttackStatus.Apply(new object(),100);
-                tower.AdvanceSupport(data.CleanseInterval-.01f);
+                supportTower.AdvanceSupport(data.CleanseInterval-.01f);
                 if(!other.IsDisrupted) throw new Exception("Early cleanse");
-                tower.AdvanceSupport(.02f);
+                supportTower.AdvanceSupport(.02f);
                 if(other.IsDisrupted) throw new Exception("Missed cleanse");
+            }
+            if(data.TowerType==TowerType.Salt) {
+                // Concrete base classes must work without a specialized subclass.
+                var passive=child("Passive Tower").AddComponent<Tower>(); passive.Initialize(data,registry);
+                int passiveEvents=0;passive.Attacked+=e=>passiveEvents++;
+                var passiveTick=typeof(Tower).GetMethod("AdvanceBehavior",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance);
+                float beforePassive=victim.CurrentHealth;
+                passiveTick.Invoke(passive,new object[]{10f});
+                Near(victim.CurrentHealth,beforePassive,"Concrete Tower is passive");
+                Near(passiveEvents,0,"Concrete Tower emits no attack pulse");
+                var plain=child("Plain Attacker").AddComponent<AttackerTower>();plain.Initialize(data,registry);
+                int plainEvents=0;plain.Attacked+=e=>plainEvents++;
+                float beforePlain=victim.CurrentHealth;
+                plain.Attack(victim);
+                Near(victim.CurrentHealth,beforePlain-data.Damage*.4f,"Concrete AttackerTower defaults to direct damage");
+                plain.Initialize(data,registry);
+                plain.Attack(victim);
+                Near(victim.CurrentHealth,beforePlain-2*data.Damage*.4f,"Reinitialization replaces rather than stacks callbacks");
+                Near(plainEvents,2,"One event per concrete attacker hit");
             }
         } finally {
             UnityEngine.Object.DestroyImmediate(root);

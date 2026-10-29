@@ -64,7 +64,7 @@ public static class TopDownStage2Setup {
     private static Tower CreateTurret() {
         var source=AssetDatabase.LoadAssetAtPath<GameObject>(Prefabs+"/TowerSpritePlaceholder.prefab");var root=(GameObject)PrefabUtility.InstantiatePrefab(source);
         try {
-            root.name="BasicTower2D";var turret=root.AddComponent<BasicTower>();Set(turret,"attack",root.AddComponent<DirectDamageAttack>());
+            root.name="BasicTower2D";var turret=root.AddComponent<BasicTower>();
             return PrefabUtility.SaveAsPrefabAsset(root,Prefabs+"/BasicTower2D.prefab").GetComponent<Tower>();
         }finally {UnityEngine.Object.DestroyImmediate(root);}
     }

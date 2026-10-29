@@ -24,7 +24,7 @@ public static class EnemyRolesValidation {
     }
     private static Tower Tower(int index,Vector3 position) {
         var slot=Child("Test slot").AddComponent<TowerPlacementSlot>();slot.transform.position=position;
-        var prefab=Asset<GameObject>("Prefabs/TopDown2D/BasicTower2D.prefab").GetComponent<Tower>();
+        var prefab=Asset<TurretDefinition>("Data/TestTurret"+index+".asset").Prefab;
         var tower=UnityEngine.Object.Instantiate(prefab,position,Quaternion.identity,slot.transform);
         tower.Initialize(Asset<TurretDefinition>("Data/TestTurret"+index+".asset"),registry);
         Check(slot.TryOccupy(tower),"Occupy test slot");tower.StartLifetime(slot,flow,3);return tower;
@@ -62,6 +62,8 @@ public static class EnemyRolesValidation {
         Near(carrot.Movement.EffectiveMovementSpeed,3.3f*.85f,"1.65x speed aura");Near(garlic.Movement.EffectiveMovementSpeed,2.2f*.85f,"Garlic excludes itself");
         garlic.transform.position=Vector3.left*10;registry.NotifyMoved(garlic);Near(carrot.Movement.EffectiveMovementSpeed,2*.85f,"Aura exit removes boost");
         var pepper=Spawn("BellPepper",Vector3.zero);Check(pepper is ShieldSupportEnemy,"Actual shield subclass");
+        ((ShieldSupportEnemy)pepper).ShieldEnemies();
+        ((ShieldSupportEnemy)pepper).ShieldEnemies(); // Refreshes must not stack protection.
         carrot.ReceiveDamage(50);Near(carrot.CurrentHealth,83.75f,"67.5% absorption");pepper.ReceiveDamage(50);Near(pepper.CurrentHealth,145.75f,"Shield includes itself");
         Spawn("BellPepper",Vector3.zero);carrot.ReceiveDamage(50);Near(carrot.CurrentHealth,67.5f,"Overlapping shields do not compound");
         carrot.ReceiveDamage(10,true);Near(carrot.CurrentHealth,57.5f,"Piercing bypasses shield");
@@ -69,23 +71,23 @@ public static class EnemyRolesValidation {
     }
     private static void TestTowers() {
         var a=Spawn("Carrot",Vector3.zero);var b=Spawn("Carrot",Vector3.right);var c=Spawn("Eggplant",Vector3.right*8);
-        var ketchup=Tower(11,Vector3.up);float damage=ketchup.EffectiveDamage;
+        var ketchup=(AttackerTower)Tower(11,Vector3.up);float damage=ketchup.FinalDamage;
         ketchup.Attack(a);Near(a.CurrentHealth,100-damage,"Ketchup target damage");Near(b.CurrentHealth,100-damage,"Ketchup splash damage");Near(c.CurrentHealth,150,"Splash excludes distant enemy");
-        var pepper=Spawn("BellPepper",Vector3.zero);var mustard=Tower(9,Vector3.up);
-        mustard.Attack(pepper);Near(pepper.CurrentHealth,pepper.MaximumHealth-mustard.EffectiveDamage,"Mustard bypasses Bell Pepper");
+        var pepper=Spawn("BellPepper",Vector3.zero);var mustard=(AttackerTower)Tower(9,Vector3.up);
+        mustard.Attack(pepper);Near(pepper.CurrentHealth,pepper.MaximumHealth-mustard.FinalDamage,"Mustard bypasses Bell Pepper");
         UnityEngine.Object.DestroyImmediate(pepper.gameObject);
-        var hot=Tower(3,Vector3.up);float direct=hot.EffectiveDamage, burn=hot.Definition.BurnDamagePerSecond, duration=hot.Definition.BurnDuration;
+        var hot=(AttackerTower)Tower(3,Vector3.up);float direct=hot.FinalDamage, burn=hot.Definition.BurnDamagePerSecond, duration=hot.Definition.BurnDuration;
         hot.Attack(c);Near(c.CurrentHealth,150-direct,"Hot Sauce direct damage");
         UnityEngine.Object.DestroyImmediate(hot.gameObject);c.transform.position=Vector3.right*30;
         flow.TogglePause();c.StatusEffects.Advance(2);Near(c.CurrentHealth,150-direct,"Burn pauses");flow.TogglePause();
         c.StatusEffects.Advance(duration);Near(c.CurrentHealth,Mathf.Max(0,150-direct-burn*duration),"Burn persists after tower destruction and leaving range");
         float afterBurn=c.CurrentHealth;c.StatusEffects.Advance(duration);Near(c.CurrentHealth,afterBurn,"Burn expires");
-        var oil=Tower(2,Vector3.up);oil.Attack(a);Near(a.Movement.EffectiveMovementSpeed,2*.85f*oil.Definition.SlowMultiplier,"Oil slow");
+        var oil=(AttackerTower)Tower(2,Vector3.up);oil.Attack(a);Near(a.Movement.EffectiveMovementSpeed,2*.85f*oil.Definition.SlowMultiplier,"Oil slow");
         a.StatusEffects.Advance(oil.Definition.SlowDuration);Near(a.Movement.EffectiveMovementSpeed,2*.85f,"Oil slow expires");
-        var salt=Tower(6,Vector3.zero);var mayo=Tower(10,Vector3.right);
-        Near(salt.EffectiveDamage,salt.Definition.Damage*mayo.Definition.DamageBoost,"Mayonnaise damage boost");salt.AttackStatus.Apply(new object(),30);
+        var salt=(AttackerTower)Tower(6,Vector3.zero);var mayo=(SupportTower)Tower(10,Vector3.right);
+        Near(salt.FinalDamage,salt.Definition.Damage*mayo.Definition.DamageBoost,"Mayonnaise damage boost");salt.AttackStatus.Apply(new object(),30);
         mayo.AdvanceSupport(4);Check(salt.AttackDisabled,"No early cleanse");mayo.AdvanceSupport(1);Check(!salt.AttackDisabled,"Five-second cleanse");
-        UnityEngine.Object.DestroyImmediate(mayo.gameObject);Near(salt.EffectiveDamage,salt.Definition.Damage,"Removing Mayonnaise removes buff");
+        UnityEngine.Object.DestroyImmediate(mayo.gameObject);Near(salt.FinalDamage,salt.Definition.Damage,"Removing Mayonnaise removes buff");
     }
     private static void TestMultiple() {
         int kills=0;spawner.EnemyDefeated+=OnKill;
@@ -94,13 +96,13 @@ public static class EnemyRolesValidation {
         Check(corn!=null,"Actual ClusterEnemy subclass");
         Check(corn.Targets.Count==5&&registry.AliveEnemyCount==1,"Five sections belong to one moving enemy");
         foreach(var target in corn.Targets) {
-            Near(target.transform.position.x,40,"Sections share the body position");
-            Check(target.Movement==corn.Movement,"Sections share body movement");
+            Near(corn.transform.position.x,40,"The body owns the sections' shared position");
+            Check(!typeof(Enemy).IsAssignableFrom(typeof(CornTarget)),"Sections do not inherit Enemy");
         }
         corn.ReceiveDamage(1000);
-        Check(registry.AliveEnemyCount==1&&registry.CombatTargets.Count==4,"Direct damage kills only one section");
+        Check(registry.AliveEnemyCount==1&&System.Linq.Enumerable.Count(corn.Targets,t=>t.IsAlive)==4,"Direct damage kills only one section");
         corn.ReceiveSplashDamage(1000);
-        Check(registry.AliveEnemyCount==0&&registry.CombatTargets.Count==0,"Final sections retire the body without spawning children");
+        Check(registry.AliveEnemyCount==0,"Final sections retire the body without spawning children");
         Check(kills==1,"Sections award only one body kill");spawner.EnemyDefeated-=OnKill;
     }
     private static void TestBoss() {
@@ -133,7 +135,7 @@ public static class EnemyRolesValidation {
         victory.Initialize(flow,schedule,registry,Asset<StageDefinition>("Data/Stage1_1.asset"),null,()=>completed=true);
         Check(schedule.IsFinishedSpawning&&!victory.EvaluateClear(),"Living scheduled enemy blocks Victory");
         registry.Enemies.Single().ReceiveDamage(100);
-        Check(registry.AliveEnemyCount==1&&registry.CombatTargets.Count==4&&!victory.EvaluateClear(),"Surviving sections block premature Victory");
+        Check(registry.AliveEnemyCount==1&&System.Linq.Enumerable.Count(((ClusterEnemy)registry.Enemies.Single()).Targets,t=>t.IsAlive)==4&&!victory.EvaluateClear(),"Surviving sections block premature Victory");
         registry.Enemies.Single().ReceiveSplashDamage(1000);
         Check(victory.EvaluateClear()&&completed&&flow.State==GameplayState.Victory,"Victory after final section dies");
         Check(!victory.EvaluateClear(),"Victory processes only once");

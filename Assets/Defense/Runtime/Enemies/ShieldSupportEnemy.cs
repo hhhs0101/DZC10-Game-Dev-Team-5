@@ -1,4 +1,6 @@
 namespace Defense {
-// Protection is evaluated when damage arrives by ShieldSupportAbility.
-public sealed class ShieldSupportEnemy : SupportEnemy { }
+public sealed class ShieldSupportEnemy : SupportEnemy {
+    // Refresh the existing aura; protection is evaluated when damage arrives.
+    public void ShieldEnemies() => GetComponent<ShieldSupportAbility>()?.ShieldEnemies();
+}
 }

@@ -55,7 +55,7 @@ public static class PlacedTowerInspectionValidation {
         Check(Hand.SelectedCard==null&&Inspection.InspectedTower==null&&!Ring.enabled,"Successful placement never automatically inspects its newly placed Tower");return slot.Occupant;
     }
     private static void AssertRing(Tower tower){
-        var line=Ring;float range=tower.EffectiveAttackRange;var center=tower.transform.position;
+        var line=Ring;float range=tower.AttackRange;var center=tower.transform.position;
         Check(Inspection.InspectedTower==tower&&line.enabled&&line.loop&&line.positionCount==96&&line.useWorldSpace,"One reused world-space ring belongs to the inspected runtime Tower");
         Check(Enumerable.Range(0,line.positionCount).All(i=>Mathf.Abs(PlanarSpace.SqrDistance(center,line.GetPosition(i),WaypointPlane.XY)-range*range)<.003f&&Mathf.Abs(line.GetPosition(i).z-center.z)<.001f),"Every circle vertex matches actual effective XY targeting radius");
         var average=Enumerable.Range(0,line.positionCount).Select(line.GetPosition).Aggregate(Vector3.zero,(sum,p)=>sum+p)/line.positionCount;
@@ -125,9 +125,9 @@ public static class PlacedTowerInspectionValidation {
             case -1:probe=UiFactory.Button(GameObject.Find("Canvas").transform,"Inspection UI Probe",Vector2.zero,()=>invoked++,size:new Vector2(120,60));Next(0);break;
             case 0:Core();Next(1);break;
             case 1:
-                Check(a.EffectiveAttackRange==4.25f,"Runtime range accessor reflects changed cloned definition");AssertRing(a);
-                var enemy=Find<EnemySpawner>().Spawn(Find<TopDownInteractionSandbox>().TestStage.Enemy);enemy.Movement.Stop();enemy.transform.position=a.transform.position+Vector3.right*a.EffectiveAttackRange+Vector3.forward*9;
-                Check(a.Definition.Targeting.Select(a.transform.position,a.EffectiveAttackRange,new[]{enemy},WaypointPlane.XY)==enemy,"Displayed circle shares inclusive XY targeting boundary, ignoring visual Z");enemy.transform.position+=Vector3.right*.05f;Check(a.Definition.Targeting.Select(a.transform.position,a.EffectiveAttackRange,new[]{enemy},WaypointPlane.XY)==null,"Target outside the displayed runtime radius remains ineligible");UnityEngine.Object.DestroyImmediate(enemy.gameObject);
+                Check(a.AttackRange==4.25f,"Runtime range accessor reflects changed cloned definition");AssertRing(a);
+                var enemy=Find<EnemySpawner>().Spawn(Find<TopDownInteractionSandbox>().TestStage.Enemy);enemy.Movement.Stop();enemy.transform.position=a.transform.position+Vector3.right*a.AttackRange+Vector3.forward*9;
+                Check(a.Definition.Targeting.Select(a.transform.position,a.AttackRange,new[]{enemy},WaypointPlane.XY)==enemy,"Displayed circle shares inclusive XY targeting boundary, ignoring visual Z");enemy.transform.position+=Vector3.right*.05f;Check(a.Definition.Targeting.Select(a.transform.position,a.AttackRange,new[]{enemy},WaypointPlane.XY)==null,"Target outside the displayed runtime radius remains ineligible");UnityEngine.Object.DestroyImmediate(enemy.gameObject);
                 a.transform.position=originalPosition;a.Initialize(original,Registry);UnityEngine.Object.DestroyImmediate(clone);clone=null;Inspection.InspectTower(b);b.enabled=false;Next(2);break;
             case 2:Check(Inspection.InspectedTower==null&&!Ring.enabled,"Actual LateUpdate clears disabled Tower inspection");b.enabled=true;Inspection.InspectTower(b);UnityEngine.Object.Destroy(b.gameObject);Next(3);break;
             case 3:

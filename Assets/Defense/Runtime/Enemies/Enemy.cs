@@ -12,10 +12,6 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     private int baseDamage;
     private bool active;
     private EnemyRoleAbility roleAbility;
-    private Enemy combatParent;
-    public Enemy CombatBody => combatParent != null ? combatParent : this;
-    public virtual Enemy SelectCombatTarget() => this;
-    public virtual bool IsCombatTarget => true;
     protected virtual int HealthLayerCount => 1;
     protected virtual void OnCombatInitialized(EnemyHealth health) { }
     protected virtual void OnCombatRetired() { }
@@ -30,7 +26,7 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     public void TakeDamage(int amount) => ReceiveDamage(amount);
     public EnemyDefinition Definition { get; private set; }
     public int ResourceReward { get; private set; }
-    public EnemyPathFollower Movement => combatParent != null ? combatParent.Movement : movement;
+    public EnemyPathFollower Movement => movement;
     // Observers can bind presentation without introducing visual concerns into enemy behavior.
     public event Action<EnemyDefinition> Initialized;
     public event Action<Enemy> Died;
@@ -68,26 +64,14 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
         if (IsAlive && amount > 0 && !float.IsNaN(amount) && !float.IsInfinity(amount))
             health.ReceiveDamage(bypassShield ? amount : registry.ResolveDamage(this,amount));
     }
+    // Keep the hit and its effect on the same damage recipient.
+    public virtual void ReceiveStatusDamage(float amount, Action<TargetStatusEffects> applyEffect) {
+        ReceiveDamage(amount);
+        if (IsAlive) applyEffect?.Invoke(StatusEffects.State);
+    }
     public virtual void ReceiveSplashDamage(float amount) {
         if (IsAlive && amount > 0 && !float.IsNaN(amount) && !float.IsInfinity(amount))
             health.ReceiveSplashDamage(registry.ResolveDamage(this,amount));
-    }
-    // A Corn target owns combat state but never drives movement, waves or rewards.
-    internal void InitializeCombatTarget(Enemy body, float maximumHealth) {
-        combatParent = body; registry = body.Registry; Definition = body.Definition;
-        health = GetComponent<EnemyHealth>();
-        GetComponent<EnemyPathFollower>().enabled = false;
-        health.Initialize(maximumHealth);
-        health.Depleted += Die;
-        active = true; IsDead = false;
-        registry.RegisterCombatTarget(this);
-    }
-    internal void RetireCombatTarget() {
-        active = false;
-        IsDead = health != null && health.Current <= 0;
-        var effects = GetComponent<EnemyStatusEffects>();
-        if(effects != null) effects.Clear();
-        if(registry != null) registry.UnregisterCombatTarget(this);
     }
     protected virtual void OnCombatDeath() { }
     public EnemyStatusEffects StatusEffects {
@@ -95,11 +79,6 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     }
     protected virtual void Die() {
         if (!active) return;
-        if(combatParent != null) {
-            RetireCombatTarget();
-            Died?.Invoke(this);
-            return;
-        }
         IsDead = true;
         GameAudio.PlayEnemyNoHp();
         OnCombatDeath();

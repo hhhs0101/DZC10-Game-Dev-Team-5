@@ -141,8 +141,8 @@ public sealed class TurretPlacementController : MonoBehaviour {
         if (!flow.IsPlaying || selected == null || !GetComponent<GameplayHand>().CanPlace(selected)) return false;
         if (slot == null || (pointer2D != null && !pointer2D.Map.PlayableArea.Contains(slot.PlacementPoint.position))) return Fail("You cannot place a turret here.");
         if (slot.IsOccupied) return Fail("A turret is already placed here.");
-        if (selected.Prefab == null || selected.Targeting == null) {
-            Debug.LogError("Selected turret requires a prefab and targeting strategy.", this); return false;
+        if (selected.Prefab == null || (selected.Prefab is AttackerTower && selected.Targeting == null)) {
+            Debug.LogError("Selected tower requires a prefab; damage towers also require a targeting strategy.", this); return false;
         }
         var hand = GetComponent<GameplayHand>();
         var card = hand.SelectedCard;

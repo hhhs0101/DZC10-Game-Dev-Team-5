@@ -1,6 +1,6 @@
 namespace Defense {
 // Shared lifecycle, movement and damage stay in Enemy. Each generation is defined by data.
-public sealed class DeathSplitEnemy : BasicEnemy {
+public sealed class DeathSplitEnemy : Enemy {
     protected override void OnCombatDeath() {
         base.OnCombatDeath();
         var next = Definition.DeathSplitChild;

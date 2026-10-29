@@ -42,10 +42,10 @@ public sealed class PlacedTowerInspectionController : MonoBehaviour {
     private void LateUpdate() => RefreshIndicator();
     public void RefreshIndicator() {
         if (rangeIndicator == null || !flow.IsPlaying || hand.SelectedCard != null || InspectedTower == null ||
-            !InspectedTower.isActiveAndEnabled || InspectedTower.EffectiveAttackRange <= 0) {
+            !InspectedTower.isActiveAndEnabled || InspectedTower.AttackRange <= 0) {
             ClearInspection(); return;
         }
-        rangeIndicator.Show(InspectedTower.transform.position,InspectedTower.EffectiveAttackRange,rangeColor,WaypointPlane.XY);
+        rangeIndicator.Show(InspectedTower.transform.position,InspectedTower.AttackRange,rangeColor,WaypointPlane.XY);
     }
     private void OnStateChanged(GameplayState state) { if (state != GameplayState.Playing) ClearInspection(); }
     private void OnDisable() {

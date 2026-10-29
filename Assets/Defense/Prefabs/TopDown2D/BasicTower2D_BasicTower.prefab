@@ -142,9 +142,6 @@ PrefabInstance:
       addedObject: {fileID: 2061435135399564034}
     - targetCorrespondingSourceObject: {fileID: 1536779246117762019, guid: d350a8c8cdd94449a8829694e4f590ac, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 5345432297330332184}
-    - targetCorrespondingSourceObject: {fileID: 1536779246117762019, guid: d350a8c8cdd94449a8829694e4f590ac, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 1613084441942162486}
   m_SourcePrefab: {fileID: 100100000, guid: d350a8c8cdd94449a8829694e4f590ac, type: 3}
 --- !u!4 &4783318350989945194 stripped
@@ -169,19 +166,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed79cec8e60147f3b719d54d0aabb935, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Defense.BasicTower
-  attack: {fileID: 5345432297330332184}
---- !u!114 &5345432297330332184
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4975119807642607292}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c228b6526dffa477da68be352d15b90f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Defense.DirectDamageAttack
 --- !u!114 &1613084441942162486
 MonoBehaviour:
   m_ObjectHideFlags: 0

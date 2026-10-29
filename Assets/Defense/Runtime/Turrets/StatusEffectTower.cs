@@ -1,10 +1,15 @@
-using UnityEngine;
 namespace Defense {
-public abstract class StatusEffectTower : Tower {
-    protected override void PerformAttack(Enemy target, float damage) {
-        target.ReceiveDamage(damage);
-        if(target.IsAlive) ApplyStatusEffect(target,damage);
+public abstract class StatusEffectTower : AttackerTower {
+    private readonly object statusToken = new object();
+    protected object StatusToken => statusToken;
+    protected override void OnInitialized() {
+        base.OnInitialized();
+        SetDamageAction(DealDamage);
     }
-    protected abstract void ApplyStatusEffect(Enemy target, float damage);
+    private void DealDamage(Enemy target, float damage) {
+        // ClusterEnemy keeps the hit and effect on the same section, even on a lethal hit.
+        target.ReceiveStatusDamage(damage, effects => ApplyEffect(effects,damage));
+    }
+    protected abstract void ApplyEffect(TargetStatusEffects effects, float damage);
 }
 }
