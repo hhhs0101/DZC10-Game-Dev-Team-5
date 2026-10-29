@@ -29,15 +29,26 @@ public static class CornCombatValidation {
             var bodyObject = new GameObject("Corn"); bodyObject.transform.SetParent(root.transform,false);
             var body = bodyObject.AddComponent<ClusterEnemy>();
             body.Initialize(data,path,null,registry);
+            var healthView = bodyObject.AddComponent<EnemyHealthBar>();
+            void CheckIndependentBars() {
+                var fills=(RectTransform[])typeof(EnemyHealthBar).GetField("fills",BindingFlags.NonPublic|BindingFlags.Instance).GetValue(healthView);
+                Check(fills.Length==5,"Corn must display five distinct HP bars, not one aggregate bar.");
+                for(int i=0;i<5;i++)
+                    Near(fills[i].anchorMax.x,body.Targets[i].CurrentHealth/body.Targets[i].MaximumHealth,
+                        "Each visible bar must show only its own section health.");
+            }
+            CheckIndependentBars();
             // Public damage entry points must dispatch to ClusterEnemy through base/interface references.
             IDamageable damageable = body;
             Enemy actor = body;
             damageable.ReceiveDamage(7);
             Near(body.Targets[0].CurrentHealth,targetHp-7,"Interface damage reaches the first target.");
             Near(body.Targets[1].CurrentHealth,targetHp,"Direct body damage leaves siblings untouched.");
+            CheckIndependentBars();
             actor.ReceiveSplashDamage(3);
             Near(body.Targets[0].CurrentHealth,targetHp-10,"Base-reference splash hits the first target once.");
             Near(body.Targets[1].CurrentHealth,targetHp-3,"Base-reference splash reaches siblings.");
+            CheckIndependentBars();
             var oldTarget = body.Targets[0];
             body.Initialize(data,path,null,registry);
             oldTarget.ReceiveDamage(1000);
@@ -64,6 +75,7 @@ public static class CornCombatValidation {
             parts[1].StatusEffects.ApplyBurn(new object(),3,10);
             parts[1].StatusEffects.Advance(1);
             Near(parts[1].CurrentHealth,targetHp-10,"Burn must stay on the chosen target.");
+            CheckIndependentBars();
             Near(parts[0].CurrentHealth,targetHp,"Burn must not affect siblings.");
             var sameSource = new object();
             parts[0].StatusEffects.ApplySlow(sameSource,.5f,1);
@@ -93,12 +105,14 @@ public static class CornCombatValidation {
             Near(parts[0].CurrentHealth,targetHp-6,"Ketchup must damage the first survivor once.");
             Near(parts[3].CurrentHealth,targetHp-6,"Ketchup must damage every survivor once.");
             Near(parts[4].CurrentHealth,targetHp-6,"Ketchup must damage the last survivor once.");
-            Near(body.CurrentHealth,3*(targetHp-6),"Aggregate UI must match independent target health.");
+            Near(body.CurrentHealth,3*(targetHp-6),"Body health must equal the sum of the independent sections.");
+            CheckIndependentBars();
             int deaths = 0; body.Died += enemy => deaths++;
             Set(towerData,"damage",100f); tower.Attack(body);
             Check(deaths == 1 && !body.IsAlive && registry.AliveEnemyCount == 0,
                 "Last targets dying together must produce one body death and clear the body registry.");
             body.ReceiveSplashDamage(1000); Check(deaths == 1,"Repeated damage must not repeat rewards/death.");
+            Check(!healthView.IsVisible,"All bars hide when all sections are destroyed.");
             body.Initialize(data,path,null,registry);
             Check(registry.AliveEnemyCount == 1,"Reinitialization must replace old sections.");
             parts = body.Targets;
