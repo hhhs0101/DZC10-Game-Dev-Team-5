@@ -1,5 +1,5 @@
 namespace Defense {
-public sealed class BasicTower : AttackerTower {
+public sealed class BasicTower : AttackTower {
     protected override void OnInitialized() {
         base.OnInitialized();
         SetDamageAction(DealDamage);

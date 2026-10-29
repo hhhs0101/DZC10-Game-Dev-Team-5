@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 namespace Defense {
-public sealed class SplashTower : AttackerTower {
+public sealed class SplashTower : AttackTower {
     protected override void OnInitialized() {
         base.OnInitialized();
         SetDamageAction(DealSplashDamage);

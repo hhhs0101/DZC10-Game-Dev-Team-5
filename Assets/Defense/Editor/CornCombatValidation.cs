@@ -25,6 +25,10 @@ public static class CornCombatValidation {
             path.Configure(WaypointPlane.XZ,new[]{a.transform,b.transform});
             var data = AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/Defense/Data/Enemies/Veggies/CornEnemy.asset");
             Check(data != null && data.Health == 40 && data.SplitCount == 5,"Corn balance must remain 5 x 40 HP.");
+            foreach(var name in new[]{"ReceiveDamage","ReceivePiercingDamage","ReceiveSplashDamage","ReceiveStatusDamage"}) {
+                var method = typeof(ClusterEnemy).GetMethod(name,BindingFlags.Public|BindingFlags.Instance);
+                Check(method != null && method.DeclaringType == typeof(Enemy),"Corn must inherit " + name + " without overriding it.");
+            }
             float targetHp = data.Health;
             var body = UnityEngine.Object.Instantiate(data.Prefab,root.transform) as ClusterEnemy;
             Check(body != null,"The shipped Corn prefab must use ClusterEnemy.");
@@ -38,6 +42,8 @@ public static class CornCombatValidation {
                 typeof(EnemyHealthBar).GetMethod("LateUpdate",BindingFlags.NonPublic|BindingFlags.Instance).Invoke(healthView,null);
                 for(int i=0;i<5;i++) {
                     var row = (RectTransform)fills[i].parent;
+                    Check(row.gameObject.activeInHierarchy && row.GetComponent<UnityEngine.UI.Outline>() != null,
+                        "All five section frames remain visible, including empty sections.");
                     Check(row.rect.width > 0 && row.rect.height > 0,"Each Corn bar must have visible dimensions.");
                     for(int j=0;j<i;j++) {
                         var other = (RectTransform)fills[j].parent;
@@ -60,6 +66,16 @@ public static class CornCombatValidation {
             Near(body.Targets[0].CurrentHealth,targetHp-10,"Base-reference splash hits the first target once.");
             Near(body.Targets[1].CurrentHealth,targetHp-3,"Base-reference splash reaches siblings.");
             CheckIndependentBars();
+            var fiftyHp = UnityEngine.Object.Instantiate(data); temporary.Add(fiftyHp);
+            Set(fiftyHp,"health",50f);
+            body.Initialize(fiftyHp,path,null,registry);
+            actor.ReceiveSplashDamage(20);
+            foreach(var section in body.Targets) Near(section.CurrentHealth,30,"50 HP minus 20 splash must leave EVERY bar at 30.");
+            actor.ReceivePiercingDamage(30);
+            Near(body.Targets[0].CurrentHealth,0,"Piercing affects one living section.");
+            Near(body.Targets[1].CurrentHealth,30,"Piercing must leave sibling sections unchanged.");
+            CheckIndependentBars();
+            body.Initialize(data,path,null,registry);
             var oldTarget = body.Targets[0];
             body.Initialize(data,path,null,registry);
             oldTarget.ReceiveDamage(1000);
@@ -104,12 +120,31 @@ public static class CornCombatValidation {
             var towerData = ScriptableObject.CreateInstance<TurretDefinition>(); temporary.Add(towerData);
             Set(towerData,"targeting",targeting); Set(towerData,"attackRange",100f);
             Set(towerData,"towerType",TowerType.Ketchup); Set(towerData,"damage",6f);
-            AttackerTower tower = null;
-            void UseTower<T>() where T : AttackerTower {
+            AttackTower tower = null;
+            void UseTower<T>() where T : AttackTower {
                 if (tower != null) UnityEngine.Object.DestroyImmediate(tower.gameObject);
                 var towerObject = new GameObject(typeof(T).Name); towerObject.transform.SetParent(root.transform,false);
                 tower = towerObject.AddComponent<T>(); tower.Initialize(towerData,registry);
             }
+            var ordinaryData = UnityEngine.Object.Instantiate(data); temporary.Add(ordinaryData);
+            Set(ordinaryData,"health",50f); Set(ordinaryData,"role",EnemyRole.Basic);
+            var ordinary = new List<BasicEnemy>();
+            for(int i=0;i<5;i++) {
+                var go = new GameObject("Splash victim " + i); go.transform.SetParent(root.transform,false);
+                var victim = go.AddComponent<BasicEnemy>(); victim.Initialize(ordinaryData,path,null,registry);
+                ordinary.Add(victim);
+            }
+            Set(towerData,"damage",20f); Set(towerData,"splashRadius",100f);
+            UseTower<SplashTower>(); tower.Attack(ordinary[0]);
+            foreach(var victim in ordinary) {
+                Near(victim.CurrentHealth,30,"Every ordinary enemy in the splash area receives the full 20 damage.");
+                Check(victim.GetComponent<EnemyHealth>().LayerCount == 1,"Ordinary enemies retain one health pool.");
+                UnityEngine.Object.DestroyImmediate(victim.gameObject);
+            }
+            // Restore the earlier three-survivor fixture for the remaining assertions.
+            body.Initialize(data,path,null,registry);
+            body.Targets[1].ReceiveDamage(1000); body.Targets[2].ReceiveDamage(1000);
+            Set(towerData,"damage",6f);
             UseTower<SplashTower>();
             Check(tower.FindTarget() == body,"Towers target the cluster body, never individual sections.");
             tower.Attack(body);
@@ -172,7 +207,7 @@ public static class CornCombatValidation {
             body.ReceiveSplashDamage(5);
             Near(body.Targets[1].CurrentHealth,targetHp-16,"Section splash uses shield reduction once.");
             Near(body.Targets[0].CurrentHealth,targetHp-2,"Body splash applies shield reduction once to each living section.");
-            shield.ReceiveDamage(10,true);
+            shield.ReceivePiercingDamage(10);
             Near(shield.CurrentHealth,targetHp-10,"Ordinary target damage still reaches enemy health.");
             UnityEngine.Object.DestroyImmediate(shieldObject);
             Check(registry.AliveEnemyCount == 1,"Destroyed ordinary enemies leave only the cluster in the registry.");

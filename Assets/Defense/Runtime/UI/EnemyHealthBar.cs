@@ -39,6 +39,10 @@ public sealed class EnemyHealthBar : MonoBehaviour {
         if(viewCamera != null) bar.transform.rotation = viewCamera.transform.rotation;
         if (health.LayerCount > 1 && appearance != null && appearance.sprite != null) {
             // Keep each miniature bar over a different part of the visible corn artwork.
+            var canvas = bar.GetComponent<Canvas>();
+            canvas.overrideSorting = true;
+            canvas.sortingLayerID = appearance.sortingLayerID;
+            canvas.sortingOrder = Mathf.Max(sortingOrder,appearance.sortingOrder+1);
             var bounds = appearance.bounds;
             bar.transform.position = bounds.center;
             var scale = bar.transform.lossyScale;
@@ -50,7 +54,7 @@ public sealed class EnemyHealthBar : MonoBehaviour {
                 row.anchorMin = row.anchorMax = new Vector2(.5f,.5f);
                 row.pivot = new Vector2(.5f,.5f);
                 row.anchoredPosition = new Vector2((point.x-.5f)*bounds.size.x/sx,(point.y-.5f)*bounds.size.y/sy);
-                row.sizeDelta = new Vector2(bounds.size.x*.30f/sx,Mathf.Max(.035f,bounds.size.y*.045f)/sy);
+                row.sizeDelta = new Vector2(bounds.size.x*.30f/sx,Mathf.Max(.055f,bounds.size.y*.045f)/sy);
             }
         } else bar.transform.localPosition = offset;
     }
@@ -71,6 +75,13 @@ public sealed class EnemyHealthBar : MonoBehaviour {
                 row.pivot = new Vector2(.5f,1);
                 row.sizeDelta = new Vector2(size.x*100,rowHeight);
                 row.anchoredPosition = new Vector2(0,-i*(rowHeight+3));
+                if(count > 1) {
+                    row.GetComponent<Image>().color = new Color(.12f,.12f,.12f,1);
+                    var outline = row.gameObject.AddComponent<Outline>();
+                    outline.effectColor = new Color(.95f,.95f,.95f,1);
+                    outline.effectDistance = new Vector2(1.5f,-1.5f);
+                    outline.useGraphicAlpha = false;
+                }
                 fills[i] = CreateImage("Fill",row,fillColor);
             }
         }

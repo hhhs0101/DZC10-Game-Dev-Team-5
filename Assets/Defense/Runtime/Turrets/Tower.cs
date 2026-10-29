@@ -5,6 +5,9 @@ public class Tower : MonoBehaviour, IDamageable {
     private EnemyRegistry registry;
     private TowerPlacementSlot placedSlot;
     private TowerLifetime lifetime;
+    private float cooldown;
+    public float range => definition != null ? definition.AttackRange : 0;
+    public int energyCost { get; private set; }
     public float CurrentHealth { get; private set; }
     public float MaximumHealth => definition != null ? definition.MaximumHealth : 0;
     public bool IsDisrupted => AttackDisabled;
@@ -12,7 +15,7 @@ public class Tower : MonoBehaviour, IDamageable {
     public TurretDefinition Definition => definition;
     public AttackDisableStatus AttackStatus { get; } = new AttackDisableStatus();
     public bool AttackDisabled => AttackStatus.IsDisabled;
-    public float AttackRange => definition != null ? definition.AttackRange : 0;
+    public float AttackRange => range;
     internal EnemyRegistry CombatRegistry => registry;
     public event System.Action<float,float> HealthChanged;
     public event System.Action<TurretDefinition> Initialized;
@@ -28,16 +31,23 @@ public class Tower : MonoBehaviour, IDamageable {
     }
     public void StartLifetime(TowerPlacementSlot slot, GameFlow flow, float energyCost) {
         placedSlot = slot;
+        this.energyCost = Mathf.Max(0,Mathf.RoundToInt(energyCost));
         lifetime = gameObject.AddComponent<TowerLifetime>();
         lifetime.Initialize(this, slot, flow, energyCost);
     }
     public void Initialize(TurretDefinition data, EnemyRegistry enemies) {
         definition = data; registry = enemies; AttackStatus.Clear();
         CurrentHealth = data.MaximumHealth;
+        cooldown = 0; energyCost = 0;
         OnInitialized();
         Initialized?.Invoke(data); HealthChanged?.Invoke(CurrentHealth,MaximumHealth);
     }
     protected virtual void OnInitialized() { }
+    protected bool AdvanceCooldown(float deltaTime) {
+        cooldown = Mathf.Max(0,cooldown-deltaTime);
+        return cooldown <= 0;
+    }
+    protected void ResetCooldown(float seconds = 0) => cooldown = Mathf.Max(0,seconds);
     protected bool CanAct {
         get {
             if(!isActiveAndEnabled || CurrentHealth <= 0 || AttackDisabled || definition == null || registry == null) return false;

@@ -22,6 +22,13 @@ public static class TowerHierarchyValidation {
     [MenuItem("Defense/Validate Tower Hierarchy")]
     public static void Run() {
         if(EditorApplication.isPlaying) throw new InvalidOperationException("Run in Edit Mode.");
+        var privateFields=System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.DeclaredOnly;
+        if(typeof(Tower).GetField("cooldown",privateFields)==null || typeof(AttackTower).GetField("cooldown",privateFields)!=null)
+            throw new Exception("Tower must own the shared cooldown.");
+        if(typeof(Tower).GetProperty("range")==null || typeof(Tower).GetProperty("energyCost")==null)
+            throw new Exception("Tower must expose range and energyCost.");
+        if(typeof(SupportTower).GetMethod("BoostDamageNearbyTower")==null)
+            throw new Exception("SupportTower must expose BoostDamageNearbyTower.");
         int count=0;
         foreach(var guid in AssetDatabase.FindAssets("t:TurretDefinition",new[]{"Assets/Defense/Data"})) {
             var data=AssetDatabase.LoadAssetAtPath<TurretDefinition>(AssetDatabase.GUIDToAssetPath(guid));
@@ -49,7 +56,7 @@ public static class TowerHierarchyValidation {
             var shield=child("Shield").AddComponent<BasicEnemy>();shield.Initialize(shieldData,path,null,registry);
             var tower=UnityEngine.Object.Instantiate(data.Prefab,root.transform);tower.Initialize(data,registry);
             int events=0;tower.Attacked+=e=>events++;
-            var damageTower=tower as AttackerTower;
+            var damageTower=tower as AttackTower;
             var supportTower=tower as SupportTower;
             tower.AttackStatus.Apply(new object(),10);
             if(damageTower!=null)damageTower.Attack(victim);else supportTower.AdvanceSupport(data.CleanseInterval);
@@ -72,7 +79,7 @@ public static class TowerHierarchyValidation {
             if(damageTower != null) {
                 // Verify the shared damage-tower cadence after extracting it from Tower.
                 damageTower.Initialize(data,registry);
-                var tick=typeof(AttackerTower).GetMethod("AdvanceBehavior",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance);
+                var tick=typeof(AttackTower).GetMethod("AdvanceBehavior",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance);
                 int before=events;
                 damageTower.AttackStatus.Apply(new object(),100);
                 tick.Invoke(damageTower,new object[]{data.AttackCooldown+1f});
@@ -91,7 +98,7 @@ public static class TowerHierarchyValidation {
             }
             if(data.TowerType==TowerType.Mayonnaise) {
                 var otherData=AssetDatabase.LoadAssetAtPath<TurretDefinition>("Assets/Defense/Data/TestTurret6.asset");
-                var other=(AttackerTower)UnityEngine.Object.Instantiate(otherData.Prefab,root.transform);other.Initialize(otherData,registry);
+                var other=(AttackTower)UnityEngine.Object.Instantiate(otherData.Prefab,root.transform);other.Initialize(otherData,registry);
                 child("Support slot").AddComponent<TowerPlacementSlot>().TryOccupy(tower);
                 child("Target slot").AddComponent<TowerPlacementSlot>().TryOccupy(other);
                 Near(other.FinalDamage,otherData.Damage*data.DamageBoost,"Support multiplier");
@@ -118,11 +125,11 @@ public static class TowerHierarchyValidation {
                 passiveTick.Invoke(passive,new object[]{10f});
                 Near(victim.CurrentHealth,beforePassive,"Concrete Tower is passive");
                 Near(passiveEvents,0,"Concrete Tower emits no attack pulse");
-                var plain=child("Plain Attacker").AddComponent<AttackerTower>();plain.Initialize(data,registry);
+                var plain=child("Plain Attacker").AddComponent<AttackTower>();plain.Initialize(data,registry);
                 int plainEvents=0;plain.Attacked+=e=>plainEvents++;
                 float beforePlain=victim.CurrentHealth;
                 plain.Attack(victim);
-                Near(victim.CurrentHealth,beforePlain-data.Damage*.4f,"Concrete AttackerTower defaults to direct damage");
+                Near(victim.CurrentHealth,beforePlain-data.Damage*.4f,"Concrete AttackTower defaults to direct damage");
                 plain.Initialize(data,registry);
                 plain.Attack(victim);
                 Near(victim.CurrentHealth,beforePlain-2*data.Damage*.4f,"Reinitialization replaces rather than stacks callbacks");

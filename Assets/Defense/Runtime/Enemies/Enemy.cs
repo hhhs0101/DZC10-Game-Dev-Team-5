@@ -12,7 +12,8 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     private int baseDamage;
     private bool active;
     private EnemyRoleAbility roleAbility;
-    protected virtual int HealthLayerCount => 1;
+    private Action<float> damageHandler, piercingHandler, splashHandler;
+    private Action<float,Action<TargetStatusEffects>> statusHandler;
     protected virtual void OnCombatInitialized(EnemyHealth health) { }
     protected virtual void OnCombatRetired() { }
     public bool IsAlive => active && isActiveAndEnabled && health.Current > 0;
@@ -23,7 +24,6 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     public bool CanSplit { get; internal set; } = true;
     public EnemyRegistry Registry => registry;
     public Vector2 GetPosition() => transform.position;
-    public void TakeDamage(int amount) => ReceiveDamage(amount);
     public EnemyDefinition Definition { get; private set; }
     public int ResourceReward { get; private set; }
     public EnemyPathFollower Movement => movement;
@@ -43,7 +43,7 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
         health = GetComponent<EnemyHealth>(); movement = GetComponent<EnemyPathFollower>();
         registry = enemies; baseTarget = target; baseDamage = data.BaseDamage;
         Definition = data; ResourceReward = data.ResourceReward;
-        health.Initialize(data.Health, HealthLayerCount);
+        health.Initialize(data.Health);
         health.Depleted += Die;
         movement.ReachedEnd += ReachBase;
         movement.EnteredTunnel += OnEnteredTunnel;
@@ -54,24 +54,32 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
         IsDead = false;
         SetVisualVisibility(true);
         active = true;
+        SetDamageHandlers(HandleDamage,HandlePiercingDamage,HandleDamage,HandleStatusDamage);
         OnCombatInitialized(health);
         Initialized?.Invoke(data); registry.Register(this);
         roleAbility = EnemyRoleAbility.Configure(this,data,registry,roleAbility);
         if(!data.HasConfiguredBaseDamage) Debug.LogWarning(data.DisplayName+": endpoint damage is not configured (design says 'tower health'); Base arrival retires safely without damage or a kill reward.",this);
     }
-    public void ReceiveDamage(float amount) => ReceiveDamage(amount,false);
-    public virtual void ReceiveDamage(float amount, bool bypassShield) {
-        if (IsAlive && amount > 0 && !float.IsNaN(amount) && !float.IsInfinity(amount))
-            health.ReceiveDamage(bypassShield ? amount : registry.ResolveDamage(this,amount));
+    protected void SetDamageHandlers(Action<float> direct, Action<float> piercing,
+        Action<float> splash, Action<float,Action<TargetStatusEffects>> status) {
+        damageHandler = direct ?? throw new ArgumentNullException(nameof(direct));
+        piercingHandler = piercing ?? throw new ArgumentNullException(nameof(piercing));
+        splashHandler = splash ?? throw new ArgumentNullException(nameof(splash));
+        statusHandler = status ?? throw new ArgumentNullException(nameof(status));
     }
-    // Keep the hit and its effect on the same damage recipient.
-    public virtual void ReceiveStatusDamage(float amount, Action<TargetStatusEffects> applyEffect) {
-        ReceiveDamage(amount);
+    private bool CanReceive(float amount) => IsAlive && amount > 0 && !float.IsNaN(amount) && !float.IsInfinity(amount);
+    public void ReceiveDamage(float amount) { if (CanReceive(amount)) damageHandler(amount); }
+    public void ReceivePiercingDamage(float amount) { if (CanReceive(amount)) piercingHandler(amount); }
+    public void ReceiveSplashDamage(float amount) { if (CanReceive(amount)) splashHandler(amount); }
+    public void ReceiveStatusDamage(float amount, Action<TargetStatusEffects> applyEffect) {
+        if (IsAlive && amount >= 0 && !float.IsNaN(amount) && !float.IsInfinity(amount))
+            statusHandler(amount,applyEffect);
+    }
+    private void HandleDamage(float amount) => health.ReceiveDamage(registry.ResolveDamage(this,amount));
+    private void HandlePiercingDamage(float amount) => health.ReceiveDamage(amount);
+    private void HandleStatusDamage(float amount, Action<TargetStatusEffects> applyEffect) {
+        if (amount > 0) HandleDamage(amount);
         if (IsAlive) applyEffect?.Invoke(StatusEffects.State);
-    }
-    public virtual void ReceiveSplashDamage(float amount) {
-        if (IsAlive && amount > 0 && !float.IsNaN(amount) && !float.IsInfinity(amount))
-            health.ReceiveSplashDamage(registry.ResolveDamage(this,amount));
     }
     protected virtual void OnCombatDeath() { }
     public EnemyStatusEffects StatusEffects {

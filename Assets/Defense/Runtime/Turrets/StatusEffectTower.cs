@@ -1,5 +1,5 @@
 namespace Defense {
-public abstract class StatusEffectTower : AttackerTower {
+public abstract class StatusEffectTower : AttackTower {
     private readonly object statusToken = new object();
     protected object StatusToken => statusToken;
     protected override void OnInitialized() {
@@ -8,8 +8,8 @@ public abstract class StatusEffectTower : AttackerTower {
     }
     private void DealDamage(Enemy target, float damage) {
         // ClusterEnemy keeps the hit and effect on the same section, even on a lethal hit.
-        target.ReceiveStatusDamage(damage, effects => ApplyEffect(effects,damage));
+        target.ReceiveStatusDamage(damage, effects => ApplyStatusEffect(effects,damage));
     }
-    protected abstract void ApplyEffect(TargetStatusEffects effects, float damage);
+    protected abstract void ApplyStatusEffect(TargetStatusEffects target, float damage);
 }
 }

@@ -8,7 +8,6 @@ public sealed class ClusterEnemy : Enemy {
     private EnemyHealth bodyHealth;
     private bool targetsActive;
     public IReadOnlyList<CornTarget> Targets => targets;
-    protected override int HealthLayerCount => Definition.SplitCount;
 
     private CornTarget FirstLivingTarget() {
         if (!targetsActive || !IsAlive) return null;
@@ -21,25 +20,29 @@ public sealed class ClusterEnemy : Enemy {
         OnCombatRetired();
         targets.Clear();
         bodyHealth = health;
+        health.Initialize(Definition.Health,Definition.SplitCount);
         targetsActive = true;
         for (int i = 0; i < health.LayerCount; i++) {
             var target = new CornTarget(this, i, health.LayerMaximum);
             targets.Add(target);
         }
+        SetDamageHandlers(DamageFirstTarget,PierceFirstTarget,DamageAllTargets,DamageAndApplyEffect);
     }
 
-    public override void ReceiveDamage(float amount, bool bypassShield) {
-        FirstLivingTarget()?.ReceiveDamage(amount, bypassShield);
+    private void DamageFirstTarget(float amount) {
+        FirstLivingTarget()?.ReceiveDamage(amount);
     }
 
-    public override void ReceiveStatusDamage(float amount, Action<TargetStatusEffects> applyEffect) {
+    private void PierceFirstTarget(float amount) => FirstLivingTarget()?.ReceiveDamage(amount,true);
+
+    private void DamageAndApplyEffect(float amount, Action<TargetStatusEffects> applyEffect) {
         var section = FirstLivingTarget();
         if (section == null) return;
         section.ReceiveDamage(amount);
         if (section.IsAlive) applyEffect?.Invoke(section.StatusEffects);
     }
 
-    public override void ReceiveSplashDamage(float amount) {
+    private void DamageAllTargets(float amount) {
         if (!targetsActive || !IsAlive) return;
         foreach (var target in targets)
             if (target.IsAlive) target.ReceiveDamage(amount);

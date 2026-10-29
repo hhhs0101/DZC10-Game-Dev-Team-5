@@ -66,25 +66,25 @@ public static class EnemyRolesValidation {
         ((ShieldSupportEnemy)pepper).ShieldEnemies(); // Refreshes must not stack protection.
         carrot.ReceiveDamage(50);Near(carrot.CurrentHealth,83.75f,"67.5% absorption");pepper.ReceiveDamage(50);Near(pepper.CurrentHealth,145.75f,"Shield includes itself");
         Spawn("BellPepper",Vector3.zero);carrot.ReceiveDamage(50);Near(carrot.CurrentHealth,67.5f,"Overlapping shields do not compound");
-        carrot.ReceiveDamage(10,true);Near(carrot.CurrentHealth,57.5f,"Piercing bypasses shield");
+        carrot.ReceivePiercingDamage(10);Near(carrot.CurrentHealth,57.5f,"Piercing bypasses shield");
         carrot.transform.position=Vector3.right*10;carrot.ReceiveDamage(10);Near(carrot.CurrentHealth,47.5f,"Outside aura receives full damage");
     }
     private static void TestTowers() {
         var a=Spawn("Carrot",Vector3.zero);var b=Spawn("Carrot",Vector3.right);var c=Spawn("Eggplant",Vector3.right*8);
-        var ketchup=(AttackerTower)Tower(11,Vector3.up);float damage=ketchup.FinalDamage;
+        var ketchup=(AttackTower)Tower(11,Vector3.up);float damage=ketchup.FinalDamage;
         ketchup.Attack(a);Near(a.CurrentHealth,100-damage,"Ketchup target damage");Near(b.CurrentHealth,100-damage,"Ketchup splash damage");Near(c.CurrentHealth,150,"Splash excludes distant enemy");
-        var pepper=Spawn("BellPepper",Vector3.zero);var mustard=(AttackerTower)Tower(9,Vector3.up);
+        var pepper=Spawn("BellPepper",Vector3.zero);var mustard=(AttackTower)Tower(9,Vector3.up);
         mustard.Attack(pepper);Near(pepper.CurrentHealth,pepper.MaximumHealth-mustard.FinalDamage,"Mustard bypasses Bell Pepper");
         UnityEngine.Object.DestroyImmediate(pepper.gameObject);
-        var hot=(AttackerTower)Tower(3,Vector3.up);float direct=hot.FinalDamage, burn=hot.Definition.BurnDamagePerSecond, duration=hot.Definition.BurnDuration;
+        var hot=(AttackTower)Tower(3,Vector3.up);float direct=hot.FinalDamage, burn=hot.Definition.BurnDamagePerSecond, duration=hot.Definition.BurnDuration;
         hot.Attack(c);Near(c.CurrentHealth,150-direct,"Hot Sauce direct damage");
         UnityEngine.Object.DestroyImmediate(hot.gameObject);c.transform.position=Vector3.right*30;
         flow.TogglePause();c.StatusEffects.Advance(2);Near(c.CurrentHealth,150-direct,"Burn pauses");flow.TogglePause();
         c.StatusEffects.Advance(duration);Near(c.CurrentHealth,Mathf.Max(0,150-direct-burn*duration),"Burn persists after tower destruction and leaving range");
         float afterBurn=c.CurrentHealth;c.StatusEffects.Advance(duration);Near(c.CurrentHealth,afterBurn,"Burn expires");
-        var oil=(AttackerTower)Tower(2,Vector3.up);oil.Attack(a);Near(a.Movement.EffectiveMovementSpeed,2*.85f*oil.Definition.SlowMultiplier,"Oil slow");
+        var oil=(AttackTower)Tower(2,Vector3.up);oil.Attack(a);Near(a.Movement.EffectiveMovementSpeed,2*.85f*oil.Definition.SlowMultiplier,"Oil slow");
         a.StatusEffects.Advance(oil.Definition.SlowDuration);Near(a.Movement.EffectiveMovementSpeed,2*.85f,"Oil slow expires");
-        var salt=(AttackerTower)Tower(6,Vector3.zero);var mayo=(SupportTower)Tower(10,Vector3.right);
+        var salt=(AttackTower)Tower(6,Vector3.zero);var mayo=(SupportTower)Tower(10,Vector3.right);
         Near(salt.FinalDamage,salt.Definition.Damage*mayo.Definition.DamageBoost,"Mayonnaise damage boost");salt.AttackStatus.Apply(new object(),30);
         mayo.AdvanceSupport(4);Check(salt.AttackDisabled,"No early cleanse");mayo.AdvanceSupport(1);Check(!salt.AttackDisabled,"Five-second cleanse");
         UnityEngine.Object.DestroyImmediate(mayo.gameObject);Near(salt.FinalDamage,salt.Definition.Damage,"Removing Mayonnaise removes buff");
