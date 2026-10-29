@@ -130,9 +130,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 6484565693216944927}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea5b5e5b30e74301b0b5115cc379e776, type: 3}
+  m_Script: {fileID: 11500000, guid: d797e7c0fd7a4b33bdb350b1b70d05f7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Defense.BossEnemy
+  m_EditorClassIdentifier: Assembly-CSharp::Defense.SummoningEnemy
 --- !u!58 &1699329270045324249
 CircleCollider2D:
   m_ObjectHideFlags: 0

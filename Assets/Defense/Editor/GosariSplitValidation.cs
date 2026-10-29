@@ -82,8 +82,8 @@ public static class GosariSplitValidation {
   }
   Reset(parentData);var cancellable=enemies.Enemies.Single();UnityEngine.Object.DestroyImmediate(cancellable.gameObject);Check(enemies.AliveEnemyCount==0,"Scene cleanup/destruction does not trigger splitting");
   Reset(parentData);var beforePause=enemies.Enemies.Single();flow.TogglePause();Check(!spawner.CanSpawn&&enemies.AliveEnemyCount==1,"Pause does not create children");flow.TogglePause();
-  var originalBoss=Asset<EnemyDefinition>("Data/Enemies/BossEnemy.asset");Check(originalBoss.Prefab is BossEnemy,"Existing periodic-summon boss prefab remains unchanged");
-  UnityEngine.Object.DestroyImmediate(beforePause.gameObject);var broccoli=(BossEnemy)spawner.Spawn(originalBoss);broccoli.Movement.enabled=false;broccoli.AdvanceAbilities(originalBoss.SummonInterval);
+  var originalBoss=Asset<EnemyDefinition>("Data/Enemies/BossEnemy.asset");Check(originalBoss.Prefab is SummoningEnemy,"Existing periodic-summon boss uses SummoningEnemy");
+  UnityEngine.Object.DestroyImmediate(beforePause.gameObject);var broccoli=(SummoningEnemy)spawner.Spawn(originalBoss);broccoli.Movement.enabled=false;broccoli.AdvanceAbilities(originalBoss.SummonInterval);
   Check(enemies.AliveEnemyCount==1+originalBoss.SummonCount,"Existing Broccoli summon behavior still works");
   var napaData=Asset<EnemyDefinition>("Data/Enemies/BaechuBoss.asset");
   Check(napaData.Prefab.GetType()==typeof(BasicEnemy)&&napaData.Role==EnemyRole.Basic&&napaData.Health==2000,"Napa is basic with original HP");

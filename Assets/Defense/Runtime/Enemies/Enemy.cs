@@ -13,9 +13,12 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     private bool active;
     private EnemyRoleAbility roleAbility;
     private Enemy combatParent;
-    private CornTargets cornTargets;
     public Enemy CombatBody => combatParent != null ? combatParent : this;
-    public Enemy SelectCombatTarget() => cornTargets != null ? cornTargets.FirstLivingTarget : this;
+    public virtual Enemy SelectCombatTarget() => this;
+    public virtual bool IsCombatTarget => true;
+    protected virtual int HealthLayerCount => 1;
+    protected virtual void OnCombatInitialized(EnemyHealth health) { }
+    protected virtual void OnCombatRetired() { }
     public bool IsAlive => active && isActiveAndEnabled && health.Current > 0;
     public bool IsDead { get; private set; }
     public float CurrentHealth => health != null ? health.Current : 0;
@@ -44,7 +47,7 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
         health = GetComponent<EnemyHealth>(); movement = GetComponent<EnemyPathFollower>();
         registry = enemies; baseTarget = target; baseDamage = data.BaseDamage;
         Definition = data; ResourceReward = data.ResourceReward;
-        health.Initialize(data.Health, data.VegetableType == VegetableType.Corn ? data.SplitCount : 1);
+        health.Initialize(data.Health, HealthLayerCount);
         health.Depleted += Die;
         movement.ReachedEnd += ReachBase;
         movement.EnteredTunnel += OnEnteredTunnel;
@@ -55,24 +58,17 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
         IsDead = false;
         SetVisualVisibility(true);
         active = true;
-        if(data.VegetableType == VegetableType.Corn) {
-            cornTargets = GetComponent<CornTargets>();
-            if(cornTargets == null) cornTargets = gameObject.AddComponent<CornTargets>();
-            cornTargets.Initialize(this, health);
-        }
-        else cornTargets = null;
+        OnCombatInitialized(health);
         Initialized?.Invoke(data); registry.Register(this);
         roleAbility = EnemyRoleAbility.Configure(this,data,registry,roleAbility);
         if(!data.HasConfiguredBaseDamage) Debug.LogWarning(data.DisplayName+": endpoint damage is not configured (design says 'tower health'); Base arrival retires safely without damage or a kill reward.",this);
     }
     public void ReceiveDamage(float amount) => ReceiveDamage(amount,false);
-    public void ReceiveDamage(float amount, bool bypassShield) {
-        if(cornTargets != null) { cornTargets.ReceiveDamage(amount,bypassShield); return; }
+    public virtual void ReceiveDamage(float amount, bool bypassShield) {
         if (IsAlive && amount > 0 && !float.IsNaN(amount) && !float.IsInfinity(amount))
             health.ReceiveDamage(bypassShield ? amount : registry.ResolveDamage(this,amount));
     }
-    public void ReceiveSplashDamage(float amount) {
-        if(cornTargets != null) { cornTargets.ReceiveSplashDamage(amount); return; }
+    public virtual void ReceiveSplashDamage(float amount) {
         if (IsAlive && amount > 0 && !float.IsNaN(amount) && !float.IsInfinity(amount))
             health.ReceiveSplashDamage(registry.ResolveDamage(this,amount));
     }
@@ -144,7 +140,7 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     }
     private void RetireCombat() {
         active = false;
-        if(cornTargets != null) cornTargets.Retire();
+        OnCombatRetired();
         if (roleAbility != null) roleAbility.Shutdown();
         var effects = GetComponent<EnemyStatusEffects>();
         if (effects != null) effects.Clear();

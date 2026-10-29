@@ -49,7 +49,7 @@ public static class EnemyRolesValidation {
             Set(spawner,"path",path);Set(spawner,"registry",registry);Set(spawner,"flow",flow);Set(spawner,"baseHealth",health);Set(spawner,"enemyRoot",root.transform);
             Check(Asset<EnemyDefinitionCatalog>("Resources/EnemyDefinitionCatalog.asset").TryBuildLookup(out var lookup,out var error),"Catalog: "+error);
             Check(lookup.ContainsKey("enemy_bellpepper")&&lookup.ContainsKey("enemy_corn"),"New enemy IDs registered");
-            TestAuras();ClearActors();TestTowers();ClearActors();TestSplit();ClearActors();TestBoss();ClearActors();TestDisruption();ClearActors();TestCosts();ClearActors();TestVictory();
+            TestAuras();ClearActors();TestTowers();ClearActors();TestMultiple();ClearActors();TestBoss();ClearActors();TestDisruption();ClearActors();TestCosts();ClearActors();TestVictory();
             Debug.Log("COMBAT VALIDATION PASSED: "+checks+" checks. No persistent player state used.");
         } finally {
             ClearActors();UnityEngine.Object.DestroyImmediate(root);SceneManager.UnloadSceneAsync(scene);
@@ -87,19 +87,24 @@ public static class EnemyRolesValidation {
         mayo.AdvanceSupport(4);Check(salt.AttackDisabled,"No early cleanse");mayo.AdvanceSupport(1);Check(!salt.AttackDisabled,"Five-second cleanse");
         UnityEngine.Object.DestroyImmediate(mayo.gameObject);Near(salt.EffectiveDamage,salt.Definition.Damage,"Removing Mayonnaise removes buff");
     }
-    private static void TestSplit() {
+    private static void TestMultiple() {
         int kills=0;spawner.EnemyDefeated+=OnKill;
         void OnKill(Enemy enemy) { kills++; }
-        var corn=Spawn("Corn",Vector3.right*40);Check(corn is SplitEnemy,"Actual split subclass");
-        corn.ReceiveDamage(100);Check(registry.AliveEnemyCount==5,"Death spawns exactly five children");
-        foreach(var child in registry.Enemies.ToArray()) {
-            Near(child.transform.position.x,40,"Split preserves position");Check(child.Movement.NextWaypoint==corn.Movement.NextWaypoint,"Split preserves path progress");
-            child.ReceiveDamage(100);
+        var corn=Spawn("Corn",Vector3.right*40) as ClusterEnemy;
+        Check(corn!=null,"Actual ClusterEnemy subclass");
+        Check(corn.Targets.Count==5&&registry.AliveEnemyCount==1,"Five sections belong to one moving enemy");
+        foreach(var target in corn.Targets) {
+            Near(target.transform.position.x,40,"Sections share the body position");
+            Check(target.Movement==corn.Movement,"Sections share body movement");
         }
-        Check(registry.AliveEnemyCount==0,"Children do not split recursively");Check(kills==1,"Children do not farm kill rewards");spawner.EnemyDefeated-=OnKill;
+        corn.ReceiveDamage(1000);
+        Check(registry.AliveEnemyCount==1&&registry.CombatTargets.Count==4,"Direct damage kills only one section");
+        corn.ReceiveSplashDamage(1000);
+        Check(registry.AliveEnemyCount==0&&registry.CombatTargets.Count==0,"Final sections retire the body without spawning children");
+        Check(kills==1,"Sections award only one body kill");spawner.EnemyDefeated-=OnKill;
     }
     private static void TestBoss() {
-        var boss=Spawn("Broccoli",Vector3.zero) as BossEnemy;Check(boss!=null,"Actual BossEnemy subclass");
+        var boss=Spawn("Broccoli",Vector3.zero) as SummoningEnemy;Check(boss!=null,"Actual SummoningEnemy subclass");
         var tower=Tower(6,Vector3.right);var slot=tower.GetComponentInParent<TowerPlacementSlot>();
         boss.AdvanceAbilities(4);Check(registry.AliveEnemyCount==1,"Summons wait five seconds");
         flow.TogglePause();boss.AdvanceAbilities(10);Check(registry.AliveEnemyCount==1,"Boss pauses");flow.TogglePause();
@@ -128,9 +133,9 @@ public static class EnemyRolesValidation {
         victory.Initialize(flow,schedule,registry,Asset<StageDefinition>("Data/Stage1_1.asset"),null,()=>completed=true);
         Check(schedule.IsFinishedSpawning&&!victory.EvaluateClear(),"Living scheduled enemy blocks Victory");
         registry.Enemies.Single().ReceiveDamage(100);
-        Check(registry.AliveEnemyCount==5&&!victory.EvaluateClear(),"Split children block premature Victory");
-        foreach(var child in registry.Enemies.ToArray())child.ReceiveDamage(100);
-        Check(victory.EvaluateClear()&&completed&&flow.State==GameplayState.Victory,"Victory after final child dies");
+        Check(registry.AliveEnemyCount==1&&registry.CombatTargets.Count==4&&!victory.EvaluateClear(),"Surviving sections block premature Victory");
+        registry.Enemies.Single().ReceiveSplashDamage(1000);
+        Check(victory.EvaluateClear()&&completed&&flow.State==GameplayState.Victory,"Victory after final section dies");
         Check(!victory.EvaluateClear(),"Victory processes only once");
     }
     private static void TestCosts() {

@@ -29,7 +29,7 @@ public sealed class EnemyRegistry : MonoBehaviour {
     public void Register(Enemy enemy) {
         if (enemies.Contains(enemy)) return;
         enemies.Add(enemy);
-        if(enemy.Definition == null || enemy.Definition.VegetableType != VegetableType.Corn) RegisterCombatTarget(enemy);
+        if(enemy.IsCombatTarget) RegisterCombatTarget(enemy);
         Registered?.Invoke(enemy);
     }
     public void Unregister(Enemy enemy) { UnregisterCombatTarget(enemy); if (enemies.Remove(enemy)) Unregistered?.Invoke(enemy); }

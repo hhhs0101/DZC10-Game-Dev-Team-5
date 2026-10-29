@@ -26,9 +26,21 @@ public static class CornCombatValidation {
             Check(data != null && data.Health == 40 && data.SplitCount == 5,"Corn balance must remain 5 x 40 HP.");
             float targetHp = data.Health;
             var bodyObject = new GameObject("Corn"); bodyObject.transform.SetParent(root.transform,false);
-            var body = bodyObject.AddComponent<BasicEnemy>();
+            var body = bodyObject.AddComponent<ClusterEnemy>();
             body.Initialize(data,path,null,registry);
-            var parts = body.GetComponent<CornTargets>().Targets;
+            // Public damage entry points must dispatch to ClusterEnemy through base/interface references.
+            IDamageable damageable = body;
+            Enemy actor = body;
+            damageable.ReceiveDamage(7);
+            Near(body.Targets[0].CurrentHealth,targetHp-7,"Interface damage reaches the first target.");
+            Near(body.Targets[1].CurrentHealth,targetHp,"Direct body damage leaves siblings untouched.");
+            actor.ReceiveSplashDamage(3);
+            Near(body.Targets[0].CurrentHealth,targetHp-10,"Base-reference splash hits the first target once.");
+            Near(body.Targets[1].CurrentHealth,targetHp-3,"Base-reference splash reaches siblings.");
+            body.Initialize(data,path,null,registry);
+            Check(registry.CombatTargets.Count == 5 && registry.AliveEnemyCount == 1,
+                "Reinitializing a living body must replace targets without duplicate registry entries.");
+            var parts = body.Targets;
             Check(parts.Count == 5 && registry.CombatTargets.Count == 5 && registry.AliveEnemyCount == 1,
                 "Five combat targets must count as one spawned body.");
             Check(!System.Linq.Enumerable.Contains(registry.CombatTargets,body),"The body must not be a sixth target.");
@@ -76,7 +88,7 @@ public static class CornCombatValidation {
             body.ReceiveSplashDamage(1000); Check(deaths == 1,"Repeated damage must not repeat rewards/death.");
             body.Initialize(data,path,null,registry);
             Check(registry.CombatTargets.Count == 5 && registry.AliveEnemyCount == 1,"Reinitialization must replace old combat targets.");
-            parts = body.GetComponent<CornTargets>().Targets;
+            parts = body.Targets;
             Set(towerData,"towerType",TowerType.HotSauce); Set(towerData,"damage",2f);
             Set(towerData,"burnDamagePerSecond",3f); Set(towerData,"burnDuration",4f);
             tower.Attack(body);
@@ -89,6 +101,16 @@ public static class CornCombatValidation {
             Near(parts[1].CurrentHealth,targetHp,"Hot Sauce burn must stop with its target.");
             bodyObject.SetActive(false);
             Check(registry.CombatTargets.Count == 0 && registry.AliveEnemyCount == 0,"Disabling a body must remove every target.");
+            // ClusterEnemy owns the behavior regardless of vegetable identity.
+            var genericData = UnityEngine.Object.Instantiate(data); temporary.Add(genericData);
+            Set(genericData,"vegetableType",VegetableType.Other);
+            bodyObject.SetActive(true);
+            body.Initialize(genericData,path,null,registry);
+            Check(body.Targets.Count == 5 && registry.CombatTargets.Count == 5,
+                "ClusterEnemy must create sections without a Corn vegetable flag.");
+            UnityEngine.Object.DestroyImmediate(bodyObject);
+            Check(registry.CombatTargets.Count == 0 && registry.AliveEnemyCount == 0,
+                "Destroying a living ClusterEnemy must retire all sections.");
             Debug.Log("CORN COMBAT VALIDATION PASSED");
         } finally {
             UnityEngine.Object.DestroyImmediate(root);

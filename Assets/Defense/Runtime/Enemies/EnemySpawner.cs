@@ -50,7 +50,7 @@ public sealed class EnemySpawner : MonoBehaviour {
         sameDivergeStreak = 0;
     }
     private static bool IsBoss(EnemyDefinition definition) =>
-        definition != null && (definition.Role == EnemyRole.Boss || definition.VegetableType == VegetableType.Broccoli || (definition.Prefab != null && definition.Prefab is BossEnemy));
+        definition != null && (definition.Role == EnemyRole.Boss || definition.VegetableType == VegetableType.Broccoli);
     private bool ShouldUseDivergingRoute(EnemyDefinition definition) {
         if (IsBoss(definition)) return false;
         if (divergingEntryPath == null || divergingEntryPath.Count < 2 || divergingExitPath == null || divergingExitPath.Count < 2)
