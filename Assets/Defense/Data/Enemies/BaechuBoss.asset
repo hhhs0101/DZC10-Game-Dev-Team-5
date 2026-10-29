@@ -15,12 +15,12 @@ MonoBehaviour:
   enemyTypeId: enemy_baechu
   displayName: Napa Cabbage King
   sprite: {fileID: 21300000, guid: fc0744791a514790b43707618a634b8a, type: 3}
-  prefab: {fileID: 7971707257215467551, guid: 31c315c7eb8d40518f18bd7b9727f557, type: 3}
+  prefab: {fileID: 7971707257215467551, guid: 0217afcb4ee24febb9faf9bbd09f0583, type: 3}
   health: 2000
   movementSpeed: 0.35
   baseDamage: 400
   baseDamageUnconfigured: 0
-  role: 4
+  role: 0
   supportArea: 3
   speedIncrease: 1.5
   shieldValue: 0.6

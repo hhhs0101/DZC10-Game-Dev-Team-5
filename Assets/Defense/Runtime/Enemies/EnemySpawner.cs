@@ -141,7 +141,8 @@ public sealed class EnemySpawner : MonoBehaviour {
         enemy.Died -= OnEnemyDied;
         EnemyDefeated?.Invoke(enemy);
     }
-    private Enemy ActorPrefab(EnemyDefinition definition) => definition.Prefab.GetType() != typeof(BasicEnemy)
+    // Napa uses its authored BasicEnemy prefab, even when a scene supplies a boss fallback.
+    private Enemy ActorPrefab(EnemyDefinition definition) => definition.EnemyTypeId == "enemy_baechu" || definition.Prefab.GetType() != typeof(BasicEnemy)
         ? definition.Prefab : (spritePrefab != null ? spritePrefab : definition.Prefab);
     public Enemy SpawnChild(EnemyDefinition definition, Enemy source, bool canSplit) {
         if(!CanSpawn || definition == null || definition.Prefab == null || source == null || source.Movement.Route == null) return null;

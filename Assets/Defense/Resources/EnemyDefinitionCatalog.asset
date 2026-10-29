@@ -13,8 +13,6 @@ MonoBehaviour:
   m_Name: EnemyDefinitionCatalog
   m_EditorClassIdentifier: Assembly-CSharp::Defense.EnemyDefinitionCatalog
   definitions:
-  - {fileID: 11400000, guid: eb0b88278a2634de99b89f63c750d1f6, type: 2}
-  - {fileID: 11400000, guid: e6ab2636e70be4ada8e2a9ec90a420a3, type: 2}
   - {fileID: 11400000, guid: d65badab72abf430386c0740d5a7f3aa, type: 2}
   - {fileID: 11400000, guid: a8249a29896264bbbb11fbff60143421, type: 2}
   - {fileID: 11400000, guid: 0f8ff68745e9e47459e1147f74c8f9a5, type: 2}

@@ -85,7 +85,15 @@ public static class GosariSplitValidation {
   var originalBoss=Asset<EnemyDefinition>("Data/Enemies/BossEnemy.asset");Check(originalBoss.Prefab is BossEnemy,"Existing periodic-summon boss prefab remains unchanged");
   UnityEngine.Object.DestroyImmediate(beforePause.gameObject);var broccoli=(BossEnemy)spawner.Spawn(originalBoss);broccoli.Movement.enabled=false;broccoli.AdvanceAbilities(originalBoss.SummonInterval);
   Check(enemies.AliveEnemyCount==1+originalBoss.SummonCount,"Existing Broccoli summon behavior still works");
-  Check(Asset<EnemyDefinition>("Data/Enemies/BaechuBoss.asset").Prefab is BossEnemy&&Asset<EnemyDefinition>("Data/Enemies/DorajiBoss.asset").Prefab is BossEnemy,"Other stage boss actors remain unchanged");
+  var napaData=Asset<EnemyDefinition>("Data/Enemies/BaechuBoss.asset");
+  Check(napaData.Prefab.GetType()==typeof(BasicEnemy)&&napaData.Role==EnemyRole.Basic&&napaData.Health==2000,"Napa is basic with original HP");
+  var napa=spawner.Spawn(napaData);napa.Movement.enabled=false;
+  Check(napa.GetType()==typeof(BasicEnemy)&&napa.CurrentHealth==2000,"Napa does not use the scene boss fallback");
+  var dorajiData=Asset<EnemyDefinition>("Data/Enemies/DorajiBoss.asset");
+  Check(dorajiData.Prefab is SummoningEnemy&&dorajiData.Health==4000,"Doraji uses SummoningEnemy and original HP");
+  var doraji=spawner.Spawn(dorajiData) as SummoningEnemy;doraji.Movement.enabled=false;
+  int beforeSummon=enemies.AliveEnemyCount;doraji.AdvanceAbilities(dorajiData.SummonInterval);
+  Check(enemies.AliveEnemyCount==beforeSummon+dorajiData.SummonCount,"Doraji retains periodic summoning");
  }
  static void Tick(){if(!SessionState.GetBool(Key,false))return;try{if(EditorApplication.timeSinceStartup-started>45)throw new Exception("Gosari validation timed out");if(!EditorApplication.isPlaying||EditorApplication.isCompiling)return;if(frame<0){frame=Time.frameCount;return;}if(Time.frameCount-frame<3)return;Test();Finish(true);}catch(Exception exception){Finish(false,exception.ToString());}}
  static void Log(string message,string trace,LogType type){if(trace.Contains("UnityEditor.Search.SearchDatabase")&&!trace.Contains("Defense."))return;if(type==LogType.Error||type==LogType.Exception||type==LogType.Assert)Finish(false,message+"\n"+trace);}

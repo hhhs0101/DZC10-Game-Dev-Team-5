@@ -40,7 +40,7 @@ public static class SupportSpawnGroupValidation {
                 float time=0;int bosses=0;
                 foreach(var spawn in plan.Events) {
                     time+=spawn.Delay;
-                    if(spawn.Enemy.VegetableType==VegetableType.Broccoli) { bosses++;Check(Mathf.Abs(time-150f)<.01f,"Boss arrival remains at 150 seconds"); }
+                    if(spawn.Enemy.EnemyTypeId=="enemy_doraji") { bosses++;Check(Mathf.Abs(time-150f)<.01f,"Boss arrival remains at 150 seconds"); }
                 }
                 Check(bosses==1,"Exactly one scheduled boss");
             }
@@ -84,7 +84,7 @@ public static class SupportSpawnGroupValidation {
                     UnityEngine.Object.DestroyImmediate(follower.gameObject);UnityEngine.Object.DestroyImmediate(garlic.gameObject);
                 }
                 Check(seen.Count==2,"Groups can use either route");
-                var boss=spawner.Spawn(lookup["enemy_broccoli"],"fixture_0");Check(boss.Movement.Route==main,"Boss stays on main route");UnityEngine.Object.DestroyImmediate(boss.gameObject);
+                var boss=spawner.Spawn(lookup["enemy_doraji"],"fixture_0");Check(boss.Movement.Route==main,"Boss stays on main route");UnityEngine.Object.DestroyImmediate(boss.gameObject);
             }
             Set(spawner,"branchPaths",new[]{main});
             spawner.ConfigureDivergingRoute(left,exit,3);
