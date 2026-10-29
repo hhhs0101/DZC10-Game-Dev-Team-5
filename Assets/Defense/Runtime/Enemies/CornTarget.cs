@@ -1,32 +1,24 @@
-using UnityEngine;
 namespace Defense {
-// Plain section state: no Enemy inheritance, GameObject, movement, or reward lifecycle.
-public sealed class CornTarget {
-    private readonly ClusterEnemy owner;
-    private bool active = true;
-    public int Index { get; }
-    public float CurrentHealth { get; private set; }
-    public float MaximumHealth { get; }
-    public bool IsAlive => active && owner != null && owner.IsAlive && CurrentHealth > 0;
-    public TargetStatusEffects StatusEffects { get; }
+// A child enemy with one health pool. All four damage methods are inherited from Enemy.
+public sealed class CornTarget : Enemy {
+    private ClusterEnemy owner;
+    private EnemyHealth sectionHealth;
+    public int index { get; private set; }
 
-    internal CornTarget(ClusterEnemy body, int index, float maximumHealth) {
-        owner = body; Index = index;
-        CurrentHealth = MaximumHealth = maximumHealth;
-        StatusEffects = new TargetStatusEffects(body, () => IsAlive, amount => ReceiveDamage(amount));
+    internal void InitializeSection(ClusterEnemy body, int index, float maximumHealth) {
+        owner = body; this.index = index;
+        InitializeOwnedTarget(body,maximumHealth);
+        sectionHealth = GetComponent<EnemyHealth>();
+        sectionHealth.Changed += OnHealthChanged;
     }
-
-    public void ReceiveDamage(float amount, bool bypassShield = false) {
-        if (!IsAlive || amount <= 0 || float.IsNaN(amount) || float.IsInfinity(amount)) return;
-        float resolved = owner.ResolveSectionDamage(amount, bypassShield);
-        CurrentHealth = Mathf.Max(0, CurrentHealth - resolved);
-        if (CurrentHealth <= 0) Retire();
-        owner.SectionHealthChanged(this);
-    }
-
+    private void OnHealthChanged(float current, float maximum) => owner.SectionHealthChanged(this);
     internal void Retire() {
-        active = false;
-        StatusEffects.Clear();
+        if (sectionHealth != null) sectionHealth.Changed -= OnHealthChanged;
+        RetireOwnedTarget();
+    }
+    protected override void OnDestroy() {
+        if (sectionHealth != null) sectionHealth.Changed -= OnHealthChanged;
+        base.OnDestroy();
     }
 }
 }

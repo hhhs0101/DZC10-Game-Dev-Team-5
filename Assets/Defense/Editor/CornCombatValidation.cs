@@ -29,6 +29,8 @@ public static class CornCombatValidation {
                 var method = typeof(ClusterEnemy).GetMethod(name,BindingFlags.Public|BindingFlags.Instance);
                 Check(method != null && method.DeclaringType == typeof(Enemy),"Corn must inherit " + name + " without overriding it.");
             }
+            foreach(var name in new[]{"ReceiveDamage","ReceivePiercingDamage","ReceiveSplashDamage","ReceiveStatusDamage"})
+                Check(typeof(CornTarget).GetMethod(name).DeclaringType == typeof(Enemy),"CornTarget must inherit " + name + " from Enemy.");
             float targetHp = data.Health;
             var body = UnityEngine.Object.Instantiate(data.Prefab,root.transform) as ClusterEnemy;
             Check(body != null,"The shipped Corn prefab must use ClusterEnemy.");
@@ -88,12 +90,18 @@ public static class CornCombatValidation {
             Check(parts.Count == 5 && registry.AliveEnemyCount == 1,
                 "Five sections must count as one spawned body.");
             Check(registry.Enemies[0] == body,"Only the body is registered for targeting and wave counting.");
-            Check(body.GetComponentsInChildren<Enemy>().Length == 1 && body.GetComponentsInChildren<EnemyPathFollower>().Length == 1,
-                "A cluster has one enemy actor and one movement component, with no section GameObjects.");
+            Check(body.GetComponentsInChildren<Enemy>().Length == 6 && body.GetComponentsInChildren<EnemyPathFollower>().Length == 1,
+                "A cluster has five child enemies but only one movement component.");
+            int sectionDeaths = 0;
+            foreach(var part in parts) {
+                Check(ReferenceEquals(part.Movement,body.Movement),"Child targets share the cluster movement.");
+                Check(part.ResourceReward == 0,"Child targets cannot grant rewards.");
+                part.Died += ignored => sectionDeaths++;
+            }
             body.Movement.Advance(1);
             foreach(var part in parts) {
-                Check(!typeof(Enemy).IsAssignableFrom(typeof(CornTarget)) && !typeof(Component).IsAssignableFrom(typeof(CornTarget)),
-                    "Sections must be plain objects, not enemy actors or Unity components.");
+                Check(typeof(Enemy).IsAssignableFrom(typeof(CornTarget)) && typeof(Component).IsAssignableFrom(typeof(CornTarget)),
+                    "Corn targets inherit Enemy and share the body movement.");
             }
             parts[1].ReceiveDamage(7);
             Near(parts[1].CurrentHealth,targetHp-7,"Chosen target must receive direct damage.");
@@ -116,6 +124,7 @@ public static class CornCombatValidation {
             parts[1].ReceiveDamage(1000);
             parts[1].StatusEffects.Advance(10);
             Near(parts[0].CurrentHealth,targetHp,"Burn on a dead target must never jump to a sibling.");
+            Check(sectionDeaths == 0,"Section death must not emit independent reward events.");
             var targeting = ScriptableObject.CreateInstance<ClosestTargeting>(); temporary.Add(targeting);
             var towerData = ScriptableObject.CreateInstance<TurretDefinition>(); temporary.Add(towerData);
             Set(towerData,"targeting",targeting); Set(towerData,"attackRange",100f);
@@ -202,7 +211,7 @@ public static class CornCombatValidation {
             var addressed = body.Targets[1];
             addressed.ReceiveDamage(10);
             Near(body.Targets[1].CurrentHealth,targetHp-4,"Shields reduce addressed section damage.");
-            addressed.ReceiveDamage(10,true);
+            addressed.ReceivePiercingDamage(10);
             Near(body.Targets[1].CurrentHealth,targetHp-14,"Piercing bypasses section shields.");
             body.ReceiveSplashDamage(5);
             Near(body.Targets[1].CurrentHealth,targetHp-16,"Section splash uses shield reduction once.");
@@ -241,18 +250,30 @@ public static class CornCombatValidation {
             UnityEngine.Object.DestroyImmediate(bodyObject);
             Check(registry.AliveEnemyCount == 0,
                 "Destroying a living ClusterEnemy must retire all sections.");
-            // Base arrival belongs to the body, not its sections.
-            var baseHealth = root.AddComponent<BaseHealth>(); baseHealth.Initialize(1000);
-            var endpointObject = new GameObject("Endpoint cluster"); endpointObject.transform.SetParent(root.transform,false);
-            var endpoint = endpointObject.AddComponent<ClusterEnemy>();
-            endpoint.Initialize(data,path,baseHealth,registry);
-            int endpointDeaths = 0; endpoint.Died += enemy => endpointDeaths++;
-            var endpointTarget = endpoint.Targets[0];
-            endpoint.Movement.Advance(10000);
-            Check(baseHealth.Current == 1000-data.BaseDamage && endpointDeaths == 0,
-                "Base arrival damages the base once and gives no combat kill reward.");
-            Check(!endpointTarget.IsAlive && registry.AliveEnemyCount == 0,
-                "Base arrival retires every section and the body.");
+            // Each surviving section contributes a full base hit, even at only 1 HP.
+            var baseHealth = root.AddComponent<BaseHealth>();
+            for(int survivors=0;survivors<=5;survivors++) {
+                baseHealth.Initialize(1000);
+                var endpointObject = new GameObject("Endpoint cluster " + survivors); endpointObject.transform.SetParent(root.transform,false);
+                var endpoint = endpointObject.AddComponent<ClusterEnemy>();
+                endpoint.Initialize(data,path,baseHealth,registry);
+                int endpointDeaths = 0; endpoint.Died += enemy => endpointDeaths++;
+                for(int i=0;i<5-survivors;i++) endpoint.Targets[i].ReceivePiercingDamage(targetHp);
+                for(int i=5-survivors;i<5;i++) endpoint.Targets[i].ReceivePiercingDamage(targetHp-1);
+                endpoint.Movement.Advance(10000);
+                Check(baseHealth.Current == 1000-data.BaseDamage*survivors,
+                    "Soup damage must equal configured damage times living bars, including 1 HP bars.");
+                Check(endpointDeaths == (survivors==0 ? 1 : 0),"Arrival must not add a combat kill reward.");
+                foreach(var section in endpoint.Targets) Check(!section.IsAlive,"Arrival must retire every section.");
+                Check(registry.AliveEnemyCount == 0,"Arrival must unregister the cluster.");
+                UnityEngine.Object.DestroyImmediate(endpointObject);
+            }
+            baseHealth.Initialize(1000);
+            var normalObject = new GameObject("Ordinary endpoint enemy"); normalObject.transform.SetParent(root.transform,false);
+            var normal = normalObject.AddComponent<BasicEnemy>(); normal.Initialize(data,path,baseHealth,registry);
+            normal.Movement.Advance(10000);
+            Check(baseHealth.Current == 1000-data.BaseDamage,"Ordinary enemies still deal one configured base hit.");
+            UnityEngine.Object.DestroyImmediate(normalObject);
             Debug.Log("CORN COMBAT VALIDATION PASSED");
         } finally {
             UnityEngine.Object.DestroyImmediate(root);

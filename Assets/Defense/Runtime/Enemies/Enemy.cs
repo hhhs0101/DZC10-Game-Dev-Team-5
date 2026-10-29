@@ -1,22 +1,25 @@
 using System;
 using UnityEngine;
 namespace Defense {
-[RequireComponent(typeof(EnemyHealth), typeof(EnemyPathFollower))]
+[RequireComponent(typeof(EnemyHealth))]
 public abstract class Enemy : MonoBehaviour, IDamageable {
     public const float DeadSpriteAlpha = 0.4f;
     private static readonly Vector3 TunnelHiddenPosition = new Vector3(0f, -1000f, 0f);
     private EnemyHealth health;
+    private Enemy combatOwner;
+    internal bool HasCombatOwner => combatOwner != null;
     private EnemyPathFollower movement;
     private EnemyRegistry registry;
     private IDamageable baseTarget;
     private int baseDamage;
+    private Func<int> baseDamageHandler;
     private bool active;
     private EnemyRoleAbility roleAbility;
     private Action<float> damageHandler, piercingHandler, splashHandler;
     private Action<float,Action<TargetStatusEffects>> statusHandler;
     protected virtual void OnCombatInitialized(EnemyHealth health) { }
     protected virtual void OnCombatRetired() { }
-    public bool IsAlive => active && isActiveAndEnabled && health.Current > 0;
+    public bool IsAlive => active && isActiveAndEnabled && health != null && health.Current > 0 && (combatOwner == null || combatOwner.IsAlive);
     public bool IsDead { get; private set; }
     public float CurrentHealth => health != null ? health.Current : 0;
     public float MaximumHealth => health != null ? health.Maximum : 0;
@@ -26,12 +29,13 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     public Vector2 GetPosition() => transform.position;
     public EnemyDefinition Definition { get; private set; }
     public int ResourceReward { get; private set; }
-    public EnemyPathFollower Movement => movement;
+    public EnemyPathFollower Movement => combatOwner != null ? combatOwner.Movement : movement;
     // Observers can bind presentation without introducing visual concerns into enemy behavior.
     public event Action<EnemyDefinition> Initialized;
     public event Action<Enemy> Died;
     public void Initialize(EnemyDefinition data, WaypointPath path, IDamageable target, EnemyRegistry enemies, EnemyPathFollower continuation = null) {
         if(active) Retire();
+        combatOwner = null;
         var effects = GetComponent<EnemyStatusEffects>(); if(effects != null) effects.Clear();
         if(health != null) health.Depleted -= Die;
         if(movement != null) {
@@ -40,7 +44,9 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
             movement.EnteredTunnel -= OnEnteredTunnel;
             movement.ExitedTunnel -= OnExitedTunnel;
         }
-        health = GetComponent<EnemyHealth>(); movement = GetComponent<EnemyPathFollower>();
+        health = GetComponent<EnemyHealth>();
+        movement = GetComponent<EnemyPathFollower>();
+        if (movement == null) movement = gameObject.AddComponent<EnemyPathFollower>();
         registry = enemies; baseTarget = target; baseDamage = data.BaseDamage;
         Definition = data; ResourceReward = data.ResourceReward;
         health.Initialize(data.Health);
@@ -54,12 +60,33 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
         IsDead = false;
         SetVisualVisibility(true);
         active = true;
+        baseDamageHandler = () => baseDamage;
         SetDamageHandlers(HandleDamage,HandlePiercingDamage,HandleDamage,HandleStatusDamage);
         OnCombatInitialized(health);
         Initialized?.Invoke(data); registry.Register(this);
         roleAbility = EnemyRoleAbility.Configure(this,data,registry,roleAbility);
         if(!data.HasConfiguredBaseDamage) Debug.LogWarning(data.DisplayName+": endpoint damage is not configured (design says 'tower health'); Base arrival retires safely without damage or a kill reward.",this);
     }
+    // Owned enemy targets share their parent's movement but have independent combat health.
+    // They do not join the spawn registry, endpoint lifecycle, or reward events.
+    protected void InitializeOwnedTarget(Enemy owner, float maximumHealth) {
+        combatOwner = owner;
+        registry = owner.Registry; Definition = owner.Definition;
+        ResourceReward = 0; baseDamage = 0; baseTarget = null;
+        health = GetComponent<EnemyHealth>();
+        health.Depleted -= Die;
+        health.Initialize(maximumHealth);
+        health.Depleted += Die;
+        IsDead = false; active = true;
+        baseDamageHandler = () => 0;
+        SetDamageHandlers(HandleDamage,HandlePiercingDamage,HandleDamage,HandleStatusDamage);
+    }
+    protected void RetireOwnedTarget() {
+        if (health != null && health.Current <= 0) IsDead = true;
+        RetireCombat();
+    }
+    protected void SetBaseDamageHandler(Func<int> handler) =>
+        baseDamageHandler = handler ?? throw new ArgumentNullException(nameof(handler));
     protected void SetDamageHandlers(Action<float> direct, Action<float> piercing,
         Action<float> splash, Action<float,Action<TargetStatusEffects>> status) {
         damageHandler = direct ?? throw new ArgumentNullException(nameof(direct));
@@ -75,7 +102,7 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
         if (IsAlive && amount >= 0 && !float.IsNaN(amount) && !float.IsInfinity(amount))
             statusHandler(amount,applyEffect);
     }
-    private void HandleDamage(float amount) => health.ReceiveDamage(registry.ResolveDamage(this,amount));
+    private void HandleDamage(float amount) => health.ReceiveDamage(registry.ResolveDamage(combatOwner != null ? combatOwner : this,amount));
     private void HandlePiercingDamage(float amount) => health.ReceiveDamage(amount);
     private void HandleStatusDamage(float amount, Action<TargetStatusEffects> applyEffect) {
         if (amount > 0) HandleDamage(amount);
@@ -88,6 +115,7 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     protected virtual void Die() {
         if (!active) return;
         IsDead = true;
+        if (combatOwner != null) { RetireCombat(); return; }
         GameAudio.PlayEnemyNoHp();
         OnCombatDeath();
         RetireCombat();
@@ -96,10 +124,12 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
     }
     private void ReachBase() {
         if (active) {
+            // Capture damage while the actor and any owned targets are still alive.
+            int arrivalDamage = baseDamageHandler();
             GameAudio.PlayEnemyAliveReaching();
             Retire();
             if (Definition != null && Definition.HasConfiguredBaseDamage && baseTarget != null)
-                baseTarget.ReceiveDamage(baseDamage);
+                baseTarget.ReceiveDamage(arrivalDamage);
             Destroy(gameObject);
         } else if (IsDead) {
             GameAudio.PlayEnemyDeadReaching();
@@ -135,7 +165,7 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
             movement.Moved -= OnMoved;
             movement.Modifiers.Clear();
         }
-        if (registry != null) registry.Unregister(this);
+        if (combatOwner == null && registry != null) registry.Unregister(this);
     }
     private void Retire() {
         RetireCombat();
@@ -159,7 +189,7 @@ public abstract class Enemy : MonoBehaviour, IDamageable {
             movement.EnteredTunnel -= OnEnteredTunnel;
             movement.ExitedTunnel -= OnExitedTunnel;
         }
-        if (registry != null) registry.Unregister(this);
+        if (combatOwner == null && registry != null) registry.Unregister(this);
     }
 }
 }

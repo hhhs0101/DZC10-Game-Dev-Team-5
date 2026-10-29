@@ -1,6 +1,6 @@
 using UnityEngine;
 namespace Defense {
-// Unity timer driver for whole enemies. ClusterEnemy drives its sections itself.
+// Whole enemies tick here; a cluster ticks its owned targets exactly once.
 public sealed class EnemyStatusEffects : MonoBehaviour {
     private TargetStatusEffects state;
     public TargetStatusEffects State {
@@ -18,7 +18,10 @@ public sealed class EnemyStatusEffects : MonoBehaviour {
     public void ApplySlow(object source, float multiplier, float seconds) => State.ApplySlow(source,multiplier,seconds);
     public void Advance(float deltaTime) => State.Advance(deltaTime);
     public void Clear() { if (state != null) state.Clear(); }
-    private void Update() => Advance(Time.deltaTime);
+    private void Update() {
+        var owner = GetComponent<Enemy>();
+        if (owner != null && !owner.HasCombatOwner) Advance(Time.deltaTime);
+    }
     private void OnDisable() => Clear();
 }
 }
