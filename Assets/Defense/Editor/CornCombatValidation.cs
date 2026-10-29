@@ -26,16 +26,27 @@ public static class CornCombatValidation {
             var data = AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/Defense/Data/Enemies/Veggies/CornEnemy.asset");
             Check(data != null && data.Health == 40 && data.SplitCount == 5,"Corn balance must remain 5 x 40 HP.");
             float targetHp = data.Health;
-            var bodyObject = new GameObject("Corn"); bodyObject.transform.SetParent(root.transform,false);
-            var body = bodyObject.AddComponent<ClusterEnemy>();
+            var body = UnityEngine.Object.Instantiate(data.Prefab,root.transform) as ClusterEnemy;
+            Check(body != null,"The shipped Corn prefab must use ClusterEnemy.");
+            var bodyObject = body.gameObject;
             body.Initialize(data,path,null,registry);
-            var healthView = bodyObject.AddComponent<EnemyHealthBar>();
+            var healthView = bodyObject.GetComponent<EnemyHealthBar>();
+            Check(healthView != null,"The shipped Corn prefab must include EnemyHealthBar.");
             void CheckIndependentBars() {
                 var fills=(RectTransform[])typeof(EnemyHealthBar).GetField("fills",BindingFlags.NonPublic|BindingFlags.Instance).GetValue(healthView);
                 Check(fills.Length==5,"Corn must display five distinct HP bars, not one aggregate bar.");
-                for(int i=0;i<5;i++)
+                typeof(EnemyHealthBar).GetMethod("LateUpdate",BindingFlags.NonPublic|BindingFlags.Instance).Invoke(healthView,null);
+                for(int i=0;i<5;i++) {
+                    var row = (RectTransform)fills[i].parent;
+                    Check(row.rect.width > 0 && row.rect.height > 0,"Each Corn bar must have visible dimensions.");
+                    for(int j=0;j<i;j++) {
+                        var other = (RectTransform)fills[j].parent;
+                        Check(Vector2.Distance(row.anchoredPosition,other.anchoredPosition) > .01f,
+                            "Corn bars must occupy five separate positions, as in Assets (8).");
+                    }
                     Near(fills[i].anchorMax.x,body.Targets[i].CurrentHealth/body.Targets[i].MaximumHealth,
                         "Each visible bar must show only its own section health.");
+                }
             }
             CheckIndependentBars();
             // Public damage entry points must dispatch to ClusterEnemy through base/interface references.

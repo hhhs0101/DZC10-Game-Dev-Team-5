@@ -130,9 +130,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 6484565693216944927}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8bc0b6787ef54a39b446960f99888671, type: 3}
+  m_Script: {fileID: 11500000, guid: 8ada1901413d6bd4cb205c57232b5779, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Defense.SplitEnemy
+  m_EditorClassIdentifier: Assembly-CSharp::Defense.ClusterEnemy
 --- !u!58 &1699329270045324249
 CircleCollider2D:
   m_ObjectHideFlags: 0
